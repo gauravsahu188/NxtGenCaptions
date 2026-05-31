@@ -1,0 +1,1314 @@
+"use client";
+import React, { useRef, useState, useEffect } from "react";
+import { useCaptionContext } from "../../context/CaptionContext";
+import { RefreshCw, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import ModernCaption from "./ModernCaption";
+
+export default function VideoPlayer() {
+  const { videoUrl, setVideoUrl, setCaptions, currentTime, setCurrentTime, activeCaption, captionStyle, setCaptionStyle, setDuration, isPlaying, setIsPlaying, setOriginalVideoWidth, setOriginalVideoHeight, setAspectRatio } = useCaptionContext();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isSeeking = useRef(false);
+
+  // Sync video element play/pause from context
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (isPlaying) {
+      vid.play().catch(() => setIsPlaying(false));
+    } else {
+      vid.pause();
+    }
+  }, [isPlaying]);
+
+  // Sync video element currentTime when Timeline scrubs
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid || isSeeking.current) return;
+    if (Math.abs(vid.currentTime - currentTime) > 0.3) {
+      vid.currentTime = currentTime;
+    }
+  }, [currentTime]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [resizeMode, setResizeMode] = useState<"none" | "width-left" | "width-right" | "scale-tr" | "scale-br" | "scale-bl" | "scale-tl">("none");
+  const [initialResizeData, setInitialResizeData] = useState({ x: 0, y: 0, width: 0, fontSize: 0, rectWidth: 0 });
+  const [snapLines, setSnapLines] = useState({ x: false, y: false });
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Only drag if the source is the video player wrapper
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+
+    // Client X/Y relative to the container
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    let percentX = (x / rect.width) * 100;
+    let percentY = (y / rect.height) * 100;
+
+    let snappedX = false;
+    let snappedY = false;
+
+    // Smart snap (within 3%)
+    if (Math.abs(percentX - 50) < 3) {
+      percentX = 50;
+      snappedX = true;
+    }
+    if (Math.abs(percentY - 50) < 3) {
+      percentY = 50;
+      snappedY = true;
+    }
+
+    setSnapLines({ x: snappedX, y: snappedY });
+
+    // Clamp
+    percentX = Math.max(0, Math.min(100, percentX));
+    percentY = Math.max(0, Math.min(100, percentY));
+
+    setCaptionStyle(prev => ({
+      ...prev,
+      positionX: Number(percentX.toFixed(1)),
+      positionY: Number(percentY.toFixed(1))
+    }));
+  };
+
+  const handleResizeStart = (e: React.PointerEvent, mode: typeof resizeMode) => {
+    e.stopPropagation();
+    setResizeMode(mode);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setInitialResizeData({ x: e.clientX, y: e.clientY, width: captionStyle.width, fontSize: captionStyle.fontSize, rectWidth: rect.width });
+  };
+
+  const handleResizeMove = (e: React.PointerEvent) => {
+    if (resizeMode === "none" || !containerRef.current) return;
+
+    if (resizeMode.startsWith("width")) {
+      const deltaX = e.clientX - initialResizeData.x;
+      // If right handle, positive delta increases width. If left, negative delta increases width.
+      const sign = resizeMode === "width-right" ? 1 : -1;
+      // Multiply by 2 because it's centered, dragging one side expands both sides
+      const percentDelta = (deltaX / initialResizeData.rectWidth) * 100 * 2 * sign;
+      setCaptionStyle(prev => ({
+        ...prev,
+        width: Math.max(10, Math.min(100, initialResizeData.width + percentDelta))
+      }));
+    } else if (resizeMode.startsWith("scale")) {
+      // Use Y delta for scale (dragging up/out increases, down/in decreases)
+      const deltaY = e.clientY - initialResizeData.y;
+      // If top handles, negative delta increases scale. If bottom handles, positive delta increases scale.
+      const sign = (resizeMode === "scale-tr" || resizeMode === "scale-tl") ? -1 : 1;
+      const scaleFactor = 1 + ((deltaY * sign) / 200);
+      setCaptionStyle(prev => ({
+        ...prev,
+        fontSize: Math.max(10, Math.min(200, initialResizeData.fontSize * scaleFactor))
+      }));
+    }
+  };
+
+  const handleResizeUp = (e: React.PointerEvent) => {
+    setResizeMode("none");
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    setIsDragging(false);
+    setSnapLines({ x: false, y: false });
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
+  const handleReplace = () => {
+    setVideoUrl(null);
+    setCaptions([]);
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      isSeeking.current = true;
+      setCurrentTime(videoRef.current.currentTime);
+      isSeeking.current = false;
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+      if (videoRef.current.videoWidth && videoRef.current.videoHeight) {
+        setOriginalVideoWidth(videoRef.current.videoWidth);
+        setOriginalVideoHeight(videoRef.current.videoHeight);
+        // compute proper aspect ratio class
+        const aspect = videoRef.current.videoWidth / videoRef.current.videoHeight;
+        if (aspect < 0.7) setAspectRatio("9:16");
+        else setAspectRatio("16:9");
+      }
+    }
+  };
+
+  const getTransitionProps = () => {
+    const baseTransition = { type: "spring" as const, stiffness: 300, damping: 20 };
+
+    switch (captionStyle.transitionType) {
+      case "none":
+        return { initial: { opacity: 1 }, animate: { opacity: 1 }, transition: { duration: 0 } };
+      case "fade":
+        return { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.2 } };
+      case "pop":
+        return { initial: { opacity: 0, scale: 0.5 }, animate: { opacity: 1, scale: 1 }, transition: baseTransition };
+      case "zoom":
+        return { initial: { opacity: 0, scale: 1.5 }, animate: { opacity: 1, scale: 1 }, transition: baseTransition };
+      case "scale":
+        return { initial: { opacity: 0, scaleY: 0 }, animate: { opacity: 1, scaleY: 1 }, transition: baseTransition };
+      case "slide-x":
+        return { initial: { opacity: 0, x: -50 }, animate: { opacity: 1, x: 0 }, transition: baseTransition };
+      case "slide-y":
+        return { initial: { opacity: 0, y: 50 }, animate: { opacity: 1, y: 0 }, transition: baseTransition };
+      default:
+        return { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: baseTransition };
+    }
+  };
+
+  const renderStyledText = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+
+    return caption.words.map((wordObj, i) => {
+      // Highlight the word if the current video time is within its start/end boundary
+      const isHighlight = currentTime >= wordObj.start && currentTime <= wordObj.end;
+
+      const wordShadow = captionStyle.dropShadow
+        ? `0px 0px 15px ${isHighlight ? captionStyle.emphasisColor : captionStyle.dropShadowColor}${Math.round(captionStyle.dropShadowOpacity * 2.55).toString(16).padStart(2, '0')}`
+        : 'none';
+
+      const hardShadow = captionStyle.dropShadow
+        ? `2px 2px 0px ${captionStyle.dropShadowColor}${Math.round(captionStyle.dropShadowOpacity * 2.55).toString(16).padStart(2, '0')}`
+        : 'none';
+
+      return (
+        <motion.span
+          key={`${caption.id}-${i}`}
+          animate={{
+            color: isHighlight ? captionStyle.emphasisColor : captionStyle.primaryColor,
+            textShadow: isHighlight ? wordShadow : hardShadow,
+            scale: isHighlight ? 1.05 : 1,
+            y: isHighlight ? -2 : 0,
+          }}
+          transition={{ duration: 0.1 }}
+          className={isHighlight ? "font-black" : "font-bold"}
+          style={{
+            display: "inline-block",
+            marginRight: "0.25em"
+          }}
+        >
+          {wordObj.word}
+        </motion.span>
+      );
+    });
+  };
+
+  // Bubble style: pill background behind the active word
+  const renderBubbleText = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+    return caption.words.map((wordObj, i) => {
+      const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      return (
+        <motion.span
+          key={`${caption.id}-b-${i}`}
+          animate={{
+            backgroundColor: isActive ? captionStyle.bubbleSecondaryColor : 'transparent',
+            color: isActive ? captionStyle.bubbleTertiaryColor : captionStyle.bubblePrimaryColor,
+            scale: isActive ? 1.08 : 1,
+            y: isActive ? -2 : 0,
+          }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          className={isActive ? 'font-black' : 'font-bold'}
+          style={{
+            display: 'inline-block',
+            marginRight: '0.25em',
+            paddingLeft: isActive ? '0.55em' : '0',
+            paddingRight: isActive ? '0.55em' : '0',
+            paddingTop: isActive ? '0.1em' : '0',
+            paddingBottom: isActive ? '0.1em' : '0',
+            borderRadius: '999px',
+          }}
+        >
+          {wordObj.word}
+        </motion.span>
+      );
+    });
+  };
+
+  // Hormozi Style
+  const renderHormoziText = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+    return caption.words.map((wordObj, i) => {
+      const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      return (
+        <motion.span
+          key={`${caption.id}-h-${i}`}
+          animate={{
+            color: isActive ? captionStyle.spotlightColor : captionStyle.primaryColor,
+            scale: isActive ? 1.2 : 1,
+            textShadow: captionStyle.dropShadow
+              ? `4px 4px 0px ${captionStyle.dropShadowColor}, 0px 0px 10px rgba(0,0,0,0.5)`
+              : 'none',
+          }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          className="font-black uppercase"
+          style={{
+            display: 'inline-block',
+            marginRight: '0.3em',
+          }}
+        >
+          {wordObj.word}
+        </motion.span>
+      );
+    });
+  };
+
+  // Ali Abdaal Style
+  const renderAliAbdaalText = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+    return caption.words.map((wordObj, i) => {
+      const isSpoken = currentTime >= wordObj.start;
+      const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      return (
+        <motion.span
+          key={`${caption.id}-a-${i}`}
+          initial={{ opacity: 0 }}
+          animate={{
+            opacity: isSpoken ? 1 : 0,
+            backgroundColor: isActive ? captionStyle.emphasisColor : 'transparent',
+            color: captionStyle.primaryColor,
+          }}
+          transition={{ duration: 0.2 }}
+          className="font-normal"
+          style={{
+            display: 'inline-block',
+            marginRight: '0.25em',
+            padding: '0 0.1em',
+            borderRadius: '4px',
+          }}
+        >
+          {wordObj.word}
+        </motion.span>
+      );
+    });
+  };
+
+  // Gadzhi Style
+  const renderGadzhiText = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+    return caption.words.map((wordObj, i) => {
+      const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      return (
+        <motion.span
+          key={`${caption.id}-g-${i}`}
+          animate={{
+            color: isActive ? captionStyle.spotlightColor : captionStyle.primaryColor,
+            fontWeight: isActive ? 700 : 300,
+          }}
+          transition={{ duration: 0.15 }}
+          className="lowercase"
+          style={{
+            display: 'inline-block',
+            marginRight: '0.25em',
+          }}
+        >
+          {wordObj.word}
+        </motion.span>
+      );
+    });
+  };
+
+
+
+  // Apple Style
+  const renderAppleText = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+    return caption.words.map((wordObj, i) => {
+      const isSpoken = currentTime >= wordObj.start;
+
+      // Blur in as it is spoken, and stay fully visible (no out animation)
+      let blurAmount = "0px";
+      let opacity = 1;
+      let color = captionStyle.primaryColor;
+      let scale = 1;
+
+      if (isSpoken) {
+        blurAmount = "0px";
+        opacity = 1;
+        color = captionStyle.emphasisColor; // bright
+        scale = 1.05;
+      } else {
+        blurAmount = "4px"; // blur future words
+        opacity = 0.5;
+        color = captionStyle.primaryColor; // inactive (dimmed)
+      }
+
+      return (
+        <motion.span
+          key={`${caption.id}-apple-${i}`}
+          animate={{
+            color,
+            opacity,
+            filter: `blur(${blurAmount})`,
+            scale,
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className="font-bold"
+          style={{
+            display: 'inline-block',
+            marginRight: '0.25em',
+          }}
+        >
+          {wordObj.word}
+        </motion.span>
+      );
+    });
+  };
+
+  // MogrtShimmerStack Style — 3-tier vertical stack with silver metallic shimmer
+  const renderMogrtShimmerStack = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+
+    const words = caption.words;
+
+    // Find Focus Word: longest alphabetic word in the segment
+    let focusIndex = Math.floor(words.length / 2);
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, '');
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        focusIndex = i;
+      }
+    }
+
+    const topWords = words.slice(0, focusIndex);
+    const focusWord = words[focusIndex];
+    const bottomWords = words.slice(focusIndex + 1);
+
+    const isFocusActive = currentTime >= focusWord.start && currentTime <= focusWord.end;
+    const focusDuration = Math.max(0.8, focusWord.end - focusWord.start);
+
+    const shadowStr = captionStyle.dropShadow
+      ? `2px 2px 12px ${captionStyle.dropShadowColor}${Math.round(captionStyle.dropShadowOpacity * 2.55).toString(16).padStart(2, '0')}`
+      : 'none';
+
+    const renderSupportPhrase = (phraseWords: typeof words, position: 'top' | 'bottom') => {
+      if (phraseWords.length === 0) return null;
+      const anySpoken = phraseWords.some(w => currentTime >= w.start);
+      return (
+        <motion.div
+          key={position}
+          initial={{ opacity: 0, y: position === 'top' ? -10 : 10 }}
+          animate={{
+            opacity: anySpoken ? 1 : 0,
+            y: anySpoken ? 0 : (position === 'top' ? -10 : 10),
+          }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          style={{
+            fontSize: `${captionStyle.fontSize}px`,
+            fontWeight: 600,
+            color: captionStyle.primaryColor,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.2,
+            textAlign: 'center',
+            textShadow: shadowStr,
+            marginBottom: position === 'top' ? '6px' : '0',
+            marginTop: position === 'bottom' ? '6px' : '0',
+            overflowWrap: 'break-word',
+            maxWidth: '100%',
+          }}
+        >
+          {phraseWords.map((w, i) => {
+            const isSpoken = currentTime >= w.start;
+            return (
+              <motion.span
+                key={i}
+                animate={{ opacity: isSpoken ? 1 : 0.15 }}
+                transition={{ duration: 0.2 }}
+                style={{ display: 'inline-block', marginRight: '0.3em' }}
+              >
+                {w.word}
+              </motion.span>
+            );
+          })}
+        </motion.div>
+      );
+    };
+
+    return (
+      <>
+        <style>{`
+          @keyframes mogrtShimmerSlide {
+            0%   { background-position: -200% center; }
+            100% { background-position:  200% center; }
+          }
+        `}</style>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          {renderSupportPhrase(topWords, 'top')}
+
+          {/* Focus Word — 180px, weight 900, silver metallic shimmer */}
+          <motion.span
+            key={`mogrt-focus-${caption.id}`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{
+              opacity: currentTime >= focusWord.start ? 1 : 0,
+              scale: isFocusActive
+                ? [1, 1.1, 1.0]   // 1.1× scale-pop on entry
+                : (currentTime >= focusWord.start ? 1.0 : 0.9),
+            }}
+            transition={{
+              opacity: { duration: 0.25 },
+              scale: isFocusActive
+                ? { duration: 0.45, times: [0, 0.35, 1], ease: ['easeOut', 'easeInOut'] }
+                : { duration: 0.2, type: 'spring', stiffness: 300, damping: 20 },
+            }}
+            style={{
+              display: 'block',
+              width: '100%',
+              maxWidth: '100%',
+              maxHeight: '1.2em',
+              overflow: 'hidden',
+              overflowWrap: 'break-word',
+              textAlign: 'center',
+              fontSize: `${captionStyle.fontSize * 2.8}px`,
+              fontWeight: 900,
+              lineHeight: 1,
+              letterSpacing: '-0.04em',
+              textTransform: 'uppercase',
+              background: 'linear-gradient(45deg, #eee 25%, #fff 50%, #eee 75%)',
+              backgroundSize: '400% auto',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: isFocusActive
+                ? `mogrtShimmerSlide ${focusDuration}s linear infinite`
+                : 'none',
+            }}
+          >
+            {focusWord.word}
+          </motion.span>
+
+          {renderSupportPhrase(bottomWords, 'bottom')}
+        </div>
+      </>
+    );
+  };
+
+  // NxtgenGenZ Style — Kalakar-style: Top(words) → Hero(1 word with shimmer) → Bottom(words)
+  const renderNxtgenGenZ = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+
+    const words = caption.words;
+
+    // Find the hero word - longest word in the segment not greater than 7 letters
+    let heroIndex = Math.floor(words.length / 2);
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen && clean.length <= 7) {
+        maxLen = clean.length;
+        heroIndex = i;
+      }
+    }
+
+    const topWords = words.slice(0, heroIndex);
+    const heroWordObj = words[heroIndex];
+    const bottomWords = words.slice(heroIndex + 1);
+
+    const primaryColor = captionStyle.primaryColor || "#ffffff";
+    const spotlightColor = captionStyle.spotlightColor || "#A0D83E";
+    const lighterSpotlight = captionStyle.emphasisColor || "#AADC56";
+
+    // Font sizes scale dynamically with captionStyle.fontSize (baseline 32)
+    const baseFont = captionStyle.fontSize || 32;
+    const SUB_FONT_SIZE = Math.round(baseFont * 3);   // 96 at baseline 32
+
+    // Lower the hero font size if there are only 1 or 2 words to prevent overpowering the frame
+    const HERO_FONT_SIZE = words.length <= 2
+      ? Math.round(baseFont * 4.5)
+      : Math.round(baseFont * 6.56); // 209.92 at baseline 32
+
+    // Shimmer animation for hero word
+    const shimmerGradient = `linear-gradient(90deg, ${spotlightColor} 0%, ${spotlightColor} 20%, ${lighterSpotlight} 40%, #CAEE93 50%, ${lighterSpotlight} 70%, ${spotlightColor} 80%, ${spotlightColor} 100%)`;
+
+    const wrapperFilter = `drop-shadow(${spotlightColor} 0px 0px 100px) drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)`;
+
+    const ghostBlurStyle: React.CSSProperties = {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      width: "120%",
+      height: "80%",
+      transform: "translate(-50%, -50%)",
+      filter: "blur(10px)",
+      pointerEvents: "none",
+      zIndex: 0,
+    };
+
+    const heroGhostBlurStyle: React.CSSProperties = {
+      ...ghostBlurStyle,
+      background: shimmerGradient,
+      backgroundSize: "200% 100%",
+      WebkitBackgroundClip: "text",
+      backgroundClip: "text",
+      color: "transparent",
+    };
+
+    const wordStyle: React.CSSProperties = {
+      position: "relative",
+      display: "inline-block",
+      whiteSpace: "pre",
+    };
+
+    const activeWord = words.find(w => currentTime >= w.start && currentTime <= w.end);
+    const isHeroActive = activeWord && words.indexOf(activeWord) === heroIndex;
+    const wrapperOpacity = isHeroActive ? 1 : (words.some(w => currentTime >= w.start) ? 0.8 : 0.3);
+
+    const renderWord = (wordObj: typeof words[0], index: number, isHero: boolean = false) => {
+      const delay = index * 0.1;
+
+      if (isHero) {
+        return (
+          <motion.span
+            key={`${caption.id}-${index}`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay }}
+            style={{ ...wordStyle, textAlign: "center" }}
+          >
+            <span aria-hidden="true" style={heroGhostBlurStyle}>{wordObj.word}</span>
+            <span style={{
+              fontFamily: captionStyle.fontFamily || "Inter",
+              fontSize: `${HERO_FONT_SIZE}px`,
+              fontWeight: 900,
+              lineHeight: 0.9,
+              textTransform: "uppercase",
+              background: shimmerGradient,
+              backgroundSize: "200% 100%",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              color: "transparent",
+              filter: "drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)",
+            }}>{wordObj.word}</span>
+          </motion.span>
+        );
+      }
+
+      return (
+        <motion.span
+          key={`${caption.id}-${index}`}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay }}
+          style={{ ...wordStyle, textAlign: "left" }}
+        >
+          <span aria-hidden="true" style={{ ...ghostBlurStyle, color: primaryColor }}>{wordObj.word}</span>
+          <span style={{ fontFamily: captionStyle.fontFamily || "Inter", fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 800, lineHeight: 0.9, filter: "drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)" }}>{wordObj.word}</span>
+        </motion.span>
+      );
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: wrapperOpacity }}
+        transition={{ duration: 0.3 }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "fit-content",
+          margin: "0 auto",
+          filter: wrapperFilter,
+        }}
+      >
+        {/* Top Line */}
+        {topWords.length > 0 && (
+          <div style={{ textAlign: "left", width: "100%", position: "relative" }}>
+            <div style={{
+              fontFamily: captionStyle.fontFamily || "Inter",
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 0.9,
+              color: primaryColor,
+              textAlign: "left",
+              display: "flex",
+              gap: "0.5em",
+            }}>
+              {topWords.map((w, idx) => renderWord(w, idx))}
+            </div>
+          </div>
+        )}
+
+        {/* Hero Line */}
+        <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0" }}>
+          {renderWord(heroWordObj, heroIndex, true)}
+        </div>
+
+        {/* Bottom Line */}
+        {bottomWords.length > 0 && (
+          <div style={{ textAlign: "right", width: "100%", position: "relative" }}>
+            <div style={{
+              fontFamily: captionStyle.fontFamily || "Inter",
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 0.9,
+              color: primaryColor,
+              textAlign: "right",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "0.5em",
+            }}>
+              {bottomWords.map((w, idx) => renderWord(w, heroIndex + 1 + idx))}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  // NxtgenAlpha Style — Cursive style: Top('Aston Script') → Hero(1 word with shimmer) → Bottom('Aston Script')
+  const renderNxtgenAlpha = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+
+    const words = caption.words;
+
+    // Find the hero word - longest word in the segment not greater than 7 letters
+    let heroIndex = Math.floor(words.length / 2);
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen && clean.length <= 7) {
+        maxLen = clean.length;
+        heroIndex = i;
+      }
+    }
+
+    const topWords = words.slice(0, heroIndex);
+    const heroWordObj = words[heroIndex];
+    const bottomWords = words.slice(heroIndex + 1);
+
+    const primaryColor = captionStyle.primaryColor || "#ffffff";
+    const spotlightColor = captionStyle.spotlightColor || "#A0D83E";
+    const lighterSpotlight = captionStyle.emphasisColor || "#AADC56";
+
+    // Font sizes scale dynamically with captionStyle.fontSize (baseline 32)
+    const baseFont = captionStyle.fontSize || 32;
+    const SUB_FONT_SIZE = Math.round(baseFont * 3);   // 96 at baseline 32
+
+    // Lower the hero font size if there are only 1 or 2 words to prevent overpowering the frame
+    const HERO_FONT_SIZE = words.length <= 2
+      ? Math.round(baseFont * 4.5)
+      : Math.round(baseFont * 6.56); // 209.92 at baseline 32
+
+    // Shimmer animation for hero word
+    const shimmerGradient = `linear-gradient(90deg, ${spotlightColor} 0%, ${spotlightColor} 20%, ${lighterSpotlight} 40%, #CAEE93 50%, ${lighterSpotlight} 70%, ${spotlightColor} 80%, ${spotlightColor} 100%)`;
+
+    const wrapperFilter = `drop-shadow(${spotlightColor} 0px 0px 100px) drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)`;
+
+    const ghostBlurStyle: React.CSSProperties = {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      width: "120%",
+      height: "80%",
+      transform: "translate(-50%, -50%)",
+      filter: "blur(10px)",
+      pointerEvents: "none",
+      zIndex: 0,
+    };
+
+    const heroGhostBlurStyle: React.CSSProperties = {
+      ...ghostBlurStyle,
+      background: shimmerGradient,
+      backgroundSize: "200% 100%",
+      WebkitBackgroundClip: "text",
+      backgroundClip: "text",
+      color: "transparent",
+    };
+
+    const wordStyle: React.CSSProperties = {
+      position: "relative",
+      display: "inline-block",
+      whiteSpace: "pre",
+    };
+
+    const activeWord = words.find(w => currentTime >= w.start && currentTime <= w.end);
+    const isHeroActive = activeWord && words.indexOf(activeWord) === heroIndex;
+    const wrapperOpacity = isHeroActive ? 1 : (words.some(w => currentTime >= w.start) ? 0.8 : 0.3);
+
+    const renderWord = (wordObj: typeof words[0], index: number, isHero: boolean = false) => {
+      const delay = index * 0.1;
+
+      if (isHero) {
+        return (
+          <motion.span
+            key={`${caption.id}-${index}`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay }}
+            style={{ ...wordStyle, textAlign: "center" }}
+          >
+            <span aria-hidden="true" style={heroGhostBlurStyle}>{wordObj.word}</span>
+            <span style={{
+              fontFamily: captionStyle.fontFamily || "Inter",
+              fontSize: `${HERO_FONT_SIZE}px`,
+              fontWeight: 900,
+              lineHeight: 0.9,
+              textTransform: "uppercase",
+              background: shimmerGradient,
+              backgroundSize: "200% 100%",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              color: "transparent",
+              filter: "drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)",
+            }}>{wordObj.word}</span>
+          </motion.span>
+        );
+      }
+
+      return (
+        <motion.span
+          key={`${caption.id}-${index}`}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay }}
+          style={{ ...wordStyle, textAlign: "left" }}
+        >
+          <span aria-hidden="true" style={{ ...ghostBlurStyle, fontFamily: "'Aston Script', cursive", fontWeight: 400, color: primaryColor }}>{wordObj.word}</span>
+          <span style={{ fontFamily: "'Aston Script', cursive", fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 400, lineHeight: 1.1, filter: "drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)" }}>{wordObj.word}</span>
+        </motion.span>
+      );
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: wrapperOpacity }}
+        transition={{ duration: 0.3 }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "fit-content",
+          margin: "0 auto",
+          filter: wrapperFilter,
+        }}
+      >
+        {/* Inject the Aston Script stylesheet */}
+        <style>{`
+          @import url('https://fonts.cdnfonts.com/css/aston-script');
+        `}</style>
+
+        {/* Top Line */}
+        {topWords.length > 0 && (
+          <div style={{ textAlign: "left", width: "100%", position: "relative" }}>
+            <div style={{
+              fontFamily: "'Aston Script', cursive",
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 1.1,
+              color: primaryColor,
+              textAlign: "left",
+              display: "flex",
+              gap: "0.5em",
+            }}>
+              {topWords.map((w, idx) => renderWord(w, idx))}
+            </div>
+          </div>
+        )}
+
+        {/* Hero Line */}
+        <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0" }}>
+          {renderWord(heroWordObj, heroIndex, true)}
+        </div>
+
+        {/* Bottom Line */}
+        {bottomWords.length > 0 && (
+          <div style={{ textAlign: "right", width: "100%", position: "relative" }}>
+            <div style={{
+              fontFamily: "'Aston Script', cursive",
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 1.1,
+              color: primaryColor,
+              textAlign: "right",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "0.5em",
+            }}>
+              {bottomWords.map((w, idx) => renderWord(w, heroIndex + 1 + idx))}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  // NxtgenHorror Style
+  const renderNxtgenHorror = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+
+    const words = caption.words;
+
+    // Split logic exactly like Nxtgen GenZ
+    let heroIndex = Math.floor(words.length / 2);
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen && clean.length <= 7) {
+        maxLen = clean.length;
+        heroIndex = i;
+      }
+    }
+
+    const topWords = words.slice(0, heroIndex);
+    const heroWordObj = words[heroIndex];
+    const bottomWords = words.slice(heroIndex + 1);
+
+    const primaryColor = captionStyle.primaryColor || "#ffffff";
+    const baseFont = captionStyle.fontSize || 32;
+    const SUB_FONT_SIZE = Math.round(baseFont * 3);
+    const HERO_FONT_SIZE = words.length <= 2 ? Math.round(baseFont * 4.5) : Math.round(baseFont * 6.56);
+
+    const activeWord = words.find(w => currentTime >= w.start && currentTime <= w.end);
+    const wrapperOpacity = words.some(w => currentTime >= w.start) ? 1 : 0.3;
+
+    const renderWord = (wordObj: typeof words[0], index: number, pos: "top" | "bottom" | "hero") => {
+      const delay = index * 0.1;
+      
+      if (pos === "top") {
+        return (
+          <motion.span
+            key={`${caption.id}-${index}`}
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay }}
+            style={{
+              fontFamily: "'JaggyW01-Regular', sans-serif",
+              color: primaryColor,
+              whiteSpace: "pre",
+            }}
+          >
+            {wordObj.word}
+          </motion.span>
+        );
+      } else if (pos === "bottom") {
+        return (
+          <motion.span
+            key={`${caption.id}-${index}`}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay }}
+            style={{
+              fontFamily: "'JaggyW01-Regular', sans-serif",
+              color: primaryColor,
+              whiteSpace: "pre",
+            }}
+          >
+            {wordObj.word}
+          </motion.span>
+        );
+      } else {
+        const isHeroActive = activeWord && words.indexOf(activeWord) === heroIndex;
+        return (
+          <motion.span
+            key={`${caption.id}-${index}`}
+            style={{
+              display: "inline-block",
+              fontFamily: "'Chalk-y', sans-serif",
+              fontSize: `${HERO_FONT_SIZE}px`,
+              color: "#ffffff",
+              textShadow: "0 0 15px rgba(255,255,255,0.8), 2px 2px 5px rgba(0,0,0,0.5)",
+              animation: "chalkStrokeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              animationDelay: `${delay}s`,
+              whiteSpace: "pre",
+              opacity: 0,
+            }}
+          >
+            {wordObj.word}
+          </motion.span>
+        );
+      }
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: wrapperOpacity }}
+        transition={{ duration: 0.3 }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          maxWidth: "800px",
+          margin: "0 auto",
+        }}
+      >
+        <style>{`
+          @keyframes chalkStrokeIn {
+            0% {
+              clip-path: polygon(0 0, 0 0, -10% 100%, -10% 100%);
+              opacity: 0;
+              transform: scale(0.95) skewX(-5deg);
+            }
+            15% {
+              opacity: 0.8;
+            }
+            100% {
+              clip-path: polygon(0 0, 120% 0, 110% 100%, -10% 100%);
+              opacity: 1;
+              transform: scale(1) skewX(0deg);
+            }
+          }
+        `}</style>
+        
+        {/* Top Line */}
+        {topWords.length > 0 && (
+          <div style={{ textAlign: "left", width: "100%", position: "relative" }}>
+            <div style={{
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 0.9,
+              display: "flex",
+              justifyContent: topWords.length >= 2 ? "space-between" : "center",
+              width: "100%",
+              gap: "0.5em",
+            }}>
+              {topWords.map((w, idx) => renderWord(w, idx, "top"))}
+            </div>
+          </div>
+        )}
+
+        {/* Hero Line */}
+        <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0" }}>
+          {renderWord(heroWordObj, heroIndex, "hero")}
+        </div>
+
+        {/* Bottom Line */}
+        {bottomWords.length > 0 && (
+          <div style={{ textAlign: "center", width: "100%", position: "relative" }}>
+            <div style={{
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 0.9,
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+              gap: "0.5em",
+            }}>
+              {bottomWords.map((w, idx) => renderWord(w, heroIndex + 1 + idx, "bottom"))}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  // NxtgenFicticVisual Style
+  const renderNxtgenFicticVisual = (caption: typeof activeCaption) => {
+    if (!caption || !caption.words) return null;
+
+    const words = caption.words;
+
+    return (
+      <div style={{
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "nowrap",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+        gap: "0.4em",
+      }}>
+        {/* Inject Google Fonts for Syncopate and Cinzel Decorative */}
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Cinzel+Decorative:wght@700&display=swap');
+        `}</style>
+        {words.map((wordObj, index) => {
+          const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+          const isPast = currentTime > wordObj.end;
+
+          // Standard flex container styles
+          const wordStyle: React.CSSProperties = {
+            fontFamily: captionStyle.fontFamily === "Cinzel Decorative" ? "'Cinzel Decorative', serif" : "'Syncopate', sans-serif",
+            fontWeight: 700,
+            fontSize: `${captionStyle.fontSize * 1.5}px`, // slightly scaled for cinematic feel
+            textTransform: "uppercase",
+            whiteSpace: "nowrap",
+            transition: "opacity 0.3s ease, filter 0.3s ease, letter-spacing 0.05s linear",
+          };
+
+          if (isActive) {
+            // Linear interpolation of tracking (letter spacing) from 0px to 15px
+            const duration = wordObj.end - wordObj.start;
+            const elapsed = currentTime - wordObj.start;
+            const progress = Math.min(Math.max(elapsed / duration, 0), 1);
+            const letterSpacing = progress * 15;
+
+            return (
+              <span
+                key={`${caption.id}-${index}`}
+                style={{
+                  ...wordStyle,
+                  color: "#FFFFFF",
+                  filter: "drop-shadow(0 0 20px #00FFFF)",
+                  opacity: 1,
+                  letterSpacing: `${letterSpacing}px`,
+                }}
+              >
+                {wordObj.word}
+              </span>
+            );
+          } else if (isPast) {
+            return (
+              <span
+                key={`${caption.id}-${index}`}
+                style={{
+                  ...wordStyle,
+                  color: "#FFFFFF",
+                  opacity: 0.2,
+                  filter: "blur(4px)",
+                  letterSpacing: "15px", // stays at fully expanded tracking
+                }}
+              >
+                {wordObj.word}
+              </span>
+            );
+          } else {
+            // Future word: hidden until spoken
+            return (
+              <span
+                key={`${caption.id}-${index}`}
+                style={{
+                  ...wordStyle,
+                  opacity: 0,
+                  pointerEvents: "none",
+                  letterSpacing: "0px",
+                }}
+              >
+                {wordObj.word}
+              </span>
+            );
+          }
+        })}
+      </div>
+    );
+  };
+
+  const animProps = getTransitionProps();
+
+  return (
+    <div className="flex-1 bg-transparent p-8 flex flex-col relative h-full overflow-hidden">
+
+      <div className="flex justify-between items-center mb-4 absolute top-10 left-10 right-10 z-20 pointer-events-none">
+        <button
+          onClick={handleReplace}
+          className="flex items-center gap-2 bg-black/40 backdrop-blur-2xl hover:bg-black/60 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full pointer-events-auto border border-white/10 transition-all hover:scale-105 active:scale-95 shadow-2xl"
+        >
+          <RefreshCw className="w-3 h-3 text-sky-400" /> Replace Video
+        </button>
+        <div className="bg-sky-500/10 backdrop-blur-2xl text-sky-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-sky-500/20 flex items-center gap-2 shadow-2xl">
+          <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.8)]"></div>
+          AI Preview Active
+        </div>
+      </div>
+
+      <div
+        className="flex-1 w-full relative flex items-center justify-center rounded-[32px] overflow-hidden border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] group"
+        style={{
+          backgroundColor: captionStyle.alphaChannel ? "#0a0a0a" : "rgba(0, 0, 0, 0.4)",
+          backgroundImage: captionStyle.alphaChannel
+            ? "radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px), radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px)"
+            : "none",
+          backgroundSize: captionStyle.alphaChannel ? "24px 24px" : "auto",
+          backgroundPosition: captionStyle.alphaChannel ? "0 0, 12px 12px" : "auto",
+          backdropFilter: "blur(4px)",
+        }}
+      >
+        {videoUrl ? (
+          <>
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              className={`h-full w-auto max-w-full object-contain shadow-2xl transition-opacity duration-300 ${captionStyle.alphaChannel ? "opacity-0 pointer-events-none" : "opacity-100"
+                }`}
+              style={{ zIndex: 1, position: "relative" }}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={() => setIsPlaying(false)}
+            />
+
+
+          </>
+        ) : (
+          <div className="w-full h-full bg-white/5 flex flex-col items-center justify-center gap-4">
+            <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
+              <Sparkles className="w-8 h-8 text-zinc-800" />
+            </div>
+            <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">No Source Loaded</p>
+          </div>
+        )}
+
+        {/* Grid Guidelines (shown during drag) */}
+        <AnimatePresence>
+          {isDragging && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 pointer-events-none z-0"
+            >
+              {/* Rule of thirds grid */}
+              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                <div className="border-b border-r border-white/20 border-dashed" />
+                <div className="border-b border-r border-white/20 border-dashed" />
+                <div className="border-b border-white/20 border-dashed" />
+                <div className="border-b border-r border-white/20 border-dashed" />
+                <div className="border-b border-r border-white/20 border-dashed" />
+                <div className="border-b border-white/20 border-dashed" />
+                <div className="border-r border-white/20 border-dashed" />
+                <div className="border-r border-white/20 border-dashed" />
+                <div className="" />
+              </div>
+
+              {/* Smart Snap Lines */}
+              {snapLines.x && (
+                <div className="absolute top-0 bottom-0 left-1/2 w-px bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-x-1/2 z-10" />
+              )}
+              {snapLines.y && (
+                <div className="absolute left-0 right-0 top-1/2 h-px bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-y-1/2 z-10" />
+              )}
+              {/* Center dot */}
+              {(snapLines.x && snapLines.y) && (
+                <div className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-x-1/2 -translate-y-1/2 z-20" />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Captions Overlay Container */}
+        <div
+          className="absolute inset-0 pointer-events-none z-10"
+          ref={containerRef}
+        >
+          {/* Draggable Handle wrapper */}
+          <div
+            className={`absolute pointer-events-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none group`}
+            style={{
+              top: `${captionStyle.positionY}%`,
+              left: `${captionStyle.positionX}%`,
+              transform: 'translate(-50%, -50%)',
+              textAlign: captionStyle.layout === "ali-abdaal"
+                ? captionStyle.aliAbdaalPosition
+                : (captionStyle.layout === "hormozi" || captionStyle.layout === "gadzhi" || captionStyle.layout === "bubble" || captionStyle.layout === "apple")
+                  ? 'center'
+                  : captionStyle.textAlignment,
+              letterSpacing: `${captionStyle.letterSpacing}px`,
+              lineHeight: captionStyle.lineSpacing,
+              fontSize: `${captionStyle.fontSize}px`,
+              fontFamily: `'${captionStyle.fontFamily}', sans-serif`,
+              touchAction: 'none',
+              width: `${captionStyle.width}%`,
+              maxWidth: '100%',
+              padding: '1rem', // generous hit area for dragging
+            }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+          >
+            {/* Bounding Box overlay */}
+            <div className={`absolute inset-0 border-2 border-dashed ${resizeMode !== 'none' ? 'border-sky-400/50' : 'border-sky-400/0'} group-hover:border-sky-400/50 transition-colors pointer-events-none z-50`}>
+              {/* Left Edge Width */}
+              <div
+                className={`absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-8 bg-white border border-sky-500 rounded-full opacity-0 group-hover:opacity-100 cursor-ew-resize pointer-events-auto ${resizeMode === 'width-left' ? 'opacity-100 scale-110' : ''} transition-transform`}
+                onPointerDown={(e) => handleResizeStart(e, "width-left")}
+                onPointerMove={handleResizeMove}
+                onPointerUp={handleResizeUp}
+                onPointerCancel={handleResizeUp}
+              />
+              {/* Right Edge Width */}
+              <div
+                className={`absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-8 bg-white border border-sky-500 rounded-full opacity-0 group-hover:opacity-100 cursor-ew-resize pointer-events-auto ${resizeMode === 'width-right' ? 'opacity-100 scale-110' : ''} transition-transform`}
+                onPointerDown={(e) => handleResizeStart(e, "width-right")}
+                onPointerMove={handleResizeMove}
+                onPointerUp={handleResizeUp}
+                onPointerCancel={handleResizeUp}
+              />
+              {/* Corner Scales */}
+              <div
+                className={`absolute top-[-6px] left-[-6px] w-3 h-3 bg-sky-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 cursor-nwse-resize pointer-events-auto ${resizeMode === 'scale-tl' ? 'opacity-100 scale-150' : ''} transition-transform`}
+                onPointerDown={(e) => handleResizeStart(e, "scale-tl")}
+                onPointerMove={handleResizeMove}
+                onPointerUp={handleResizeUp}
+                onPointerCancel={handleResizeUp}
+              />
+              {/* TR */}
+              <div
+                className={`absolute top-[-6px] right-[-6px] w-3 h-3 bg-sky-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 cursor-nesw-resize pointer-events-auto ${resizeMode === 'scale-tr' ? 'opacity-100 scale-150' : ''} transition-transform`}
+                onPointerDown={(e) => handleResizeStart(e, "scale-tr")}
+                onPointerMove={handleResizeMove}
+                onPointerUp={handleResizeUp}
+                onPointerCancel={handleResizeUp}
+              />
+              {/* BL */}
+              <div
+                className={`absolute bottom-[-6px] left-[-6px] w-3 h-3 bg-sky-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 cursor-nesw-resize pointer-events-auto ${resizeMode === 'scale-bl' ? 'opacity-100 scale-150' : ''} transition-transform`}
+                onPointerDown={(e) => handleResizeStart(e, "scale-bl")}
+                onPointerMove={handleResizeMove}
+                onPointerUp={handleResizeUp}
+                onPointerCancel={handleResizeUp}
+              />
+              {/* BR */}
+              <div
+                className={`absolute bottom-[-6px] right-[-6px] w-3 h-3 bg-sky-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 cursor-nwse-resize pointer-events-auto ${resizeMode === 'scale-br' ? 'opacity-100 scale-150' : ''} transition-transform`}
+                onPointerDown={(e) => handleResizeStart(e, "scale-br")}
+                onPointerMove={handleResizeMove}
+                onPointerUp={handleResizeUp}
+                onPointerCancel={handleResizeUp}
+              />
+            </div>
+            {captionStyle.layout === "modern" ? (
+              <ModernCaption />
+            ) : (
+              <AnimatePresence>
+                {activeCaption && (
+                  <motion.div
+                    key={activeCaption.id}
+                    {...animProps}
+                    className="w-full px-16"
+                  >
+                    {captionStyle.layout === "bubble" ? renderBubbleText(activeCaption) :
+                      captionStyle.layout === "hormozi" ? renderHormoziText(activeCaption) :
+                        captionStyle.layout === "ali-abdaal" ? renderAliAbdaalText(activeCaption) :
+                          captionStyle.layout === "gadzhi" ? renderGadzhiText(activeCaption) :
+                            captionStyle.layout === "apple" ? renderAppleText(activeCaption) :
+                              captionStyle.layout === "mogrt-shimmer-stack" ? renderMogrtShimmerStack(activeCaption) :
+                                captionStyle.layout === "nxtgen-genz" ? renderNxtgenGenZ(activeCaption) :
+                                  captionStyle.layout === "nxtgen-alpha" ? renderNxtgenAlpha(activeCaption) :
+                                    captionStyle.layout === "nxtgen-horror" ? renderNxtgenHorror(activeCaption) :
+                                      captionStyle.layout === "nxtgen-ficticvisual" ? renderNxtgenFicticVisual(activeCaption) :
+                                        <div className="tracking-tight leading-tight">{renderStyledText(activeCaption)}</div>
+                    }
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            )}
+          </div>
+        </div>
+
+        <div className="absolute bottom-8 right-8 opacity-20 pointer-events-none group-hover:opacity-40 transition-opacity">
+          <h1 className="text-4xl font-black tracking-tighter text-white">
+            NxtGen <span className="text-sky-500">Captions</span>
+          </h1>
+        </div>
+      </div>
+    </div>
+  );
+}

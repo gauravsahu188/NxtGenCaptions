@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  planType               PlanType  @default(FREE)
+  storageLimitGb         Int       @default(1)
+  transcriptionLimitMins Int       @default(5)
+  maxExportRes           Int       @default(720)
+  transcriptionUsedMins  Int       @default(0)
+  storageUsedBytes       BigInt    @default(0)
+  audioCredits           Int       @default(3)
+  maxVideoLengthMinutes  Int       @default(2) // Max video length in minutes
+  alphaChannelEnabled    Boolean   @default(false)
+  srtRenderEnabled       Boolean   @default(false)
+  customFontEnabled      Boolean   @default(false)
+  prioritySupport        Boolean   @default(false)
+  billingCycleStart      DateTime  @default(now())
+  billingCycleEnd        DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                   String        @id @default(cuid())
+  name                 String?
+  email                String?       @unique
+  emailVerified        DateTime?
+  image                String?
+  planType             PlanType      @default(FREE)
+  transcriptionBalance Int           @default(5)
+  audioCredits         Int           @default(3)
+  storageUsed          BigInt        @default(0)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  accounts             Account[]
+  projects             Project[]
+  sessions             Session[]
+  subscription         Subscription?
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  metadata  Json?
+  s3Url     String?
+  duration  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum PlanType {
+  FREE
+  EDITOR
+  CREATOR
+  BUSINESS
+}

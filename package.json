@@ -1,0 +1,22 @@
+{
+  "name": "nxtgen-captions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "predev": "node -e \"const{execSync}=require('child_process');['3000','3001'].forEach(p=>{try{const pid=execSync('lsof -ti :'+p).toString().trim();if(pid){execSync('kill -9 '+pid);console.log('Killed process on port '+p);}}catch(e){}})\"",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npx tsx watch src/server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "styled-components": "^6.4.1"
+  }
+}
