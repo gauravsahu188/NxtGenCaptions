@@ -6,9 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import ModernCaption from "./ModernCaption";
 
 export default function VideoPlayer() {
-  const { videoUrl, setVideoUrl, setCaptions, currentTime, setCurrentTime, activeCaption, captionStyle, setCaptionStyle, setDuration, isPlaying, setIsPlaying, setOriginalVideoWidth, setOriginalVideoHeight, setAspectRatio } = useCaptionContext();
+  const { videoUrl, setVideoUrl, setCaptions, currentTime, setCurrentTime, activeCaption, captionStyle, setCaptionStyle, setDuration, isPlaying, setIsPlaying, originalVideoWidth, setOriginalVideoWidth, originalVideoHeight, setOriginalVideoHeight, setAspectRatio } = useCaptionContext();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoWrapperRef = useRef<HTMLDivElement>(null);
   const isSeeking = useRef(false);
 
   // Sync video element play/pause from context
@@ -30,6 +31,22 @@ export default function VideoPlayer() {
       vid.currentTime = currentTime;
     }
   }, [currentTime]);
+
+  // Measure and keep previewWidth in sync with the actual displayed video element size
+  useEffect(() => {
+    const wrapper = videoWrapperRef.current;
+    if (!wrapper) return;
+    const updatePreviewWidth = () => {
+      const w = wrapper.clientWidth;
+      if (w > 0) {
+        setCaptionStyle(prev => (prev.previewWidth === w ? prev : { ...prev, previewWidth: w }));
+      }
+    };
+    updatePreviewWidth();
+    const ro = new ResizeObserver(updatePreviewWidth);
+    ro.observe(wrapper);
+    return () => ro.disconnect();
+  }, [setCaptionStyle]);
   const [isDragging, setIsDragging] = useState(false);
   const [resizeMode, setResizeMode] = useState<"none" | "width-left" | "width-right" | "scale-tr" | "scale-br" | "scale-bl" | "scale-tl">("none");
   const [initialResizeData, setInitialResizeData] = useState({ x: 0, y: 0, width: 0, fontSize: 0, rectWidth: 0 });
@@ -147,6 +164,17 @@ export default function VideoPlayer() {
         const aspect = videoRef.current.videoWidth / videoRef.current.videoHeight;
         if (aspect < 0.7) setAspectRatio("9:16");
         else setAspectRatio("16:9");
+        
+        // Force an immediate read of the layout width so previewWidth is correct
+        // even before the user resizes the window.
+        setTimeout(() => {
+          if (videoWrapperRef.current) {
+            setCaptionStyle((s: any) => ({
+              ...s,
+              previewWidth: videoWrapperRef.current!.clientWidth
+            }));
+          }
+        }, 50);
       }
     }
   };
@@ -1127,14 +1155,22 @@ export default function VideoPlayer() {
           backgroundSize: captionStyle.alphaChannel ? "24px 24px" : "auto",
           backgroundPosition: captionStyle.alphaChannel ? "0 0, 12px 12px" : "auto",
           backdropFilter: "blur(4px)",
+          containerType: "size"
         }}
       >
-        {videoUrl ? (
-          <>
+        <div 
+          ref={videoWrapperRef}
+          className="relative flex items-center justify-center"
+          style={{
+            width: `min(100cqw, 100cqh * ${(originalVideoWidth || 16) / (originalVideoHeight || 9)})`,
+            height: `min(100cqh, 100cqw / ${(originalVideoWidth || 16) / (originalVideoHeight || 9)})`,
+          }}
+        >
+          {videoUrl ? (
             <video
               ref={videoRef}
               src={videoUrl}
-              className={`h-full w-auto max-w-full object-contain shadow-2xl transition-opacity duration-300 ${captionStyle.alphaChannel ? "opacity-0 pointer-events-none" : "opacity-100"
+              className={`h-full w-full object-contain shadow-2xl transition-opacity duration-300 ${captionStyle.alphaChannel ? "opacity-0 pointer-events-none" : "opacity-100"
                 }`}
               style={{ zIndex: 1, position: "relative" }}
               onTimeUpdate={handleTimeUpdate}
@@ -1143,60 +1179,57 @@ export default function VideoPlayer() {
               onPause={() => setIsPlaying(false)}
               onEnded={() => setIsPlaying(false)}
             />
-
-
-          </>
-        ) : (
-          <div className="w-full h-full bg-white/5 flex flex-col items-center justify-center gap-4">
-            <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
-              <Sparkles className="w-8 h-8 text-zinc-800" />
-            </div>
-            <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">No Source Loaded</p>
-          </div>
-        )}
-
-        {/* Grid Guidelines (shown during drag) */}
-        <AnimatePresence>
-          {isDragging && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 pointer-events-none z-0"
-            >
-              {/* Rule of thirds grid */}
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-                <div className="border-b border-r border-white/20 border-dashed" />
-                <div className="border-b border-r border-white/20 border-dashed" />
-                <div className="border-b border-white/20 border-dashed" />
-                <div className="border-b border-r border-white/20 border-dashed" />
-                <div className="border-b border-r border-white/20 border-dashed" />
-                <div className="border-b border-white/20 border-dashed" />
-                <div className="border-r border-white/20 border-dashed" />
-                <div className="border-r border-white/20 border-dashed" />
-                <div className="" />
+          ) : (
+            <div className="w-full h-full bg-white/5 flex flex-col items-center justify-center gap-4">
+              <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
+                <Sparkles className="w-8 h-8 text-zinc-800" />
               </div>
-
-              {/* Smart Snap Lines */}
-              {snapLines.x && (
-                <div className="absolute top-0 bottom-0 left-1/2 w-px bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-x-1/2 z-10" />
-              )}
-              {snapLines.y && (
-                <div className="absolute left-0 right-0 top-1/2 h-px bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-y-1/2 z-10" />
-              )}
-              {/* Center dot */}
-              {(snapLines.x && snapLines.y) && (
-                <div className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-x-1/2 -translate-y-1/2 z-20" />
-              )}
-            </motion.div>
+              <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">No Source Loaded</p>
+            </div>
           )}
-        </AnimatePresence>
 
-        {/* Captions Overlay Container */}
-        <div
-          className="absolute inset-0 pointer-events-none z-10"
-          ref={containerRef}
-        >
+          {/* Grid Guidelines (shown during drag) */}
+          <AnimatePresence>
+            {isDragging && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 pointer-events-none z-0"
+              >
+                {/* Rule of thirds grid */}
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                  <div className="border-b border-r border-white/20 border-dashed" />
+                  <div className="border-b border-r border-white/20 border-dashed" />
+                  <div className="border-b border-white/20 border-dashed" />
+                  <div className="border-b border-r border-white/20 border-dashed" />
+                  <div className="border-b border-r border-white/20 border-dashed" />
+                  <div className="border-b border-white/20 border-dashed" />
+                  <div className="border-r border-white/20 border-dashed" />
+                  <div className="border-r border-white/20 border-dashed" />
+                  <div className="" />
+                </div>
+
+                {/* Smart Snap Lines */}
+                {snapLines.x && (
+                  <div className="absolute top-0 bottom-0 left-1/2 w-px bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-x-1/2 z-10" />
+                )}
+                {snapLines.y && (
+                  <div className="absolute left-0 right-0 top-1/2 h-px bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-y-1/2 z-10" />
+                )}
+                {/* Center dot */}
+                {(snapLines.x && snapLines.y) && (
+                  <div className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] -translate-x-1/2 -translate-y-1/2 z-20" />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Captions Overlay Container */}
+          <div
+            className="absolute inset-0 pointer-events-none z-10"
+            ref={containerRef}
+          >
           {/* Draggable Handle wrapper */}
           <div
             className={`absolute pointer-events-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none group`}
@@ -1302,6 +1335,7 @@ export default function VideoPlayer() {
             )}
           </div>
         </div>
+        </div> {/* Close the new aspect ratio wrapper div */}
 
         <div className="absolute bottom-8 right-8 opacity-20 pointer-events-none group-hover:opacity-40 transition-opacity">
           <h1 className="text-4xl font-black tracking-tighter text-white">

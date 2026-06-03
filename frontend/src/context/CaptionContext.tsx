@@ -19,7 +19,7 @@ export interface CaptionSegment {
 export interface CaptionStyle {
   primaryColor: string;
   emphasisColor: string;
-  layout: "splash" | "center" | "modern" | "bubble" | "hormozi" | "ali-abdaal" | "gadzhi" | "apple" | "mogrt-shimmer-stack" | "nxtgen-genz" | "nxtgen-alpha" | "nxtgen-horror" | "nxtgen-ficticvisual";
+  layout: "center" | "modern" | "bubble" | "hormozi" | "ali-abdaal" | "gadzhi" | "apple" | "mogrt-shimmer-stack" | "nxtgen-genz" | "nxtgen-alpha" | "nxtgen-horror" | "nxtgen-ficticvisual";
   // Text Tab Properties
   fontFamily: string;
   fontWeight: string;
@@ -45,7 +45,7 @@ export interface CaptionStyle {
   // Additional Template Properties
   spotlightColor: string;
   aliAbdaalPosition: "left" | "right";
-  kineticLayout: "center" | "splash";
+  kineticLayout: "center";
   // Transitions Tab Properties
   transitionTarget: "line" | "word";
   transitionType: "none" | "fade" | "pop" | "zoom" | "scale" | "slide-x" | "slide-y";
@@ -53,6 +53,12 @@ export interface CaptionStyle {
   alphaChannel?: boolean;
   srtExport?: boolean;
   cutoutVideoUrl?: string;
+  /**
+   * The actual pixel width of the video preview element in the editor.
+   * Set when the video element loads/resizes. Used by Remotion to scale
+   * captions proportionally (renderScale = renderWidth / previewWidth).
+   */
+  previewWidth?: number;
 }
 
 interface CaptionContextProps {

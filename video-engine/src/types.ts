@@ -19,7 +19,7 @@ export interface CaptionSegment {
 export interface CaptionStyleProps {
   primaryColor: string;
   emphasisColor: string;
-  layout: "splash" | "center" | "modern" | "bubble" | "hormozi" | "ali-abdaal" | "gadzhi" | "apple" | "mogrt-shimmer-stack" | "nxtgen-genz" | "nxtgen-alpha" | "top" | "bottom" | string;
+  layout: "center" | "modern" | "bubble" | "hormozi" | "ali-abdaal" | "gadzhi" | "apple" | "mogrt-shimmer-stack" | "nxtgen-genz" | "nxtgen-alpha" | "nxtgen-horror" | "nxtgen-ficticvisual" | "top" | "bottom" | string;
   fontFamily: string;
   fontWeight: string;
   fontSize: number;
@@ -41,7 +41,7 @@ export interface CaptionStyleProps {
   bubbleTertiaryColor: string;
   spotlightColor: string;
   aliAbdaalPosition: "left" | "right" | "center" | string;
-  kineticLayout: "center" | "splash" | string;
+  kineticLayout: "center" | string;
   transitionTarget: "line" | "word" | string;
   transitionType: "none" | "fade" | "pop" | "zoom" | "scale" | "slide-x" | "slide-y" | string;
   dynamicSpeed: boolean;
@@ -52,6 +52,14 @@ export interface CaptionStyleProps {
   backgroundColor?: string;
   glowColor?: string;
   borderRadius?: number;
+  alphaChannel?: boolean;
+  /**
+   * The actual pixel width at which the video was displayed in the editor preview.
+   * Used by Remotion to compute renderScale = videoWidth / previewWidth,
+   * ensuring the render output exactly matches the editor preview.
+   * Measured from the video element's clientWidth at render time.
+   */
+  previewWidth?: number;
 }
 
 // ─── Root Composition Props ───────────────────────────────────────────────────

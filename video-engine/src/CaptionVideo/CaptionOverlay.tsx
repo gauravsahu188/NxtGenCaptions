@@ -111,14 +111,14 @@ const ModernCaption: React.FC<{
   );
 };
 
-// ─── Segment Renderer (main export) ──────────────────────────────────────────
 export const CaptionOverlay: React.FC<{
   captions: CaptionSegment[];
   style: CaptionStyleProps;
   isBackgroundLayer?: boolean;
-}> = ({ captions, style, isBackgroundLayer }) => {
+}> = ({ captions, style: originalStyle, isBackgroundLayer }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width: videoWidth } = useVideoConfig();
+
 
   // seconds equivalent of current frame — used just like `currentTime` in the editor
   const currentTime = frame / fps;
@@ -131,6 +131,26 @@ export const CaptionOverlay: React.FC<{
   });
 
   if (!activeCaption) return null;
+
+  // Scale sizes to match frontend proportion.
+  // The editor measures the actual video preview pixel width via ResizeObserver and stores it as previewWidth.
+  // renderScale converts editor px → render px so captions appear identical.
+  //
+  // Layout math (1280px CSS screen):
+  //   SidebarLeft(80) + CaptionsList(380) + PropertiesRight(360) = 820px
+  //   VideoPlayer p-8 padding = 64px  →  video display ≈ 1280-820-64 = 396px ≈ 400px
+  //
+  // Fallback is 400 (matches the original hardcoded value that was working).
+  // When previewWidth IS supplied by the editor, that exact value is used instead.
+  const previewWidth = originalStyle.previewWidth ?? 400;
+  const renderScale = videoWidth / previewWidth;
+  
+  // Shadow the original style with scaled properties
+  const style = {
+    ...originalStyle,
+    fontSize: originalStyle.fontSize * renderScale,
+    letterSpacing: originalStyle.letterSpacing * renderScale,
+  };
 
 
 
@@ -318,7 +338,7 @@ export const CaptionOverlay: React.FC<{
     // Shimmer animation for hero word
     const shimmerGradient = `linear-gradient(90deg, ${spotlightColor} 0%, ${spotlightColor} 20%, ${lighterSpotlight} 40%, #CAEE93 50%, ${lighterSpotlight} 70%, ${spotlightColor} 80%, ${spotlightColor} 100%)`;
 
-    const wrapperFilter = `drop-shadow(${spotlightColor} 0px 0px 100px) drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)`;
+    const wrapperFilter = `drop-shadow(${spotlightColor} 0px 0px ${100 * renderScale}px) drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)`;
 
     const ghostBlurStyle: React.CSSProperties = {
       position: "absolute",
@@ -327,7 +347,7 @@ export const CaptionOverlay: React.FC<{
       width: "120%",
       height: "80%",
       transform: "translate(-50%, -50%)",
-      filter: "blur(10px)",
+      filter: `blur(${10 * renderScale}px)`,
       pointerEvents: "none",
       zIndex: 0,
     };
@@ -393,7 +413,7 @@ export const CaptionOverlay: React.FC<{
               backgroundClip: "text",
               WebkitTextFillColor: "transparent",
               color: "transparent",
-              filter: "drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)",
+              filter: `drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)`,
             }}>{wordObj.word}</span>
           </span>
         );
@@ -410,7 +430,7 @@ export const CaptionOverlay: React.FC<{
           }}
         >
           <span aria-hidden="true" style={{ ...ghostBlurStyle, color: primaryColor }}>{wordObj.word}</span>
-          <span style={{ fontFamily: style.fontFamily || "Inter", fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 800, lineHeight: 0.9, filter: "drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)" }}>{wordObj.word}</span>
+          <span style={{ fontFamily: style.fontFamily || "Inter", fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 800, lineHeight: 0.9, filter: `drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)` }}>{wordObj.word}</span>
         </span>
       );
     };
@@ -452,7 +472,7 @@ export const CaptionOverlay: React.FC<{
 
         {/* Hero Line */}
         {heroWordObj && (
-          <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0" }}>
+          <div style={{ textAlign: "center", width: "100%", position: "relative", margin: `${10 * renderScale}px 0` }}>
             {renderWord(heroWordObj, heroIndex, true)}
           </div>
         )}
@@ -515,7 +535,7 @@ export const CaptionOverlay: React.FC<{
     // Shimmer animation for hero word
     const shimmerGradient = `linear-gradient(90deg, ${spotlightColor} 0%, ${spotlightColor} 20%, ${lighterSpotlight} 40%, #CAEE93 50%, ${lighterSpotlight} 70%, ${spotlightColor} 80%, ${spotlightColor} 100%)`;
 
-    const wrapperFilter = `drop-shadow(${spotlightColor} 0px 0px 100px) drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)`;
+    const wrapperFilter = `drop-shadow(${spotlightColor} 0px 0px ${100 * renderScale}px) drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)`;
 
     const ghostBlurStyle: React.CSSProperties = {
       position: "absolute",
@@ -524,7 +544,7 @@ export const CaptionOverlay: React.FC<{
       width: "120%",
       height: "80%",
       transform: "translate(-50%, -50%)",
-      filter: "blur(10px)",
+      filter: `blur(${10 * renderScale}px)`,
       pointerEvents: "none",
       zIndex: 0,
     };
@@ -590,7 +610,7 @@ export const CaptionOverlay: React.FC<{
               backgroundClip: "text",
               WebkitTextFillColor: "transparent",
               color: "transparent",
-              filter: "drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)",
+              filter: `drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)`,
             }}>{wordObj.word}</span>
           </span>
         );
@@ -607,7 +627,7 @@ export const CaptionOverlay: React.FC<{
           }}
         >
           <span aria-hidden="true" style={{ ...ghostBlurStyle, fontFamily: "'Aston Script', cursive", fontWeight: 400, color: primaryColor }}>{wordObj.word}</span>
-          <span style={{ fontFamily: "'Aston Script', cursive", fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 400, lineHeight: 1.1, filter: "drop-shadow(rgba(0, 0, 0, 0.35) 5px 5px 15px)" }}>{wordObj.word}</span>
+          <span style={{ fontFamily: "'Aston Script', cursive", fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 400, lineHeight: 1.1, filter: `drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)` }}>{wordObj.word}</span>
         </span>
       );
     };
@@ -654,7 +674,7 @@ export const CaptionOverlay: React.FC<{
 
         {/* Hero Line */}
         {heroWordObj && (
-          <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0" }}>
+          <div style={{ textAlign: "center", width: "100%", position: "relative", margin: `${10 * renderScale}px 0` }}>
             {renderWord(heroWordObj, heroIndex, true)}
           </div>
         )}
@@ -763,12 +783,14 @@ export const CaptionOverlay: React.FC<{
           </span>
         );
       } else {
-        const isHeroActive = activeWord && words.indexOf(activeWord) === heroIndex;
-        const scale = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [0.8, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        });
-        const staggerDelay = (revealFrame - segmentStartFrame) / fps;
+        // Hero word — Remotion frame-based chalk stroke animation (mirrors CSS chalkStrokeIn)
+        const animDurationFrames = Math.round(fps * 0.25);
+        const opacity = interpolate(frame, [revealFrame, revealFrame + Math.round(animDurationFrames * 0.15), revealFrame + animDurationFrames], [0, 0.8, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const scale = interpolate(frame, [revealFrame, revealFrame + animDurationFrames], [0.95, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const skewX = interpolate(frame, [revealFrame, revealFrame + animDurationFrames], [-5, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const clipX1 = interpolate(frame, [revealFrame, revealFrame + animDurationFrames], [0, 120], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const clipX2 = interpolate(frame, [revealFrame, revealFrame + animDurationFrames], [0, 110], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
         return (
           <span
             key={`hero-${wordObj.start}`}
@@ -777,11 +799,11 @@ export const CaptionOverlay: React.FC<{
               fontFamily: "'Chalk-y', sans-serif",
               fontSize: `${HERO_FONT_SIZE}px`,
               color: "#ffffff",
-              textShadow: "0 0 15px rgba(255,255,255,0.8), 2px 2px 5px rgba(0,0,0,0.5)",
-              animation: "chalkStrokeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-              animationDelay: `${staggerDelay}s`,
+              textShadow: `0 0 ${15 * renderScale}px rgba(255,255,255,0.8), ${2 * renderScale}px ${2 * renderScale}px ${5 * renderScale}px rgba(0,0,0,0.5)`,
               whiteSpace: "pre",
-              opacity: 0,
+              opacity,
+              transform: `scale(${scale}) skewX(${skewX}deg)`,
+              clipPath: `polygon(0 0, ${clipX1}% 0, ${clipX2}% 100%, -10% 100%)`,
             }}
           >
             {wordObj.word}
@@ -790,13 +812,14 @@ export const CaptionOverlay: React.FC<{
       }
     };
 
+
     return (
       <div
         style={{
           display: "flex",
           flexDirection: "column",
           width: "100%",
-          maxWidth: "800px",
+          maxWidth: `${800 * renderScale}px`,
           margin: "0 auto",
           opacity: wrapperEntranceOpacity,
         }}
@@ -820,21 +843,6 @@ export const CaptionOverlay: React.FC<{
             font-weight: normal;
             font-style: normal;
           }
-          @keyframes chalkStrokeIn {
-            0% {
-              clip-path: polygon(0 0, 0 0, -10% 100%, -10% 100%);
-              opacity: 0;
-              transform: scale(0.95) skewX(-5deg);
-            }
-            15% {
-              opacity: 0.8;
-            }
-            100% {
-              clip-path: polygon(0 0, 120% 0, 110% 100%, -10% 100%);
-              opacity: 1;
-              transform: scale(1) skewX(0deg);
-            }
-          }
         `}</style>
         
         {/* Top Line */}
@@ -855,7 +863,7 @@ export const CaptionOverlay: React.FC<{
 
         {/* Hero Line */}
         {heroWordObj && (
-          <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0" }}>
+          <div style={{ textAlign: "center", width: "100%", position: "relative", margin: `${10 * renderScale}px 0` }}>
             {renderWord(heroWordObj, heroIndex, "hero")}
           </div>
         )}
@@ -905,20 +913,20 @@ export const CaptionOverlay: React.FC<{
           const wordStyle: React.CSSProperties = {
             fontFamily: style.fontFamily === "Cinzel Decorative" ? "'Cinzel Decorative', serif" : "'Syncopate', sans-serif",
             fontWeight: 700,
-            fontSize: `${style.fontSize * 1.5}px`, // match editor scaling
+            fontSize: `${style.fontSize * 1.5}px`, // match editor scaling (already scaled)
             textTransform: "uppercase",
             whiteSpace: "nowrap",
-            transition: "opacity 0.3s ease, filter 0.3s ease, letter-spacing 0.05s linear",
           };
 
           if (isActive) {
             // Remotion linear interpolation using frame count for absolute precision!
             const wordStartFrame = secToFrame(wordObj.start, fps);
             const wordEndFrame = secToFrame(wordObj.end, fps);
-            const tracking = interpolate(frame, [wordStartFrame, wordEndFrame], [0, 15], {
+            const tracking = interpolate(frame, [wordStartFrame, wordEndFrame], [0, 15 * renderScale], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             });
+            const opacityIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.3], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
             return (
               <span
@@ -926,8 +934,8 @@ export const CaptionOverlay: React.FC<{
                 style={{
                   ...wordStyle,
                   color: "#FFFFFF",
-                  filter: "drop-shadow(0px 0px 20px #00FFFF)",
-                  opacity: 1,
+                  filter: `drop-shadow(0px 0px ${20 * renderScale}px #00FFFF)`,
+                  opacity: opacityIn,
                   letterSpacing: `${tracking}px`,
                 }}
               >
@@ -935,15 +943,18 @@ export const CaptionOverlay: React.FC<{
               </span>
             );
           } else if (isPast) {
+            const wordEndFrame = secToFrame(wordObj.end, fps);
+            const opacityOut = interpolate(frame, [wordEndFrame, wordEndFrame + fps * 0.3], [1, 0.2], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
             return (
               <span
                 key={index}
                 style={{
                   ...wordStyle,
                   color: "#FFFFFF",
-                  opacity: 0.2,
-                  filter: "blur(4px)",
-                  letterSpacing: "15px",
+                  opacity: opacityOut,
+                  filter: `blur(${4 * renderScale}px)`,
+                  letterSpacing: `${15 * renderScale}px`,
                 }}
               >
                 {wordObj.word}
@@ -1086,6 +1097,16 @@ export const CaptionOverlay: React.FC<{
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
+      {/* Dynamically load the user's selected Google Font for AWS Lambda headless browser */}
+      {style.fontFamily &&
+        style.fontFamily !== "Aston Script" &&
+        style.fontFamily !== "Chalk-y" &&
+        style.fontFamily !== "Jaggy W01 Regular" && (
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=${style.fontFamily.replace(/ /g, "+")}:wght@400;700;800;900&display=swap');
+          `}</style>
+      )}
+
       {/* Positioned exactly like the editor's draggable caption handle */}
       <div
         style={{
@@ -1106,7 +1127,7 @@ export const CaptionOverlay: React.FC<{
         {style.layout === "modern" ? (
           <ModernCaption caption={activeCaption} style={style} fps={fps} />
         ) : (
-          <div style={{ width: "100%", padding: "0 4rem", boxSizing: "border-box" }}>
+          <div style={{ width: "100%", padding: `0 ${Math.round(64 * renderScale)}px`, boxSizing: "border-box" }}>
             {style.layout === "bubble"              ? renderBubbleText()         :
              style.layout === "hormozi"             ? renderHormoziText()        :
              style.layout === "ali-abdaal"          ? renderAliAbdaalText()      :
@@ -1117,7 +1138,7 @@ export const CaptionOverlay: React.FC<{
              style.layout === "nxtgen-alpha"        ? renderNxtgenAlpha()        :
              style.layout === "nxtgen-horror"       ? renderNxtgenHorror()       :
              style.layout === "nxtgen-ficticvisual" ? renderNxtgenFicticVisual() :
-             <div style={{ lineHeight: "tight" }}>{renderStyledText()}</div>
+             <div style={{ lineHeight: 1.25, letterSpacing: "-0.025em" }}>{renderStyledText()}</div>
             }
           </div>
         )}

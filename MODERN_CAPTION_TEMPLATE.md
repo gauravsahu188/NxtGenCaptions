@@ -12,10 +12,9 @@ Successfully created a "Modern Caption" template for the NxtGen Captions system 
 - **Smooth Animations**: Word-by-word entrance animations with staggered timing
 
 ### 2. Template System
-Added three caption templates to the system:
+Added two caption templates to the system:
 - **Modern Caption**: Emphasized words with glow effects (NEW)
 - **Classic Center**: Simple centered text
-- **Splash Bold**: Large bold text with cinematic feel
 
 ### 3. Customization Options
 Users can customize:
@@ -34,7 +33,7 @@ Users can customize:
 #### 1. Caption Context (`frontend/src/context/CaptionContext.tsx`)
 Added new properties to `CaptionStyle` interface:
 ```typescript
-layout: "splash" | "center" | "modern";
+layout: "center" | "modern";
 emphasisWords: boolean;
 emphasisGlow: boolean;
 emphasisGlowColor: string;

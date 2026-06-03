@@ -4,6 +4,7 @@ import { useCaptionContext } from "../../context/CaptionContext";
 import { CheckCircle2, RotateCcw, AlignLeft, AlignCenter, AlignRight, ChevronDown, Zap, ZoomIn, Sparkles, ArrowUpRight, Loader2, HelpCircle, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FontPicker from "./FontPicker";
+import ColorPicker from "./ColorPicker";
 export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: any; onOpenUpgradeModal: () => void }) {
   const {
     captionStyle,
@@ -110,21 +111,11 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
         <div className="flex flex-col gap-4">
           <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Visual Styles</span>
 
-          <div className="flex items-center justify-between group">
-            <span className="text-sm font-medium text-zinc-400 group-hover:text-white transition-colors">Primary Color</span>
-            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-1.5 pl-3 pr-2">
-              <div
-                className="w-5 h-5 rounded-lg shadow-lg border border-white/10"
-                style={{ backgroundColor: captionStyle.primaryColor }}
-              ></div>
-              <input
-                type="text"
-                value={captionStyle.primaryColor.toUpperCase()}
-                onChange={e => updateStyle("primaryColor", e.target.value)}
-                className="bg-transparent text-[11px] font-black text-white w-20 focus:outline-none"
-              />
-            </div>
-          </div>
+          <ColorPicker
+            label="Primary Color"
+            value={captionStyle.primaryColor}
+            onChange={val => updateStyle("primaryColor", val)}
+          />
 
           <div className="flex items-center justify-between group">
             <span className="text-sm font-medium text-zinc-400 group-hover:text-white transition-colors">Letter Spacing</span>
@@ -173,18 +164,11 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-400">Shadow Color</span>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: captionStyle.dropShadowColor }}></div>
-                <input
-                  type="text"
-                  value={captionStyle.dropShadowColor.toUpperCase()}
-                  onChange={e => updateStyle("dropShadowColor", e.target.value)}
-                  className="bg-transparent text-[11px] font-black text-white w-16 focus:outline-none"
-                />
-              </div>
-            </div>
+            <ColorPicker
+              label="Shadow Color"
+              value={captionStyle.dropShadowColor}
+              onChange={val => updateStyle("dropShadowColor", val)}
+            />
           </motion.div>
         )}
       </div>
@@ -486,7 +470,8 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
               </div>
               <div className="grid grid-cols-1 gap-4">
                 {/* NxtGenGenZ Template - Metallic Style */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-genz" ? "border-lime-500 bg-lime-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     const plan = user?.planType ?? "FREE";
                     if (plan === "FREE") {
@@ -507,10 +492,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     setLinesOption("1 Line");
                     resegmentWithLines(3, maxChars, "1 Line");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "nxtgen-genz"
-                      ? "border-lime-500 bg-lime-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-lime-500/20 to-transparent rounded-bl-full" />
                   <div className="relative z-10">
@@ -553,9 +535,23 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     </div>
                   </div>
                 </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-genz" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Spotlight Color" value={captionStyle.spotlightColor || "#FFFFFF"} onChange={val => updateStyle("spotlightColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FFFFFF"} onChange={val => updateStyle("emphasisColor", val)} />
+                          <ColorPicker label="Shadow Color" value={captionStyle.dropShadowColor || "#FFFFFF"} onChange={val => updateStyle("dropShadowColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* NxtGenAlpha Template - Cursive Metallic Style */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-alpha" ? "border-amber-500 bg-amber-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     const plan = user?.planType ?? "FREE";
                     if (plan === "FREE") {
@@ -576,10 +572,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     setLinesOption("1 Line");
                     resegmentWithLines(3, maxChars, "1 Line");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "nxtgen-alpha"
-                      ? "border-amber-500 bg-amber-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-amber-500/20 to-transparent rounded-bl-full" />
                   <div className="relative z-10">
@@ -625,9 +618,23 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     </div>
                   </div>
                 </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-alpha" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Spotlight Color" value={captionStyle.spotlightColor || "#FFFFFF"} onChange={val => updateStyle("spotlightColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FFFFFF"} onChange={val => updateStyle("emphasisColor", val)} />
+                          <ColorPicker label="Shadow Color" value={captionStyle.dropShadowColor || "#FFFFFF"} onChange={val => updateStyle("dropShadowColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* NxtGenHorror Template - Horror Style */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-horror" ? "border-red-500 bg-red-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     const plan = user?.planType ?? "FREE";
                     if (plan === "FREE") {
@@ -646,10 +653,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     setLinesOption("1 Line");
                     resegmentWithLines(4, maxChars, "1 Line");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "nxtgen-horror"
-                      ? "border-red-500 bg-red-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-red-500/20 to-transparent rounded-bl-full" />
                   <div className="relative z-10">
@@ -691,6 +695,17 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     </div>
                   </div>
                 </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-horror" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Shadow Color" value={captionStyle.dropShadowColor || "#FFFFFF"} onChange={val => updateStyle("dropShadowColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
               </div>
             </div>
@@ -698,8 +713,132 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
             <div className="space-y-4 mt-8">
               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Standard Templates</span>
               <div className="grid grid-cols-1 gap-4">
+                {/* Modern Caption Template */}
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "modern" ? "border-emerald-500 bg-emerald-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
+                  onClick={() => {
+                    updateStyle("layout", "modern");
+                    updateStyle("emphasisWords", true);
+                    updateStyle("emphasisGlow", true);
+                    updateStyle("emphasisColor", "#4ADE80");
+                    updateStyle("emphasisGlowColor", "#4ADE80");
+                    updateStyle("emphasisGlowIntensity", 50);
+                    updateStyle("primaryColor", "#FFFFFF");
+                    updateStyle("fontSize", 32);
+                    updateStyle("textAlignment", "center");
+                  }}
+                  className="w-full p-4 text-left relative z-10"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-emerald-500/20 to-transparent rounded-bl-full"></div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <span className="text-emerald-400 text-lg font-bold">M</span>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold text-sm">Modern Caption</h4>
+                        <p className="text-[10px] text-zinc-400">Emphasized words with glow</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/30 rounded-lg p-3 mb-2">
+                      <div className="flex flex-wrap gap-1 items-center justify-center">
+                        <span className="text-white text-xs">Create</span>
+                        <span className="text-emerald-400 text-xs font-bold" style={{ textShadow: "0 0 10px #4ADE80" }}>amazing</span>
+                        <span className="text-white text-xs">content</span>
+                        <span className="text-emerald-400 text-xs font-bold" style={{ textShadow: "0 0 10px #4ADE80" }}>today</span>
+                      </div>
+                    </div>
+
+                    {captionStyle.layout === "modern" && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
+                        <span className="text-[10px] text-emerald-400 font-bold">Active</span>
+                      </div>
+                    )}
+                  </div>
+                </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "modern" && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }} 
+                        animate={{ height: 'auto', opacity: 1 }} 
+                        exit={{ height: 0, opacity: 0 }} 
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-4 pt-0 space-y-4 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FFFFFF"} onChange={val => updateStyle("emphasisColor", val)} />
+                          <ColorPicker label="Glow Color" value={captionStyle.emphasisGlowColor || "#FFFFFF"} onChange={val => updateStyle("emphasisGlowColor", val)} />
+                          
+                          <div className="flex justify-between items-center py-1">
+                            <span className="text-xs font-medium text-zinc-400">Emphasize Words</span>
+                            <button
+                              onClick={() => updateStyle("emphasisWords", !captionStyle.emphasisWords)}
+                              className={`w-12 h-6 rounded-full relative transition-all shadow-inner ${captionStyle.emphasisWords ? "bg-emerald-500" : "bg-white/10"
+                                }`}
+                            >
+                              <motion.div
+                                animate={{ x: captionStyle.emphasisWords ? 24 : 4 }}
+                                className="w-4 h-4 rounded-full bg-white absolute top-1 shadow-md"
+                              />
+                            </button>
+                          </div>
+
+                          <div className="flex justify-between items-center py-1">
+                            <span className="text-xs font-medium text-zinc-400">Glow Effect</span>
+                            <button
+                              onClick={() => updateStyle("emphasisGlow", !captionStyle.emphasisGlow)}
+                              className={`w-12 h-6 rounded-full relative transition-all shadow-inner ${captionStyle.emphasisGlow ? "bg-emerald-500" : "bg-white/10"
+                                }`}
+                            >
+                              <motion.div
+                                animate={{ x: captionStyle.emphasisGlow ? 24 : 4 }}
+                                className="w-4 h-4 rounded-full bg-white absolute top-1 shadow-md"
+                              />
+                            </button>
+                          </div>
+
+                          <div className="space-y-1.5 pt-1">
+                            <span className="text-xs font-medium text-zinc-400">Glow Intensity</span>
+                            <div className="flex gap-4 items-center">
+                              <div className="flex-1 relative h-6 flex items-center">
+                                <div className="absolute inset-0 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(74,222,128,0.5)]"
+                                    style={{ width: `${(captionStyle.emphasisGlowIntensity / 100) * 100}%` }}
+                                  ></div>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  value={captionStyle.emphasisGlowIntensity || 0}
+                                  onChange={(e) => updateStyle("emphasisGlowIntensity", Number(e.target.value))}
+                                  className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  type="number"
+                                  value={captionStyle.emphasisGlowIntensity || 0}
+                                  onChange={(e) => updateStyle("emphasisGlowIntensity", Number(e.target.value))}
+                                  className="w-12 bg-white/5 border border-white/10 rounded-lg py-1 text-center text-xs font-bold text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 {/* NxtGenFicticVisual Template - Cinematic Style */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-ficticvisual" ? "border-cyan-500 bg-cyan-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     updateStyle("layout", "nxtgen-ficticvisual");
                     updateStyle("fontFamily", "Syncopate");
@@ -712,10 +851,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     setLinesOption("1 Line");
                     resegmentWithLines(2, maxChars, "1 Line");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "nxtgen-ficticvisual"
-                      ? "border-cyan-500 bg-cyan-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-cyan-500/20 to-transparent rounded-bl-full" />
                   <div className="relative z-10">
@@ -753,9 +889,20 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     </div>
                   </div>
                 </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-ficticvisual" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* Apple Template */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "apple" ? "border-gray-300 bg-gray-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     updateStyle("layout", "apple");
                     updateStyle("fontFamily", "Inter"); // San Francisco-like
@@ -766,10 +913,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     updateStyle("fontSize", 34);
                     updateStyle("textAlignment", "center");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "apple"
-                      ? "border-gray-300 bg-gray-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-gray-500/20 to-transparent rounded-bl-full"></div>
                   <div className="relative z-10">
@@ -796,57 +940,21 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     )}
                   </div>
                 </button>
-
-                {/* Modern Caption Template */}
-                <button
-                  onClick={() => {
-                    updateStyle("layout", "modern");
-                    updateStyle("emphasisWords", true);
-                    updateStyle("emphasisGlow", true);
-                    updateStyle("emphasisColor", "#4ADE80");
-                    updateStyle("emphasisGlowColor", "#4ADE80");
-                    updateStyle("primaryColor", "#FFFFFF");
-                    updateStyle("fontSize", 32);
-                    updateStyle("textAlignment", "center");
-                  }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "modern"
-                      ? "border-emerald-500 bg-emerald-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
-                >
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-emerald-500/20 to-transparent rounded-bl-full"></div>
-
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <span className="text-emerald-400 text-lg font-bold">M</span>
-                      </div>
-                      <div>
-                        <h4 className="text-white font-bold text-sm">Modern Caption</h4>
-                        <p className="text-[10px] text-zinc-400">Emphasized words with glow</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-black/30 rounded-lg p-3 mb-2">
-                      <div className="flex flex-wrap gap-1 items-center justify-center">
-                        <span className="text-white text-xs">Create</span>
-                        <span className="text-emerald-400 text-xs font-bold" style={{ textShadow: "0 0 10px #4ADE80" }}>amazing</span>
-                        <span className="text-white text-xs">content</span>
-                        <span className="text-emerald-400 text-xs font-bold" style={{ textShadow: "0 0 10px #4ADE80" }}>today</span>
-                      </div>
-                    </div>
-
-                    {captionStyle.layout === "modern" && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
-                        <span className="text-[10px] text-emerald-400 font-bold">Active</span>
-                      </div>
+                  <AnimatePresence>
+                    {captionStyle.layout === "apple" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FFFFFF"} onChange={val => updateStyle("emphasisColor", val)} />
+                        </div>
+                      </motion.div>
                     )}
-                  </div>
-                </button>
+                  </AnimatePresence>
+                </div>
 
                 {/* Bubble Style Template */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "bubble" ? "border-emerald-400 bg-emerald-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     updateStyle("layout", "bubble");
                     updateStyle("transitionType", "pop");
@@ -857,10 +965,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     updateStyle("textAlignment", "center");
                     updateStyle("dropShadow", false);
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "bubble"
-                      ? "border-emerald-400 bg-emerald-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-emerald-400/20 to-transparent rounded-bl-full" />
                   <div className="relative z-10">
@@ -892,9 +997,22 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     </div>
                   </div>
                 </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "bubble" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Text Color" value={captionStyle.bubblePrimaryColor || "#FFFFFF"} onChange={val => updateStyle("bubblePrimaryColor", val)} />
+                          <ColorPicker label="Bubble BG" value={captionStyle.bubbleSecondaryColor || "#FFFFFF"} onChange={val => updateStyle("bubbleSecondaryColor", val)} />
+                          <ColorPicker label="Inner Text" value={captionStyle.bubbleTertiaryColor || "#FFFFFF"} onChange={val => updateStyle("bubbleTertiaryColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* MogrtShimmerStack Template */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "mogrt-shimmer-stack" ? "border-zinc-300 bg-zinc-300/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     updateStyle("layout", "mogrt-shimmer-stack");
                     updateStyle("fontFamily", "THEBOLDFONT");
@@ -906,10 +1024,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     updateStyle("textAlignment", "center");
                     updateStyle("transitionType", "none");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "mogrt-shimmer-stack"
-                      ? "border-zinc-300 bg-zinc-300/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-zinc-300/20 to-transparent rounded-bl-full" />
                   <div className="relative z-10">
@@ -956,9 +1071,21 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     </div>
                   </div>
                 </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "mogrt-shimmer-stack" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Shadow Color" value={captionStyle.dropShadowColor || "#FFFFFF"} onChange={val => updateStyle("dropShadowColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* Iman Gadzhi Template */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "gadzhi" ? "border-neutral-500 bg-neutral-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     updateStyle("layout", "gadzhi");
                     updateStyle("fontFamily", "Montserrat");
@@ -969,10 +1096,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     updateStyle("fontSize", 36);
                     updateStyle("textAlignment", "center");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "gadzhi"
-                      ? "border-neutral-500 bg-neutral-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-neutral-500/20 to-transparent rounded-bl-full"></div>
                   <div className="relative z-10">
@@ -999,9 +1123,21 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     )}
                   </div>
                 </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "gadzhi" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Spotlight Color" value={captionStyle.spotlightColor || "#FFFFFF"} onChange={val => updateStyle("spotlightColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* Hormozi Template */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "hormozi" ? "border-yellow-500 bg-yellow-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     updateStyle("layout", "hormozi");
                     updateStyle("fontFamily", "Montserrat");
@@ -1015,10 +1151,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     updateStyle("fontSize", 42);
                     updateStyle("textAlignment", "center");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "hormozi"
-                      ? "border-yellow-500 bg-yellow-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-yellow-500/20 to-transparent rounded-bl-full"></div>
                   <div className="relative z-10">
@@ -1046,9 +1179,23 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     )}
                   </div>
                 </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "hormozi" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Spotlight Color" value={captionStyle.spotlightColor || "#FFFFFF"} onChange={val => updateStyle("spotlightColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FFFFFF"} onChange={val => updateStyle("emphasisColor", val)} />
+                          <ColorPicker label="Shadow Color" value={captionStyle.dropShadowColor || "#FFFFFF"} onChange={val => updateStyle("dropShadowColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* Ali Abdaal Template */}
-                <button
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "ali-abdaal" ? "border-blue-500 bg-blue-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
                   onClick={() => {
                     updateStyle("layout", "ali-abdaal");
                     updateStyle("fontFamily", "Inter");
@@ -1059,10 +1206,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                     updateStyle("dropShadow", false);
                     updateStyle("aliAbdaalPosition", "left");
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "ali-abdaal"
-                      ? "border-blue-500 bg-blue-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
+                  className="w-full p-4 text-left relative z-10"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-blue-500/20 to-transparent rounded-bl-full"></div>
                   <div className="relative z-10">
@@ -1089,278 +1233,77 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                       </div>
                     )}
                   </div>
-                </button>
+                </button>                {/* Classic Template */}
+                  <AnimatePresence>
+                    {captionStyle.layout === "ali-abdaal" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FFFFFF"} onChange={val => updateStyle("emphasisColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "center" ? "border-sky-500 bg-sky-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                  <button type="button"
+                    onClick={() => {
+                      updateStyle("layout", "center");
+                      updateStyle("emphasisWords", false);
+                      updateStyle("emphasisGlow", false);
+                      updateStyle("primaryColor", "#FFFFFF");
+                      updateStyle("emphasisColor", "#FFE600");
+                      updateStyle("fontSize", 28);
+                      updateStyle("textAlignment", "center");
+                    }}
+                    className="w-full p-4 text-left relative z-10"
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-sky-500/20 to-transparent rounded-bl-full"></div>
 
-                {/* Classic Template */}
-                <button
-                  onClick={() => {
-                    updateStyle("layout", "center");
-                    updateStyle("emphasisWords", false);
-                    updateStyle("emphasisGlow", false);
-                    updateStyle("primaryColor", "#FFFFFF");
-                    updateStyle("fontSize", 28);
-                    updateStyle("textAlignment", "center");
-                  }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "center"
-                      ? "border-sky-500 bg-sky-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
-                >
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-sky-500/20 to-transparent rounded-bl-full"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center">
+                          <span className="text-sky-400 text-lg font-bold">C</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-sm">Classic Center</h4>
+                          <p className="text-[10px] text-zinc-400">Simple centered text</p>
+                        </div>
+                      </div>
 
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center">
-                        <span className="text-sky-400 text-lg font-bold">C</span>
+                      <div className="bg-black/30 rounded-lg p-3 mb-2">
+                        <div className="text-white text-xs text-center">
+                          Simple centered caption text
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-white font-bold text-sm">Classic Center</h4>
-                        <p className="text-[10px] text-zinc-400">Simple centered text</p>
-                      </div>
+
+                      {captionStyle.layout === "center" && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]"></div>
+                          <span className="text-[10px] text-sky-400 font-bold">Active</span>
+                        </div>
+                      )}
                     </div>
-
-                    <div className="bg-black/30 rounded-lg p-3 mb-2">
-                      <div className="text-white text-xs text-center">
-                        Simple centered caption text
-                      </div>
-                    </div>
-
+                  </button>
+                  <AnimatePresence>
                     {captionStyle.layout === "center" && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]"></div>
-                        <span className="text-[10px] text-sky-400 font-bold">Active</span>
-                      </div>
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }} 
+                        animate={{ height: 'auto', opacity: 1 }} 
+                        exit={{ height: 0, opacity: 0 }} 
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FFE600"} onChange={val => updateStyle("emphasisColor", val)} />
+                        </div>
+                      </motion.div>
                     )}
-                  </div>
-                </button>
-
-                {/* Splash Template */}
-                <button
-                  onClick={() => {
-                    updateStyle("layout", "splash");
-                    updateStyle("emphasisWords", false);
-                    updateStyle("primaryColor", "#FFFFFF");
-                    updateStyle("fontSize", 36);
-                    updateStyle("textAlignment", "center");
-                    updateStyle("dropShadow", true);
-                  }}
-                  className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden group ${captionStyle.layout === "splash"
-                      ? "border-purple-500 bg-purple-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
-                >
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-purple-500/20 to-transparent rounded-bl-full"></div>
-
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                        <span className="text-purple-400 text-lg font-bold">S</span>
-                      </div>
-                      <div>
-                        <h4 className="text-white font-bold text-sm">Splash Bold</h4>
-                        <p className="text-[10px] text-zinc-400">Large bold text</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-black/30 rounded-lg p-3 mb-2">
-                      <div className="text-white text-sm font-bold text-center">
-                        BIG BOLD TEXT
-                      </div>
-                    </div>
-
-                    {captionStyle.layout === "splash" && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
-                        <span className="text-[10px] text-purple-400 font-bold">Active</span>
-                      </div>
-                    )}
-                  </div>
-                </button>
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
-
-            {/* Bubble Style Settings */}
-            <AnimatePresence>
-              {captionStyle.layout === "bubble" && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 pt-4 border-t border-white/10">
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Colors</span>
-                    {([
-                      { label: "Primary", desc: "Main text color", key: "bubblePrimaryColor", value: captionStyle.bubblePrimaryColor },
-                      { label: "Secondary", desc: "Bubble background", key: "bubbleSecondaryColor", value: captionStyle.bubbleSecondaryColor },
-                      { label: "Tertiary", desc: "Text inside bubble", key: "bubbleTertiaryColor", value: captionStyle.bubbleTertiaryColor },
-                    ] as const).map((item) => (
-                      <div key={item.key} className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-zinc-300">{item.label}</span>
-                          <span className="text-[10px] text-zinc-600">{item.desc}</span>
-                        </div>
-                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-1.5 pl-3 focus-within:border-emerald-500/40 transition-colors">
-                          <div className="w-5 h-5 rounded-lg border border-white/10 shrink-0" style={{ backgroundColor: item.value }} />
-                          <span className="text-zinc-600 text-[11px] font-bold">#</span>
-                          <input
-                            type="text"
-                            value={item.value.replace("#", "").toUpperCase()}
-                            onChange={(e) => updateStyle(item.key, `#${e.target.value}`)}
-                            maxLength={6}
-                            className="bg-transparent text-[11px] font-black text-white w-16 focus:outline-none uppercase"
-                          />
-                          <button
-                            onClick={() => {
-                              const d: Record<string, string> = { bubblePrimaryColor: "#FFFFFF", bubbleSecondaryColor: "#48A680", bubbleTertiaryColor: "#FFFFFF" };
-                              updateStyle(item.key, d[item.key]);
-                            }}
-                            className="text-zinc-600 hover:text-white transition-colors pr-2"
-                          >
-                            <RotateCcw className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    <button
-                      onClick={() => updateStyle("layout", "modern")}
-                      className="w-full mt-2 py-3.5 rounded-2xl font-bold text-sm border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 active:scale-[0.98] transition-all"
-                    >
-                      Remove Style
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Modern Caption Settings */}
-            {captionStyle.layout === "modern" && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="space-y-4 pt-4 border-t border-white/10"
-              >
-                <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Modern Caption Settings</span>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-zinc-400">Emphasize Words</span>
-                  <button
-                    onClick={() => updateStyle("emphasisWords", !captionStyle.emphasisWords)}
-                    className={`w-12 h-6 rounded-full relative transition-all shadow-inner ${captionStyle.emphasisWords ? "bg-emerald-500" : "bg-white/10"
-                      }`}
-                  >
-                    <motion.div
-                      animate={{ x: captionStyle.emphasisWords ? 24 : 4 }}
-                      className="w-4 h-4 rounded-full bg-white absolute top-1 shadow-md"
-                    />
-                  </button>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-zinc-400">Glow Effect</span>
-                  <button
-                    onClick={() => updateStyle("emphasisGlow", !captionStyle.emphasisGlow)}
-                    className={`w-12 h-6 rounded-full relative transition-all shadow-inner ${captionStyle.emphasisGlow ? "bg-emerald-500" : "bg-white/10"
-                      }`}
-                  >
-                    <motion.div
-                      animate={{ x: captionStyle.emphasisGlow ? 24 : 4 }}
-                      className="w-4 h-4 rounded-full bg-white absolute top-1 shadow-md"
-                    />
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-zinc-400">Emphasis Color</span>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-5 h-5 rounded-lg shadow-lg border border-white/10"
-                        style={{ backgroundColor: captionStyle.emphasisColor }}
-                      ></div>
-                      <input
-                        type="text"
-                        value={captionStyle.emphasisColor.toUpperCase()}
-                        onChange={(e) => updateStyle("emphasisColor", e.target.value)}
-                        className="bg-transparent text-[11px] font-black text-white w-20 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <span className="text-sm font-medium text-zinc-400">Glow Intensity</span>
-                  <div className="flex gap-4 items-center">
-                    <div className="flex-1 relative h-6 flex items-center">
-                      <div className="absolute inset-0 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(74,222,128,0.5)]"
-                          style={{ width: `${(captionStyle.emphasisGlowIntensity / 100) * 100}%` }}
-                        ></div>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={captionStyle.emphasisGlowIntensity}
-                        onChange={(e) => updateStyle("emphasisGlowIntensity", Number(e.target.value))}
-                        className="absolute inset-0 w-full opacity-0 cursor-pointer"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        value={captionStyle.emphasisGlowIntensity}
-                        onChange={(e) => updateStyle("emphasisGlowIntensity", Number(e.target.value))}
-                        className="w-14 bg-white/5 border border-white/10 rounded-xl py-2 text-center text-sm font-bold text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-
-
-            {/* NxtGen GenZ & Alpha Settings */}
-            <AnimatePresence>
-              {["nxtgen-genz", "nxtgen-alpha"].includes(captionStyle.layout) && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 pt-4 border-t border-white/10">
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Gradient Colors</span>
-                    {([
-                      { label: "Gradient Start", desc: "Left side shimmer", key: "spotlightColor", value: captionStyle.spotlightColor },
-                      { label: "Gradient Core", desc: "Center intense shimmer", key: "emphasisColor", value: captionStyle.emphasisColor },
-                    ] as const).map((item) => (
-                      <div key={item.key} className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-zinc-300">{item.label}</span>
-                          <span className="text-[10px] text-zinc-600">{item.desc}</span>
-                        </div>
-                        <div className={`flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-1.5 pl-3 focus-within:${captionStyle.layout === "nxtgen-alpha" ? "border-amber-500/40" : "border-lime-500/40"} transition-colors`}>
-                          <div className="w-5 h-5 rounded-lg border border-white/10 shrink-0" style={{ backgroundColor: item.value }} />
-                          <span className="text-zinc-600 text-[11px] font-bold">#</span>
-                          <input
-                            type="text"
-                            value={item.value.replace("#", "").toUpperCase()}
-                            onChange={(e) => updateStyle(item.key, `#${e.target.value}`)}
-                            maxLength={6}
-                            className="bg-transparent text-[11px] font-black text-white w-16 focus:outline-none uppercase"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         )}
       </div>

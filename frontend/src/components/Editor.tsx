@@ -168,7 +168,6 @@ export default function EditorLayout({ user }: { user?: any }) {
       delhi:                "delhi",
       neon:                 "neon",
       classic:              "classic",
-      splash:               "modern",
       hormozi:              "modern",
       "ali-abdaal":         "modern",
       gadzhi:               "neon",
