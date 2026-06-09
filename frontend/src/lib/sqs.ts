@@ -3,13 +3,8 @@ import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 const REGION = process.env.AWS_REGION ?? "ap-south-1";
 const QUEUE_URL = process.env.AWS_SQS_QUEUE_URL ?? "";
 
-const sqsClient = new SQSClient({
-  region: REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-  },
-});
+// Credentials resolved automatically via IAM role (Amplify) or env vars (local)
+const sqsClient = new SQSClient({ region: REGION });
 
 export interface VideoUploadMessage {
   fileKey: string;
@@ -65,5 +60,5 @@ export async function sendUploadNotification(
  * Check if SQS is properly configured.
  */
 export function isSqsConfigured(): boolean {
-  return Boolean(QUEUE_URL && process.env.AWS_ACCESS_KEY_ID);
+  return Boolean(QUEUE_URL);
 }

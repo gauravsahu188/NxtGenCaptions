@@ -44,13 +44,8 @@ const PLAN_MAX_RES: Record<string, number> = {
 
 // ─── S3 client ──────────────────────────────────────────────────────────────
 
-const s3 = new S3Client({
-  region: AWS_REGION,
-  credentials: {
-    accessKeyId:     process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+// Credentials resolved automatically via IAM role (Amplify) or env vars (local)
+const s3 = new S3Client({ region: AWS_REGION });
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

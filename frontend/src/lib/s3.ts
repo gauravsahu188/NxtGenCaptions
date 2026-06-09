@@ -4,13 +4,10 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 const BUCKET = process.env.AWS_S3_BUCKET ?? "nxtgencaption-export";
 const REGION = process.env.AWS_REGION ?? "ap-south-1";
 
-const s3Client = new S3Client({
-  region: REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-  },
-});
+// Credentials are resolved automatically:
+// - On Amplify: uses the IAM service role attached to the app
+// - Locally: uses AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars
+const s3Client = new S3Client({ region: REGION });
 
 /**
  * Generate a presigned URL for uploading a file to S3.
