@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Navbar from "@/components/landing/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/landing/Footer";
 import Loader from "@/components/Loader";
 import Link from "next/link";
@@ -37,7 +37,7 @@ export default function CookiePolicy() {
       <div className="relative z-10 flex flex-col min-h-screen justify-between">
         <Navbar />
 
-        <main className="max-w-4xl mx-auto px-6 pt-32 pb-24 w-full flex-grow">
+        <main className="max-w-4xl mx-auto px-6 pt-32 pb-24 w-full grow">
           {/* Header Section */}
           <div className="text-center mb-12">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-(--color-accent-glow) border border-(--color-border-accent) text-xs font-semibold text-(--color-accent-bright) mb-4 uppercase tracking-wider">
@@ -104,7 +104,7 @@ export default function CookiePolicy() {
 
                 {/* Categories of Cookies Table/Cards */}
                 <div className="space-y-4 mt-4">
-                  <div className="p-5 rounded-xl bg-white/[0.01] border border-white/5">
+                  <div className="p-5 rounded-xl bg-white/1 border border-white/5">
                     <h4 className="text-white font-medium mb-1 flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-(--color-accent-bright)"></span>
                       Essential & Session Cookies (Always Active)
@@ -114,7 +114,7 @@ export default function CookiePolicy() {
                     </p>
                   </div>
 
-                  <div className="p-5 rounded-xl bg-white/[0.01] border border-white/5">
+                  <div className="p-5 rounded-xl bg-white/1 border border-white/5">
                     <h4 className="text-white font-medium mb-1 flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-purple-400"></span>
                       Functional & Preference Storage
@@ -124,7 +124,7 @@ export default function CookiePolicy() {
                     </p>
                   </div>
 
-                  <div className="p-5 rounded-xl bg-white/[0.01] border border-white/5">
+                  <div className="p-5 rounded-xl bg-white/1 border border-white/5">
                     <h4 className="text-white font-medium mb-1 flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                       Analytics & Performance Cookies

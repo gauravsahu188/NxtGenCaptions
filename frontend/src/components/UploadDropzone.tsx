@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { UploadCloud, FileVideo, Loader2, Globe, Sparkles, Zap } from "lucide-react";
+import { UploadCloud, FileVideo, Globe, Sparkles, Zap } from "lucide-react";
 import { useCaptionContext } from "../context/CaptionContext";
 
 const LANGUAGES = [
@@ -166,23 +166,74 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
       className="w-full max-w-2xl mx-auto"
     >
       {/* Language Selector */}
-      <div className="mb-4 flex items-center justify-center gap-3">
-        <Globe className="w-5 h-5 text-zinc-400" />
-        <div className="flex gap-2">
+      <div className="mb-4 flex flex-col items-center gap-3">
+        <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
+          <Globe className="w-4 h-4 text-zinc-400" />
+          <span>Transcription Language</span>
+        </div>
+        <div className="flex flex-wrap justify-center gap-2 max-w-xl">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
+              type="button"
               onClick={() => setSelectedLanguage(lang.code)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-250 cursor-pointer ${
                 selectedLanguage === lang.code
-                  ? "bg-accent text-white shadow-lg shadow-accent/20"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                  ? "bg-accent text-white shadow-lg shadow-accent/25 scale-[1.01]"
+                  : "bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-white"
               }`}
             >
               <span className="mr-1">{lang.flag}</span>
               {lang.name}
             </button>
           ))}
+        </div>
+
+        {/* Dynamic Helper Text */}
+        <div className="min-h-10 mt-1 text-center max-w-lg px-4 flex items-center justify-center">
+          <span className="text-xs text-zinc-400 font-normal leading-relaxed">
+
+            {selectedLanguage === "auto" && (
+              <motion.span
+                key="auto"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-block"
+              >
+                🌐 Automatically detects the primary language spoken in the video (e.g., outputs traditional Hindi or English).
+              </motion.span>
+            )}
+            {selectedLanguage === "en" && (
+              <motion.span
+                key="en"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-block"
+              >
+                🇬🇧 Transcribes English speech, or translates non-English languages to English.
+              </motion.span>
+            )}
+            {selectedLanguage === "hinglish" && (
+              <motion.span
+                key="hinglish"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-block"
+              >
+                🇮🇳 Forces Romanized Hindi transliteration (e.g., writing spoken Hindi using English alphabets like &quot;kaise ho&quot;).
+              </motion.span>
+            )}
+            {selectedLanguage === "hi" && (
+              <motion.span
+                key="hi"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-block"
+              >
+                🇮🇳 Forces Hindi transcription using the traditional Devanagari script (e.g., &quot;कैसे हो&quot;).
+              </motion.span>
+            )}
+          </span>
         </div>
       </div>
 

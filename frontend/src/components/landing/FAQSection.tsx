@@ -87,7 +87,7 @@ export default function FAQSection() {
           <h2 className="text-3xl md:text-4xl font-semibold text-white mb-4 tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p className="text-lg text-[var(--color-fg-muted)] max-w-2xl mx-auto">
+          <p className="text-lg text-(--color-fg-muted) max-w-2xl mx-auto">
             To help you feel confident in NxtGen Captions, here are answers to address technical, security, and performance concerns.
           </p>
         </motion.div>
@@ -102,8 +102,8 @@ export default function FAQSection() {
               transition={{ duration: 0.5, delay: categoryIndex * 0.1 }}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center">
-                  <category.icon className="w-4 h-4 text-[var(--color-accent)]" />
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <category.icon className="w-4 h-4 text-(--color-accent)" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">{category.title}</h3>
               </div>
@@ -120,17 +120,16 @@ export default function FAQSection() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.4, delay: 0.1 }}
-                      className="rounded-xl border border-[var(--color-border-default)] bg-[var(--color-surface)] overflow-hidden"
+                      className="rounded-xl border border-(--color-border-default) bg-(--color-surface) overflow-hidden"
                     >
                       <button
                         onClick={() => toggleItem(itemId)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-[var(--color-surface-hover)] transition-colors duration-200"
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-(--color-surface-hover) transition-colors duration-200"
                       >
                         <span className="font-medium text-white pr-4">{item.question}</span>
                         <ChevronDown
-                          className={`w-5 h-5 text-[var(--color-fg-muted)] flex-shrink-0 transition-transform duration-300 ${
-                            isOpen ? 'rotate-180' : ''
-                          }`}
+                          className={`w-5 h-5 text-(--color-fg-muted) shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
+                            }`}
                         />
                       </button>
                       <AnimatePresence>
@@ -142,7 +141,7 @@ export default function FAQSection() {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="px-4 pb-4 pt-2 text-[var(--color-fg-muted)] leading-relaxed border-t border-[var(--color-border-default)]">
+                            <div className="px-4 pb-4 pt-2 text-(--color-fg-muted) leading-relaxed border-t border-(--color-border-default)">
                               {item.answer}
                             </div>
                           </motion.div>

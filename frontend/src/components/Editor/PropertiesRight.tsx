@@ -1,11 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCaptionContext } from "../../context/CaptionContext";
 import { CheckCircle2, RotateCcw, AlignLeft, AlignCenter, AlignRight, ChevronDown, Zap, ZoomIn, Sparkles, ArrowUpRight, Loader2, HelpCircle, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FontPicker from "./FontPicker";
 import ColorPicker from "./ColorPicker";
-export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: any; onOpenUpgradeModal: () => void }) {
+export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOverride, hideTabs }: { user?: any; onOpenUpgradeModal: () => void; activeTabOverride?: string | null; hideTabs?: boolean }) {
   const {
     captionStyle,
     setCaptionStyle,
@@ -18,8 +18,12 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
     setIsProcessing,
     setProcessingMessage
   } = useCaptionContext() as any;
-  const [activeTab, setActiveTab] = useState("Text");
+  const [activeTab, setActiveTab] = useState(activeTabOverride || "Text");
   const [isEnhancing, setIsEnhancing] = useState(false);
+
+  useEffect(() => {
+    if (activeTabOverride) setActiveTab(activeTabOverride);
+  }, [activeTabOverride]);
 
   const updateStyle = (key: string, value: any) => {
     setCaptionStyle((s: any) => ({ ...s, [key]: value }));
@@ -57,7 +61,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                 ></div>
               </div>
               <input
-                type="range" min="10" max="100"
+                type="range" min="1" max="100"
                 value={captionStyle.fontSize}
                 onChange={e => updateStyle("fontSize", Number(e.target.value))}
                 className="absolute inset-0 w-full opacity-0 cursor-pointer"
@@ -437,9 +441,10 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
   );
 
   return (
-    <div className="w-[360px] glass-panel border-l border-white/5 flex flex-col h-full font-sans relative z-20">
+    <div className="w-full md:w-[360px] glass-panel md:border-l border-white/5 flex flex-col h-full font-sans relative z-20">
       {/* Tabs */}
-      <div className="flex border-b border-white/5 text-[11px] font-black uppercase tracking-widest px-4">
+      {!hideTabs && (
+        <div className="flex border-b border-white/5 text-[11px] font-black uppercase tracking-widest px-4">
         {['Text', 'Templates', 'Motion', 'AI Audio'].map(tab => (
           <button
             key={tab}
@@ -455,7 +460,8 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
             )}
           </button>
         ))}
-      </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {activeTab === "Text" && renderTextTab()}
@@ -543,6 +549,80 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                           <ColorPicker label="Spotlight Color" value={captionStyle.spotlightColor || "#FFFFFF"} onChange={val => updateStyle("spotlightColor", val)} />
                           <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FFFFFF"} onChange={val => updateStyle("emphasisColor", val)} />
                           <ColorPicker label="Shadow Color" value={captionStyle.dropShadowColor || "#FFFFFF"} onChange={val => updateStyle("dropShadowColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* NxtGenVengence Template */}
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-vengence" ? "border-purple-500 bg-purple-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
+                  onClick={() => {
+                    const plan = user?.planType ?? "FREE";
+                    if (plan === "FREE") {
+                      onOpenUpgradeModal();
+                      return;
+                    }
+                    updateStyle("layout", "nxtgen-vengence");
+                    updateStyle("fontFamily", "Inter");
+                    updateStyle("primaryColor", "#FFFFFF");
+                    updateStyle("spotlightColor", "#A0D83E");
+                    updateStyle("emphasisColor", "#AADC56");
+                    updateStyle("dropShadow", true);
+                    updateStyle("dropShadowColor", "#000000");
+                    updateStyle("dropShadowOpacity", 70);
+                    updateStyle("textAlignment", "center");
+                    updateStyle("fontSize", 10);
+                    setWordsPerLine(3);
+                    setLinesOption("1 Line");
+                    resegmentWithLines(3, maxChars, "1 Line");
+                  }}
+                  className="w-full p-4 text-left relative z-10"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-purple-500/20 to-transparent rounded-bl-full" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                          <span className="text-purple-400 text-lg font-bold">V</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-sm">NxtGen Vengence</h4>
+                          <p className="text-[10px] text-zinc-400">Cinematic style</p>
+                        </div>
+                      </div>
+                      {captionStyle.layout === "nxtgen-vengence" && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.9)]" />
+                          <span className="text-[10px] text-purple-400 font-black uppercase tracking-widest">Active</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Live preview thumbnail */}
+                    <div className="bg-black/50 rounded-xl p-3 flex flex-col items-center gap-1">
+                      <div className="text-white text-[8px] font-bold flex w-full justify-start">
+                        <span>Top</span>
+                      </div>
+                      <span
+                        className="font-black leading-none uppercase"
+                        style={{
+                          fontSize: '22px',
+                          color: '#FFFFFF',
+                          mixBlendMode: 'difference'
+                        }}
+                      >VENGENCE</span>
+                      <div className="text-white text-[8px] font-bold flex w-full justify-end">
+                        <span>Now</span>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-vengence" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
                         </div>
                       </motion.div>
                     )}
@@ -830,6 +910,67 @@ export default function PropertiesRight({ user, onOpenUpgradeModal }: { user?: a
                               </div>
                             </div>
                           </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Holo Cyberpunk Template */}
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "holo" ? "border-green-500 bg-green-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
+                  onClick={() => {
+                    updateStyle("layout", "holo");
+                    updateStyle("fontFamily", "Space Grotesk");
+                    updateStyle("fontWeight", "700");
+                    updateStyle("primaryColor", "#00FF41");
+                    updateStyle("positionX", 50);
+                    updateStyle("positionY", 80);
+                    updateStyle("dropShadow", false);
+                    updateStyle("fontSize", 24);
+                    updateStyle("textAlignment", "center");
+                  }}
+                  className="w-full p-4 text-left relative z-10"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-green-500/20 to-transparent rounded-bl-full"></div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                        <span className="text-[#00FF41] text-lg font-bold">H</span>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold text-sm">Holo Cyberpunk</h4>
+                        <p className="text-[10px] text-zinc-400">Terminal HUD style</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/30 rounded-lg p-3 mb-2 border border-[#00FF41]/30">
+                      <div className="flex flex-wrap gap-1 items-center justify-start">
+                        <span className="text-[#00FF41] text-xs font-mono" style={{ textShadow: "0 0 5px #00FF41" }}>System.</span>
+                        <span className="text-[#00FF41] text-xs font-mono" style={{ textShadow: "-1px 0 red, 1px 0 blue" }}>glitch()</span>
+                      </div>
+                    </div>
+
+                    {captionStyle.layout === "holo" && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="w-2 h-2 rounded-full bg-[#00FF41] shadow-[0_0_8px_rgba(0,255,65,0.8)]"></div>
+                        <span className="text-[10px] text-[#00FF41] font-bold">Active</span>
+                      </div>
+                    )}
+                  </div>
+                </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "holo" && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }} 
+                        animate={{ height: 'auto', opacity: 1 }} 
+                        exit={{ height: 0, opacity: 0 }} 
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-4 pt-0 space-y-4 border-t border-white/10 mt-2">
+                          <ColorPicker label="Terminal Color" value={captionStyle.primaryColor || "#00FF41"} onChange={val => updateStyle("primaryColor", val)} />
                         </div>
                       </motion.div>
                     )}

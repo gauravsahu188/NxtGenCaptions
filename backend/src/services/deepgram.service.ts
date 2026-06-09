@@ -106,8 +106,9 @@ export class DeepgramTranscriptionService {
   private buildApiUrl(model: string, language: string): string {
     const baseUrl = "https://api.deepgram.com/v1/listen";
 
-    // whisper models do NOT support detect_language — use nova-2 for auto-detect
-    const resolvedModel = (language === "auto" && model.startsWith("whisper")) ? "nova-2" : model;
+    // whisper models do NOT support detect_language or language=multi — use nova-2
+    const resolvesToMulti = (language === "auto" || language === "en");
+    const resolvedModel = (resolvesToMulti && model.startsWith("whisper")) ? "nova-2" : model;
 
     const params = new URLSearchParams({
       model: resolvedModel,
@@ -117,12 +118,11 @@ export class DeepgramTranscriptionService {
       diarize: "false",
     });
 
-    if (language !== "auto") {
+    if (resolvesToMulti) {
+      params.append("language", "multi");
+    } else {
       // Hinglish → use Hindi language code
       params.append("language", language === "hinglish" ? "hi" : language);
-    } else {
-      // detect_language only works with nova-2/nova-3
-      params.append("detect_language", "true");
     }
 
     return `${baseUrl}?${params.toString()}`;

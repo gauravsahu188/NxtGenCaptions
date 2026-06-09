@@ -8,6 +8,11 @@ import {
 import { CaptionSegment, CaptionStyleProps, WordTiming } from "../types";
 import jaggyFont from "../assets/jaggy-w01-regular.ttf";
 import chalkFont from "../assets/chalk-y.otf";
+import bastligaFont from "../assets/bastliga/Bastliga One.ttf";
+import droidFont from "../assets/droid-1997.otf";
+import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
+
+loadSpaceGrotesk();
 
 function secToFrame(sec: number, fps: number) {
   return Math.round(sec * fps);
@@ -887,6 +892,166 @@ export const CaptionOverlay: React.FC<{
     );
   };
 
+  // ── renderNxtgenVengence ─────────────────────────────────────────────────
+  const renderNxtgenVengence = () => {
+    const words = activeCaption.words;
+    if (words.length === 0) return null;
+
+    let heroIndex = Math.floor(words.length / 2);
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen && clean.length <= 7) {
+        maxLen = clean.length;
+        heroIndex = i;
+      }
+    }
+
+    const topWords = words.slice(0, heroIndex);
+    const heroWordObj = words[heroIndex];
+    const bottomWords = words.slice(heroIndex + 1);
+
+    const primaryColor = style.primaryColor || "#ffffff";
+    const baseFont = style.fontSize || 32;
+    const SUB_FONT_SIZE = Math.round(baseFont * 3);
+    const HERO_FONT_SIZE = words.length <= 2 ? Math.round(baseFont * 4.5) : Math.round(baseFont * 6.56);
+
+    const segmentStartFrameForWrapper = secToFrame(words[0].start, fps);
+    // wrapperEntranceOpacity removed to prevent stacking context isolation which breaks mix-blend-mode
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "fit-content",
+          margin: "0 auto",
+        }}
+      >
+        <style>{`
+          @font-face {
+            font-family: 'Bastliga One';
+            src: url('${bastligaFont}') format('truetype');
+          }
+          @font-face {
+            font-family: 'Droid 1997';
+            src: url('${droidFont}') format('opentype');
+          }
+          @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
+          @import url('https://fonts.cdnfonts.com/css/gilroy-bold');
+        `}</style>
+
+        {/* Top Line (Bastliga One, capitalize, reveal from top) */}
+        {topWords.length > 0 && (
+          <div style={{ textAlign: "left", width: "100%", position: "relative" }}>
+            <div style={{
+              fontFamily: "'Bastliga One', cursive, sans-serif",
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 0.9,
+              color: primaryColor,
+              textAlign: "left",
+              display: "flex",
+              gap: "0.5em",
+              textTransform: "capitalize"
+            }}>
+              {topWords.map((w, idx) => {
+                const revealFrame = secToFrame(w.start, fps);
+                const isSpoken = currentTime >= w.start;
+                const opacityVal = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.4)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+                const yOffset = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.4)], [-30, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+                
+                return (
+                  <span
+                    key={`top-${idx}`}
+                    style={{ 
+                      whiteSpace: "pre",
+                      opacity: isSpoken ? opacityVal : 0.15,
+                      transform: `translateY(${isSpoken ? yOffset : -30}px)`,
+                      display: "inline-block"
+                    }}
+                  >
+                    {w.word}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Hero Line (Droid 1997, uppercase, difference filter, char by char from bottom) */}
+        {heroWordObj && (
+          <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0" }}>
+            <div style={{
+              fontFamily: "'Droid 1997', 'Syncopate', sans-serif",
+              fontSize: `${HERO_FONT_SIZE}px`,
+              fontWeight: 900,
+              lineHeight: 0.9,
+              textTransform: "uppercase",
+              color: "#ffffff",
+              display: "inline-flex",
+              justifyContent: "center",
+            }}>
+              {heroWordObj.word.split("").map((char, charIdx) => {
+                const isHeroActive = currentTime >= heroWordObj.start;
+                const revealFrame = secToFrame(heroWordObj.start, fps) + Math.round(charIdx * 0.05 * fps);
+                const opacityVal = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+                const yOffset = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [40, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+                return (
+                  <span
+                    key={`hero-char-${charIdx}`}
+                    style={{ 
+                      opacity: isHeroActive ? opacityVal : 0,
+                      transform: `translateY(${isHeroActive ? yOffset : 40}px)`,
+                      display: "inline-block"
+                    }}
+                  >
+                    {char}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Line (Space Grotesk, basic in animation) */}
+        {bottomWords.length > 0 && (
+          <div style={{ textAlign: "right", width: "100%", position: "relative" }}>
+            <div style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 0.9,
+              color: primaryColor,
+              textAlign: "right",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "0.5em",
+            }}>
+              {bottomWords.map((w, idx) => {
+                const revealFrame = secToFrame(w.start, fps);
+                const isSpoken = currentTime >= w.start;
+                const opacityVal = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+                
+                return (
+                  <span
+                    key={`bottom-${idx}`}
+                    style={{ 
+                      whiteSpace: "pre",
+                      opacity: isSpoken ? opacityVal : 0.15,
+                      display: "inline-block"
+                    }}
+                  >
+                    {w.word}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // ── renderNxtgenFicticVisual ─────────────────────────────────────────────
   const renderNxtgenFicticVisual = () => {
     const words = activeCaption.words;
@@ -1122,6 +1287,7 @@ export const CaptionOverlay: React.FC<{
           width: `${style.width}%`,
           maxWidth: "100%",
           padding: "1rem",
+          mixBlendMode: style.layout === "nxtgen-vengence" ? "difference" : "normal",
         }}
       >
         {style.layout === "modern" ? (
@@ -1137,6 +1303,7 @@ export const CaptionOverlay: React.FC<{
              style.layout === "nxtgen-genz"         ? renderNxtgenGenZ()         :
              style.layout === "nxtgen-alpha"        ? renderNxtgenAlpha()        :
              style.layout === "nxtgen-horror"       ? renderNxtgenHorror()       :
+             style.layout === "nxtgen-vengence"     ? renderNxtgenVengence()     :
              style.layout === "nxtgen-ficticvisual" ? renderNxtgenFicticVisual() :
              <div style={{ lineHeight: 1.25, letterSpacing: "-0.025em" }}>{renderStyledText()}</div>
             }

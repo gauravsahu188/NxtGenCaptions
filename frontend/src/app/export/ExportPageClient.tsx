@@ -577,106 +577,134 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
         <AnimatePresence>
           {(phase === "rendering" || phase === "done" || phase === "error") && (
             <motion.div
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              className="bg-white/2 border border-white/6 rounded-3xl p-8 space-y-6"
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 z-100 p-4 md:p-6 pointer-events-none flex justify-center"
             >
-              {phase !== "error" && (
-                <>
-                  {/* Stage label */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {phase === "done" ? (
-                        <CheckCircle className="w-5 h-5 text-green-400" />
-                      ) : (
-                        <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                      )}
-                      <span className="font-bold text-sm text-white">{stageLabel}</span>
-                    </div>
-                    <span className="text-2xl font-black text-accent tabular-nums">{progress}%</span>
-                  </div>
+              <div className="w-full max-w-4xl bg-bg-elevated/95 backdrop-blur-2xl border border-white/10 rounded-[32px] p-6 md:p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)] pointer-events-auto relative overflow-hidden">
+                {/* Animated Glow Background */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-32 bg-accent/20 blur-[100px] pointer-events-none" />
 
-                  {/* Progress bar */}
-                  <div className="relative h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                    <motion.div
-                      className="absolute inset-y-0 left-0 rounded-full"
-                      style={{
-                        background: phase === "done"
-                          ? "linear-gradient(90deg, #4ade80, #22c55e)"
-                          : "linear-gradient(90deg, var(--color-accent), var(--color-accent-bright))",
-                      }}
-                      animate={{ width: `${progress}%` }}
-                      transition={{ duration: 0.6, ease: "easeOut" }}
-                    />
-                    {phase !== "done" && (
-                      <motion.div
-                        className="absolute inset-y-0 w-24 bg-white/10 skew-x-[-20deg]"
-                        animate={{ x: ["-100%", "600%"] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      />
-                    )}
-                  </div>
-
-                  {/* Stage steps */}
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                    {["Init", "Bundle", "Render", "Stitch", "Upload", "Done"].map((s, i) => {
-                      const stagePct = [0, 15, 35, 65, 85, 100][i];
-                      const done     = progress >= stagePct;
-                      return (
-                        <div key={s} className="flex flex-col items-center gap-1.5">
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
-                            done ? "border-accent bg-accent/20" : "border-white/10 bg-transparent"
-                          }`}>
-                            {done && <div className="w-2 h-2 bg-accent rounded-full" />}
-                          </div>
-                          <span className={`text-[10px] font-bold tracking-wide transition-colors ${done ? "text-accent" : "text-zinc-600"}`}>{s}</span>
+                <div className="relative flex flex-col gap-6">
+                  {phase !== "error" && (
+                    <>
+                      {/* Header & Disclaimer */}
+                      <div className="flex flex-col md:flex-row items-center gap-6">
+                        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 shadow-inner">
+                          {phase === "done" ? (
+                            <CheckCircle className="w-8 h-8 text-green-400" />
+                          ) : (
+                            <Sparkles className="w-8 h-8 text-accent animate-pulse" />
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
+                        
+                        <div className="flex-1 text-center md:text-left space-y-1">
+                          <div className="flex items-center justify-center md:justify-between">
+                            <h2 className="text-xl md:text-2xl font-black tracking-tight text-white">
+                              {phase === "done" ? "Export Complete" : "Rendering your Masterpiece"}
+                            </h2>
+                            <span className="hidden md:block text-2xl font-black text-accent tabular-nums">{progress}%</span>
+                          </div>
+                          
+                          <p className="text-zinc-400 font-medium">
+                            {phase === "done" ? "Your video has been successfully processed." : stageLabel || "Initializing..."}
+                          </p>
+                          
+                          {phase === "rendering" && (
+                            <div className="pt-2 flex items-center justify-center md:justify-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                              <p className="text-xs font-bold uppercase tracking-widest text-amber-500/90">
+                                Do not close this window
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
-              {/* Error */}
-              {phase === "error" && (
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-red-500/10 rounded-2xl border border-red-500/20">
-                    <AlertCircle className="w-5 h-5 text-red-400" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-red-400 mb-1">Render Failed</p>
-                    <p className="text-sm text-zinc-400">{errorMsg}</p>
-                    <button
-                      onClick={() => { setPhase("idle"); setProgress(0); }}
-                      className="mt-3 text-xs text-accent hover:text-accent-bright font-bold"
+                      {/* AI Style Progress Bar */}
+                      <div className="relative h-2 bg-[#050505] rounded-full overflow-hidden border border-white/5 shadow-inner">
+                        <motion.div
+                          className="absolute inset-y-0 left-0 rounded-full"
+                          style={{
+                            background: phase === "done"
+                              ? "linear-gradient(90deg, #4ade80, #22c55e)"
+                              : "linear-gradient(90deg, var(--color-accent), var(--color-accent-bright))",
+                          }}
+                          animate={{ width: `${progress}%` }}
+                          transition={{ duration: 0.6, ease: "easeOut" }}
+                        />
+                        {phase === "rendering" && (
+                          <motion.div
+                            className="absolute inset-y-0 w-24 bg-white/20 skew-x-[-20deg]"
+                            animate={{ x: ["-100%", "800%"] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          />
+                        )}
+                      </div>
+
+                      {/* Stage steps */}
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
+                        {["Init", "Bundle", "Render", "Stitch", "Upload", "Done"].map((s, i) => {
+                          const stagePct = [0, 15, 35, 65, 85, 100][i];
+                          const done     = progress >= stagePct;
+                          return (
+                            <div key={s} className="flex flex-col items-center gap-1.5">
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
+                                done ? "border-accent bg-accent/20" : "border-white/10 bg-[#050505]"
+                              }`}>
+                                {done && <div className="w-2 h-2 bg-accent rounded-full" />}
+                              </div>
+                              <span className={`text-[10px] font-bold tracking-wide transition-colors ${done ? "text-accent" : "text-zinc-600"}`}>{s}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Error */}
+                  {phase === "error" && (
+                    <div className="flex items-start gap-4 p-4">
+                      <div className="p-3 bg-red-500/10 rounded-2xl border border-red-500/20">
+                        <AlertCircle className="w-6 h-6 text-red-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-red-400 text-lg mb-1">Render Failed</p>
+                        <p className="text-sm text-zinc-400">{errorMsg}</p>
+                        <button
+                          onClick={() => { setPhase("idle"); setProgress(0); }}
+                          className="mt-4 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-sm font-bold transition-colors"
+                        >
+                          Try Again
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Done — download */}
+                  {phase === "done" && downloadUrl && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mt-2 p-5 bg-green-500/10 border border-green-500/20 rounded-2xl"
                     >
-                      Try Again →
-                    </button>
-                  </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-green-400 mb-0.5">Ready to download!</p>
+                        <p className="text-xs text-zinc-400">If it didn't start automatically, click the button →</p>
+                      </div>
+                      <button
+                        onClick={handleDownloadClick}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-sm rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                      >
+                        <Download className="w-4 h-4" />
+                        {srtExport ? "Download Video & SRT" : "Download Now"}
+                      </button>
+                    </motion.div>
+                  )}
                 </div>
-              )}
-
-              {/* Done — download */}
-              {phase === "done" && downloadUrl && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 p-5 bg-green-500/5 border border-green-500/20 rounded-2xl"
-                >
-                  <div className="flex-1">
-                    <p className="font-bold text-green-400 mb-0.5">Download started!</p>
-                    <p className="text-xs text-zinc-400">If it didn't start automatically, click the button →</p>
-                  </div>
-                  <button
-                    onClick={handleDownloadClick}
-                    className="flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-sm rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
-                  >
-                    <Download className="w-4 h-4" />
-                    {srtExport ? "Download Video & SRT" : "Download Now"}
-                  </button>
-                </motion.div>
-              )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

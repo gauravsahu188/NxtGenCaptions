@@ -5457,9 +5457,9 @@ export namespace Prisma {
     readonly userId: FieldRef<"Subscription", 'String'>
     readonly planType: FieldRef<"Subscription", 'PlanType'>
     readonly storageLimitGb: FieldRef<"Subscription", 'Int'>
-    readonly transcriptionLimitMins: FieldRef<"Subscription", 'Int'>
+    readonly transcriptionLimitMins: FieldRef<"Subscription", 'Float'>
     readonly maxExportRes: FieldRef<"Subscription", 'Int'>
-    readonly transcriptionUsedMins: FieldRef<"Subscription", 'Int'>
+    readonly transcriptionUsedMins: FieldRef<"Subscription", 'Float'>
     readonly storageUsedBytes: FieldRef<"Subscription", 'BigInt'>
     readonly audioCredits: FieldRef<"Subscription", 'Int'>
     readonly maxVideoLengthMinutes: FieldRef<"Subscription", 'Int'>
@@ -6657,7 +6657,7 @@ export namespace Prisma {
     readonly emailVerified: FieldRef<"User", 'DateTime'>
     readonly image: FieldRef<"User", 'String'>
     readonly planType: FieldRef<"User", 'PlanType'>
-    readonly transcriptionBalance: FieldRef<"User", 'Int'>
+    readonly transcriptionBalance: FieldRef<"User", 'Float'>
     readonly audioCredits: FieldRef<"User", 'Int'>
     readonly storageUsed: FieldRef<"User", 'BigInt'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
@@ -8505,6 +8505,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
    * Reference to a field of type 'BigInt'
    */
   export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
@@ -8536,20 +8550,6 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float'
-   */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float[]'
-   */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
   /**
    * Deep Input Types
@@ -8750,9 +8750,9 @@ export namespace Prisma {
     userId?: StringFilter<"Subscription"> | string
     planType?: EnumPlanTypeFilter<"Subscription"> | $Enums.PlanType
     storageLimitGb?: IntFilter<"Subscription"> | number
-    transcriptionLimitMins?: IntFilter<"Subscription"> | number
+    transcriptionLimitMins?: FloatFilter<"Subscription"> | number
     maxExportRes?: IntFilter<"Subscription"> | number
-    transcriptionUsedMins?: IntFilter<"Subscription"> | number
+    transcriptionUsedMins?: FloatFilter<"Subscription"> | number
     storageUsedBytes?: BigIntFilter<"Subscription"> | bigint | number
     audioCredits?: IntFilter<"Subscription"> | number
     maxVideoLengthMinutes?: IntFilter<"Subscription"> | number
@@ -8797,9 +8797,9 @@ export namespace Prisma {
     NOT?: SubscriptionWhereInput | SubscriptionWhereInput[]
     planType?: EnumPlanTypeFilter<"Subscription"> | $Enums.PlanType
     storageLimitGb?: IntFilter<"Subscription"> | number
-    transcriptionLimitMins?: IntFilter<"Subscription"> | number
+    transcriptionLimitMins?: FloatFilter<"Subscription"> | number
     maxExportRes?: IntFilter<"Subscription"> | number
-    transcriptionUsedMins?: IntFilter<"Subscription"> | number
+    transcriptionUsedMins?: FloatFilter<"Subscription"> | number
     storageUsedBytes?: BigIntFilter<"Subscription"> | bigint | number
     audioCredits?: IntFilter<"Subscription"> | number
     maxVideoLengthMinutes?: IntFilter<"Subscription"> | number
@@ -8848,9 +8848,9 @@ export namespace Prisma {
     userId?: StringWithAggregatesFilter<"Subscription"> | string
     planType?: EnumPlanTypeWithAggregatesFilter<"Subscription"> | $Enums.PlanType
     storageLimitGb?: IntWithAggregatesFilter<"Subscription"> | number
-    transcriptionLimitMins?: IntWithAggregatesFilter<"Subscription"> | number
+    transcriptionLimitMins?: FloatWithAggregatesFilter<"Subscription"> | number
     maxExportRes?: IntWithAggregatesFilter<"Subscription"> | number
-    transcriptionUsedMins?: IntWithAggregatesFilter<"Subscription"> | number
+    transcriptionUsedMins?: FloatWithAggregatesFilter<"Subscription"> | number
     storageUsedBytes?: BigIntWithAggregatesFilter<"Subscription"> | bigint | number
     audioCredits?: IntWithAggregatesFilter<"Subscription"> | number
     maxVideoLengthMinutes?: IntWithAggregatesFilter<"Subscription"> | number
@@ -8874,7 +8874,7 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
     image?: StringNullableFilter<"User"> | string | null
     planType?: EnumPlanTypeFilter<"User"> | $Enums.PlanType
-    transcriptionBalance?: IntFilter<"User"> | number
+    transcriptionBalance?: FloatFilter<"User"> | number
     audioCredits?: IntFilter<"User"> | number
     storageUsed?: BigIntFilter<"User"> | bigint | number
     createdAt?: DateTimeFilter<"User"> | Date | string
@@ -8913,7 +8913,7 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
     image?: StringNullableFilter<"User"> | string | null
     planType?: EnumPlanTypeFilter<"User"> | $Enums.PlanType
-    transcriptionBalance?: IntFilter<"User"> | number
+    transcriptionBalance?: FloatFilter<"User"> | number
     audioCredits?: IntFilter<"User"> | number
     storageUsed?: BigIntFilter<"User"> | bigint | number
     createdAt?: DateTimeFilter<"User"> | Date | string
@@ -8953,7 +8953,7 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     image?: StringNullableWithAggregatesFilter<"User"> | string | null
     planType?: EnumPlanTypeWithAggregatesFilter<"User"> | $Enums.PlanType
-    transcriptionBalance?: IntWithAggregatesFilter<"User"> | number
+    transcriptionBalance?: FloatWithAggregatesFilter<"User"> | number
     audioCredits?: IntWithAggregatesFilter<"User"> | number
     storageUsed?: BigIntWithAggregatesFilter<"User"> | bigint | number
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -9272,9 +9272,9 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     storageLimitGb?: IntFieldUpdateOperationsInput | number
-    transcriptionLimitMins?: IntFieldUpdateOperationsInput | number
+    transcriptionLimitMins?: FloatFieldUpdateOperationsInput | number
     maxExportRes?: IntFieldUpdateOperationsInput | number
-    transcriptionUsedMins?: IntFieldUpdateOperationsInput | number
+    transcriptionUsedMins?: FloatFieldUpdateOperationsInput | number
     storageUsedBytes?: BigIntFieldUpdateOperationsInput | bigint | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
@@ -9294,9 +9294,9 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     storageLimitGb?: IntFieldUpdateOperationsInput | number
-    transcriptionLimitMins?: IntFieldUpdateOperationsInput | number
+    transcriptionLimitMins?: FloatFieldUpdateOperationsInput | number
     maxExportRes?: IntFieldUpdateOperationsInput | number
-    transcriptionUsedMins?: IntFieldUpdateOperationsInput | number
+    transcriptionUsedMins?: FloatFieldUpdateOperationsInput | number
     storageUsedBytes?: BigIntFieldUpdateOperationsInput | bigint | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
@@ -9335,9 +9335,9 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     storageLimitGb?: IntFieldUpdateOperationsInput | number
-    transcriptionLimitMins?: IntFieldUpdateOperationsInput | number
+    transcriptionLimitMins?: FloatFieldUpdateOperationsInput | number
     maxExportRes?: IntFieldUpdateOperationsInput | number
-    transcriptionUsedMins?: IntFieldUpdateOperationsInput | number
+    transcriptionUsedMins?: FloatFieldUpdateOperationsInput | number
     storageUsedBytes?: BigIntFieldUpdateOperationsInput | bigint | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
@@ -9356,9 +9356,9 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     storageLimitGb?: IntFieldUpdateOperationsInput | number
-    transcriptionLimitMins?: IntFieldUpdateOperationsInput | number
+    transcriptionLimitMins?: FloatFieldUpdateOperationsInput | number
     maxExportRes?: IntFieldUpdateOperationsInput | number
-    transcriptionUsedMins?: IntFieldUpdateOperationsInput | number
+    transcriptionUsedMins?: FloatFieldUpdateOperationsInput | number
     storageUsedBytes?: BigIntFieldUpdateOperationsInput | bigint | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
@@ -9415,7 +9415,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9433,7 +9433,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9465,7 +9465,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9479,7 +9479,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9810,6 +9810,17 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
   export type BigIntFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
@@ -9944,6 +9955,22 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
   }
 
   export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -10220,6 +10247,14 @@ export namespace Prisma {
   }
 
   export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type FloatFieldUpdateOperationsInput = {
     set?: number
     increment?: number
     decrement?: number
@@ -10566,6 +10601,17 @@ export namespace Prisma {
     not?: NestedEnumPlanTypeFilter<$PrismaModel> | $Enums.PlanType
   }
 
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
   export type NestedBigIntFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
@@ -10619,7 +10665,7 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type NestedFloatFilter<$PrismaModel = never> = {
+  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
     in?: number[] | ListFloatFieldRefInput<$PrismaModel>
     notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
@@ -10627,7 +10673,12 @@ export namespace Prisma {
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
   }
 
   export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -10748,7 +10799,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10765,7 +10816,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10832,7 +10883,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10849,7 +10900,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10916,7 +10967,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10933,7 +10984,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11183,9 +11234,9 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     storageLimitGb?: IntFieldUpdateOperationsInput | number
-    transcriptionLimitMins?: IntFieldUpdateOperationsInput | number
+    transcriptionLimitMins?: FloatFieldUpdateOperationsInput | number
     maxExportRes?: IntFieldUpdateOperationsInput | number
-    transcriptionUsedMins?: IntFieldUpdateOperationsInput | number
+    transcriptionUsedMins?: FloatFieldUpdateOperationsInput | number
     storageUsedBytes?: BigIntFieldUpdateOperationsInput | bigint | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
@@ -11203,9 +11254,9 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     storageLimitGb?: IntFieldUpdateOperationsInput | number
-    transcriptionLimitMins?: IntFieldUpdateOperationsInput | number
+    transcriptionLimitMins?: FloatFieldUpdateOperationsInput | number
     maxExportRes?: IntFieldUpdateOperationsInput | number
-    transcriptionUsedMins?: IntFieldUpdateOperationsInput | number
+    transcriptionUsedMins?: FloatFieldUpdateOperationsInput | number
     storageUsedBytes?: BigIntFieldUpdateOperationsInput | bigint | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
@@ -11276,7 +11327,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11293,7 +11344,7 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
-    transcriptionBalance?: IntFieldUpdateOperationsInput | number
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
     audioCredits?: IntFieldUpdateOperationsInput | number
     storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

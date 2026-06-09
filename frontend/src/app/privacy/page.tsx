@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Navbar from "@/components/landing/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/landing/Footer";
 import Loader from "@/components/Loader";
 import Link from "next/link";
@@ -37,7 +37,7 @@ export default function PrivacyPolicy() {
       <div className="relative z-10 flex flex-col min-h-screen justify-between">
         <Navbar />
 
-        <main className="max-w-4xl mx-auto px-6 pt-32 pb-24 w-full flex-grow">
+        <main className="max-w-4xl mx-auto px-6 pt-32 pb-24 w-full grow">
           {/* Header Section */}
           <div className="text-center mb-12">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-(--color-accent-glow) border border-(--color-border-accent) text-xs font-semibold text-(--color-accent-bright) mb-4 uppercase tracking-wider">
@@ -147,7 +147,7 @@ export default function PrivacyPolicy() {
                 <p className="leading-relaxed">
                   We prioritize storage efficiency and privacy, implementing strict automated lifecycles for your media:
                 </p>
-                <div className="mt-4 p-5 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+                <div className="mt-4 p-5 rounded-xl bg-white/2 border border-white/5 space-y-3">
                   <p className="text-sm">
                     <strong className="text-white">Raw Uploaded Videos:</strong> Video files uploaded to our secure AWS S3 buckets are reserved only for active transcription/rendering and are automatically purged from our storage systems within <span className="text-white font-medium">24 hours</span>.
                   </p>
@@ -195,7 +195,7 @@ export default function PrivacyPolicy() {
                 <p className="leading-relaxed">
                   If you have questions, concerns, or requests regarding this Privacy Policy or how we handle your media assets, please reach out to us:
                 </p>
-                <div className="mt-4 p-4 rounded-lg bg-white/[0.01] border border-white/5 text-sm text-(--color-fg-muted)">
+                <div className="mt-4 p-4 rounded-lg bg-white/1 border border-white/5 text-sm text-(--color-fg-muted)">
                   <p><strong>Email:</strong> legal@nxtgencaptions.com</p>
                   <p className="mt-1"><strong>Response Time:</strong> We typically respond to legal or privacy inquiries within 48 business hours.</p>
                 </div>

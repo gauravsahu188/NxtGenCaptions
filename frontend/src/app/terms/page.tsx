@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Navbar from "@/components/landing/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/landing/Footer";
 import Loader from "@/components/Loader";
 import Link from "next/link";
@@ -37,7 +37,7 @@ export default function TermsOfService() {
       <div className="relative z-10 flex flex-col min-h-screen justify-between">
         <Navbar />
 
-        <main className="max-w-4xl mx-auto px-6 pt-32 pb-24 w-full flex-grow">
+        <main className="max-w-4xl mx-auto px-6 pt-32 pb-24 w-full grow">
           {/* Header Section */}
           <div className="text-center mb-12">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-(--color-accent-glow) border border-(--color-border-accent) text-xs font-semibold text-(--color-accent-bright) mb-4 uppercase tracking-wider">
@@ -176,7 +176,7 @@ export default function TermsOfService() {
                 <h2 className="text-xl md:text-2xl font-semibold text-white mb-3 flex items-center gap-2">
                   <span className="text-(--color-accent-bright)">6.</span> AI Subtitle Accuracy & Service Disclaimers
                 </h2>
-                <div className="mt-4 p-5 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+                <div className="mt-4 p-5 rounded-xl bg-white/2 border border-white/5 space-y-3">
                   <p className="text-sm">
                     <strong className="text-white">AI Discrepancy:</strong> NxtGen Captions uses state-of-the-art neural transcription systems to generate subtitles. However, transcription accuracy can vary based on audio quality, speaker accents, background noise, or terminology. We do not guarantee 100% precision. Subtitles must be reviewed and corrected by you in our timeline editor.
                   </p>
@@ -211,7 +211,7 @@ export default function TermsOfService() {
                 <p className="leading-relaxed">
                   For any clarifications, legal issues, or policy feedback on these Terms of Service, please write to:
                 </p>
-                <div className="mt-4 p-4 rounded-lg bg-white/[0.01] border border-white/5 text-sm text-(--color-fg-muted)">
+                <div className="mt-4 p-4 rounded-lg bg-white/1 border border-white/5 text-sm text-(--color-fg-muted)">
                   <p><strong>Email:</strong> support@nxtgencaptions.com</p>
                   <p className="mt-1"><strong>Mailing Address:</strong> NxtGen Technologies Inc., Legal Dept, Dover, DE 19901</p>
                 </div>

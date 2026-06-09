@@ -42,25 +42,25 @@ model VerificationToken {
 }
 
 model Subscription {
-  id                       String    @id @default(cuid())
-  userId                   String    @unique
-  planType                 PlanType  @default(FREE)
-  storageLimitGb           Int       @default(1)
-  transcriptionLimitMins  Int       @default(5)
-  maxExportRes             Int       @default(720)
-  transcriptionUsedMins    Int       @default(0)
-  storageUsedBytes         BigInt    @default(0)
-  audioCredits             Int       @default(3)
-  maxVideoLengthMinutes    Int       @default(2) // Max video length in minutes
-  alphaChannelEnabled      Boolean   @default(false)
-  srtRenderEnabled         Boolean   @default(false)
-  customFontEnabled        Boolean   @default(false)
-  prioritySupport          Boolean   @default(false)
-  billingCycleStart        DateTime  @default(now())
-  billingCycleEnd         DateTime?
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  planType               PlanType  @default(FREE)
+  storageLimitGb         Int       @default(1)
+  transcriptionLimitMins Float     @default(5)
+  maxExportRes           Int       @default(720)
+  transcriptionUsedMins  Float     @default(0)
+  storageUsedBytes       BigInt    @default(0)
+  billingCycleStart      DateTime  @default(now())
+  billingCycleEnd        DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  audioCredits           Int       @default(3)
+  alphaChannelEnabled    Boolean   @default(false)
+  customFontEnabled      Boolean   @default(false)
+  maxVideoLengthMinutes  Int       @default(2)
+  prioritySupport        Boolean   @default(false)
+  srtRenderEnabled       Boolean   @default(false)
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -70,7 +70,7 @@ model User {
   emailVerified        DateTime?
   image                String?
   planType             PlanType      @default(FREE)
-  transcriptionBalance Int           @default(5)
+  transcriptionBalance Float         @default(5)
   audioCredits         Int           @default(3)
   storageUsed          BigInt        @default(0)
   createdAt            DateTime      @default(now())

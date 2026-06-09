@@ -31,7 +31,7 @@ interface PlanDetails {
   highlight: boolean;
 }
 
-const PLANS: Record<string, PlanDetails> = {
+const PLANS_INR: Record<string, PlanDetails> = {
   EDITOR: {
     name: 'Editor',
     price: '599',
@@ -92,6 +92,67 @@ const PLANS: Record<string, PlanDetails> = {
   },
 };
 
+const PLANS_USD: Record<string, PlanDetails> = {
+  EDITOR: {
+    name: 'Editor',
+    price: '9',
+    transcriptionBalance: 120,
+    audioCredits: 50,
+    maxExportRes: 1080,
+    highlight: false,
+    features: [
+      '2 Hours of Transcription',
+      '20 GB Cloud Storage',
+      '1080P Video Render',
+      'Max Video Length 5 min',
+      '50 Audio Enhancement Credits',
+      'Custom Font Upload',
+      'NxtGen Premium Templates Access'
+    ],
+  },
+  CREATOR: {
+    name: 'Creator',
+    price: '15',
+    originalPrice: '25',
+    transcriptionBalance: 300,
+    audioCredits: 150,
+    maxExportRes: 2160,
+    highlight: true,
+    badge: 'Most Popular',
+    features: [
+      '5 Hours of Transcription',
+      '60 GB Cloud Storage',
+      '4K Video Render',
+      'Max Video Length 10 min',
+      '150 Audio Enhancement Credits',
+      'Alpha Channel Render',
+      'SRT Render',
+      'Custom Font Upload',
+      'NxtGen Premium Templates Access'
+    ],
+  },
+  BUSINESS: {
+    name: 'Business',
+    price: '75',
+    originalPrice: '99',
+    transcriptionBalance: 1800,
+    audioCredits: 500,
+    maxExportRes: 2160,
+    highlight: false,
+    features: [
+      '30 Hours of Transcription',
+      '150 GB Cloud Storage',
+      '4K Video Render',
+      'Max Video Length 30 min',
+      '500 Audio Enhancement Credits',
+      'Alpha Channel Render',
+      'SRT Render',
+      'Priority Support',
+      'NxtGen Premium Templates Access'
+    ],
+  },
+};
+
 const PLAN_ICONS: Record<string, React.ReactNode> = {
   EDITOR: <Zap className="w-5 h-5" />,
   CREATOR: <Crown className="w-5 h-5" />,
@@ -105,6 +166,7 @@ export default function PaymentModal({ isOpen, onClose, currentPlan = 'FREE' }: 
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
 
   // Load Razorpay script
   useEffect(() => {
@@ -117,6 +179,57 @@ export default function PaymentModal({ isOpen, onClose, currentPlan = 'FREE' }: 
       setRazorpayLoaded(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const savedCurrency = localStorage.getItem('currency_preference') as 'INR' | 'USD';
+    if (savedCurrency === 'INR' || savedCurrency === 'USD') {
+      setCurrency(savedCurrency);
+      return;
+    }
+
+    let detectedCurrency: 'INR' | 'USD' = 'INR';
+
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz) {
+        const isIndiaTz = tz.includes('Kolkata') || tz.includes('Calcutta') || tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta';
+        if (!isIndiaTz) {
+          detectedCurrency = 'USD';
+        }
+      }
+    } catch (e) {
+      try {
+        const locale = navigator.language || (navigator.languages && navigator.languages[0]) || '';
+        if (locale && !locale.toLowerCase().endsWith('-in') && locale.toLowerCase() !== 'hi') {
+          detectedCurrency = 'USD';
+        }
+      } catch (err) {}
+    }
+
+    setCurrency(detectedCurrency);
+
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.country_code) {
+          const isIndiaIp = data.country_code === 'IN';
+          const newCurrency = isIndiaIp ? 'INR' : 'USD';
+          setCurrency(newCurrency);
+          localStorage.setItem('currency_preference', newCurrency);
+        }
+      })
+      .catch(() => {});
+  }, [isOpen]);
+
+  const handleCurrencyChange = (newCurrency: 'INR' | 'USD') => {
+    setCurrency(newCurrency);
+    localStorage.setItem('currency_preference', newCurrency);
+  };
+
+  const activePlans = currency === 'USD' ? PLANS_USD : PLANS_INR;
+  const currencySymbol = currency === 'USD' ? '$' : '₹';
 
   const handleUpgrade = async (planType: string) => {
     if (planType === currentPlan || !razorpayLoaded) return;
@@ -131,7 +244,7 @@ export default function PaymentModal({ isOpen, onClose, currentPlan = 'FREE' }: 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ planType }),
+        body: JSON.stringify({ planType, currency }),
       });
 
       const data = await response.json();
@@ -145,10 +258,10 @@ export default function PaymentModal({ isOpen, onClose, currentPlan = 'FREE' }: 
         const options = {
           key: data.paymentPayload.keyId,
           order_id: data.paymentPayload.razorpayOrderId,
-          amount: parseFloat(PLANS[planType].price) * 100, // Convert to paise
-          currency: 'INR',
+          amount: parseFloat(data.paymentPayload.amount) * 100, // Convert to paise / cents
+          currency: data.paymentPayload.currency,
           name: 'NxtGen Captions',
-          description: `${PLANS[planType].name} Plan`,
+          description: `${activePlans[planType].name} Plan`,
           handler: async (response: any) => {
             // Payment successful - verify with backend
             try {
@@ -246,10 +359,36 @@ export default function PaymentModal({ isOpen, onClose, currentPlan = 'FREE' }: 
                       </div>
                       <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white">Choose Your Plan</h2>
                       <p className="text-zinc-400 mt-3 text-base md:text-lg max-w-xl mx-auto">Unlock premium features and take your content to the next level</p>
+
+                      {/* Currency Switcher */}
+                      <div className="flex justify-center mt-6">
+                        <div className="relative flex p-1 bg-white/5 border border-white/10 rounded-2xl">
+                          <button
+                            onClick={() => handleCurrencyChange('INR')}
+                            className={`relative px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 ${
+                              currency === 'INR'
+                                ? 'bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+                                : 'text-white/60 hover:text-white'
+                            }`}
+                          >
+                            INR (₹)
+                          </button>
+                          <button
+                            onClick={() => handleCurrencyChange('USD')}
+                            className={`relative px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 ${
+                              currency === 'USD'
+                                ? 'bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+                                : 'text-white/60 hover:text-white'
+                            }`}
+                          >
+                            USD ($)
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {Object.entries(PLANS).map(([planType, plan]) => {
+                      {Object.entries(activePlans).map(([planType, plan]) => {
                         const isCurrentPlan = currentPlan === planType;
                         const isDisabled = isCurrentPlan || isProcessing;
 
@@ -283,9 +422,9 @@ export default function PaymentModal({ isOpen, onClose, currentPlan = 'FREE' }: 
                               </div>
 
                               <div className="mb-6">
-                                <span className="text-4xl font-black text-white">₹{plan.price}</span>
+                                <span className="text-4xl font-black text-white">{currencySymbol}{plan.price}</span>
                                 {plan.originalPrice && (
-                                  <span className="ml-2 text-lg text-zinc-500 line-through">₹{plan.originalPrice}</span>
+                                  <span className="ml-2 text-lg text-zinc-500 line-through">{currencySymbol}{plan.originalPrice}</span>
                                 )}
                                 <span className="text-zinc-500 text-sm">/month</span>
                               </div>

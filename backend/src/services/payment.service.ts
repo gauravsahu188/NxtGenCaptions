@@ -8,6 +8,7 @@ interface InitiateTransactionParams {
   planType: string;
   email?: string;
   mobile?: string;
+  currency?: string;
 }
 
 interface InitiateTransactionResult {
@@ -31,7 +32,7 @@ function getPaymentConfig(): PaymentConfig {
 
   if (fs.existsSync(envPath)) {
     const content = fs.readFileSync(envPath, 'utf-8');
-    content.split('\n').forEach(line => {
+    content.split('\n').forEach((line: string) => {
       const [key, ...valueParts] = line.split('=');
       if (key && valueParts.length) {
         envVars[key.trim()] = valueParts.join('=').trim();
@@ -62,7 +63,7 @@ export async function initiatePayment(
   params: InitiateTransactionParams
 ): Promise<InitiateTransactionResult> {
   const config = getPaymentConfig();
-  const { userId, amount, planType, email } = params;
+  const { userId, amount, planType, email, currency } = params;
 
   console.log('[PaymentService] === INITIATING RAZORPAY ===');
   console.log('[PaymentService] Config:', {
@@ -83,8 +84,8 @@ export async function initiatePayment(
 
     // Create order in Razorpay
     const order = await razorpay.orders.create({
-      amount: Math.round(parseFloat(amount) * 100), // Convert to paise
-      currency: 'INR',
+      amount: Math.round(parseFloat(amount) * 100), // Convert to paise / cents
+      currency: currency || 'INR',
       receipt: params.orderId,
       notes: {
         userId,
@@ -104,6 +105,7 @@ export async function initiatePayment(
         keyId: config.keyId,
         amount: amount,
         planType,
+        currency: currency || 'INR',
       },
     };
 
@@ -143,7 +145,7 @@ export function generateOrderId(userId: string): string {
   return `NXT${timestamp}${random}`;
 }
 
-export const PLAN_PRICING: Record<string, PlanFeatures> = {
+export const PLAN_PRICING_INR: Record<string, PlanFeatures> = {
   EDITOR: {
     amount: '599.00',
     transcriptionBalance: 120, // 2 hours
@@ -181,6 +183,47 @@ export const PLAN_PRICING: Record<string, PlanFeatures> = {
     prioritySupport: true,
   },
 };
+
+export const PLAN_PRICING_USD: Record<string, PlanFeatures> = {
+  EDITOR: {
+    amount: '9.00',
+    transcriptionBalance: 120, // 2 hours
+    audioCredits: 50,
+    maxExportRes: 1080,
+    storageLimitGb: 20,
+    maxVideoLengthMinutes: 5,
+    alphaChannelEnabled: false,
+    srtRenderEnabled: false,
+    customFontEnabled: true,
+    prioritySupport: false,
+  },
+  CREATOR: {
+    amount: '15.00',
+    transcriptionBalance: 300, // 5 hours
+    audioCredits: 150,
+    maxExportRes: 2160,
+    storageLimitGb: 60,
+    maxVideoLengthMinutes: 10,
+    alphaChannelEnabled: true,
+    srtRenderEnabled: true,
+    customFontEnabled: true,
+    prioritySupport: false,
+  },
+  BUSINESS: {
+    amount: '75.00',
+    transcriptionBalance: 1800, // 30 hours
+    audioCredits: 500,
+    maxExportRes: 2160,
+    storageLimitGb: 150,
+    maxVideoLengthMinutes: 30,
+    alphaChannelEnabled: true,
+    srtRenderEnabled: true,
+    customFontEnabled: true,
+    prioritySupport: true,
+  },
+};
+
+export const PLAN_PRICING = PLAN_PRICING_INR;
 
 interface PlanFeatures {
   amount: string;

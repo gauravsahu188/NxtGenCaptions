@@ -63,9 +63,9 @@ model Subscription {
   userId                 String    @unique
   planType               PlanType  @default(FREE)
   storageLimitGb         Int       @default(1)
-  transcriptionLimitMins Int       @default(5)
+  transcriptionLimitMins Float     @default(5.0)
   maxExportRes           Int       @default(720)
-  transcriptionUsedMins  Int       @default(0)
+  transcriptionUsedMins  Float     @default(0.0)
   storageUsedBytes       BigInt    @default(0)
   audioCredits           Int       @default(3)
   maxVideoLengthMinutes  Int       @default(2) // Max video length in minutes
@@ -89,7 +89,7 @@ model User {
 
   // App-Specific Fields (deprecated - use Subscription instead)
   planType             PlanType @default(FREE)
-  transcriptionBalance Int      @default(5)
+  transcriptionBalance Float    @default(5.0)
   audioCredits         Int      @default(3)
   storageUsed          BigInt   @default(0)
 

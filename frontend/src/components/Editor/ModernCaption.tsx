@@ -29,15 +29,14 @@ const getVisibleState = (i: number): { opacity: number; y: number; clipPath: str
 export default function ModernCaption() {
   const { activeCaption, captionStyle } = useCaptionContext();
 
-  if (!activeCaption) return null;
-
-  const stopWords = new Set([
+  const stopWords = useMemo(() => new Set([
     "the", "and", "is", "in", "to", "of", "a", "for", "it",
     "on", "with", "as", "at", "by", "an", "or", "be", "this",
     "that", "are",
-  ]);
+  ]), []);
 
   const words = useMemo(() => {
+    if (!activeCaption) return [];
     return activeCaption.text.split(" ").map((word, index) => {
       const cleanWord = word.toLowerCase().replace(/[^a-z]/g, "");
       const isStopWord = stopWords.has(cleanWord);
@@ -70,7 +69,9 @@ export default function ModernCaption() {
         index,
       };
     });
-  }, [activeCaption.text]);
+  }, [activeCaption?.text, stopWords]);
+
+  if (!activeCaption) return null;
 
   return (
     // key={activeCaption.id} forces AnimatePresence + motion to fully remount

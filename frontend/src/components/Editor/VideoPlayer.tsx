@@ -4,6 +4,7 @@ import { useCaptionContext } from "../../context/CaptionContext";
 import { RefreshCw, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ModernCaption from "./ModernCaption";
+import HoloCaption from "./HoloCaption";
 
 export default function VideoPlayer() {
   const { videoUrl, setVideoUrl, setCaptions, currentTime, setCurrentTime, activeCaption, captionStyle, setCaptionStyle, setDuration, isPlaying, setIsPlaying, originalVideoWidth, setOriginalVideoWidth, originalVideoHeight, setOriginalVideoHeight, setAspectRatio } = useCaptionContext();
@@ -115,7 +116,7 @@ export default function VideoPlayer() {
       const percentDelta = (deltaX / initialResizeData.rectWidth) * 100 * 2 * sign;
       setCaptionStyle(prev => ({
         ...prev,
-        width: Math.max(10, Math.min(100, initialResizeData.width + percentDelta))
+        width: Math.max(2, Math.min(100, initialResizeData.width + percentDelta))
       }));
     } else if (resizeMode.startsWith("scale")) {
       // Use Y delta for scale (dragging up/out increases, down/in decreases)
@@ -125,7 +126,7 @@ export default function VideoPlayer() {
       const scaleFactor = 1 + ((deltaY * sign) / 200);
       setCaptionStyle(prev => ({
         ...prev,
-        fontSize: Math.max(10, Math.min(200, initialResizeData.fontSize * scaleFactor))
+        fontSize: Math.max(1, Math.min(200, initialResizeData.fontSize * scaleFactor))
       }));
     }
   };
@@ -702,6 +703,155 @@ export default function VideoPlayer() {
     );
   };
 
+  // NxtgenVengence Style — Cinematic style
+  const renderNxtgenVengence = (caption: typeof activeCaption, opts: { heroOnly?: boolean, hideHero?: boolean } = {}) => {
+    if (!caption || !caption.words) return null;
+
+    const words = caption.words;
+
+    // Find the hero word - longest word in the segment not greater than 7 letters
+    let heroIndex = Math.floor(words.length / 2);
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen && clean.length <= 7) {
+        maxLen = clean.length;
+        heroIndex = i;
+      }
+    }
+
+    const topWords = words.slice(0, heroIndex);
+    const heroWordObj = words[heroIndex];
+    const bottomWords = words.slice(heroIndex + 1);
+
+    const primaryColor = captionStyle.primaryColor || "#ffffff";
+    const baseFont = captionStyle.fontSize || 32;
+    const SUB_FONT_SIZE = Math.round(baseFont * 3);
+    const HERO_FONT_SIZE = words.length <= 2 ? Math.round(baseFont * 4.5) : Math.round(baseFont * 6.56);
+
+    const activeWord = words.find(w => currentTime >= w.start && currentTime <= w.end);
+    const wrapperOpacity = words.some(w => currentTime >= w.start) ? 1 : 0.3;
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "fit-content",
+          margin: "0 auto",
+        }}
+      >
+        <style>{`
+          @font-face {
+            font-family: 'Bastliga One';
+            src: url('/fonts/bastliga/Bastliga One.ttf') format('truetype');
+          }
+          @font-face {
+            font-family: 'Cuturila';
+            src: url('/fonts/cuturila.ttf') format('truetype');
+          }
+          @font-face {
+            font-family: 'Droid 1997';
+            src: url('/fonts/droid-1997.otf') format('opentype');
+          }
+          @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
+          @import url('https://fonts.cdnfonts.com/css/gilroy-bold');
+        `}</style>
+
+        {/* Top Line (Bastliga One, capitalize, reveal from top) */}
+        {topWords.length > 0 && (
+          <div style={{ textAlign: "left", width: "100%", position: "relative", visibility: opts.heroOnly ? "hidden" : "visible" }}>
+            <div style={{
+              fontFamily: "'Bastliga One', cursive, sans-serif",
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 0.9,
+              color: primaryColor,
+              textAlign: "left",
+              display: "flex",
+              gap: "0.5em",
+              textTransform: "capitalize"
+            }}>
+              {topWords.map((w, idx) => {
+                const isSpoken = currentTime >= w.start;
+                return (
+                  <motion.span
+                    key={`top-${idx}`}
+                    initial={{ opacity: 0, y: -30 }}
+                    animate={{ opacity: isSpoken ? 1 : 0.15, y: isSpoken ? 0 : -30 }}
+                    transition={{ duration: 0.4 }}
+                    style={{ whiteSpace: "pre" }}
+                  >
+                    {w.word}
+                  </motion.span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Hero Line (Cuturila, uppercase, difference filter, char by char from bottom) */}
+        <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0", visibility: opts.hideHero ? "hidden" : "visible" }}>
+          <div style={{
+            fontFamily: "'Droid 1997', 'Cuturila', 'Syncopate', sans-serif",
+            fontSize: `${HERO_FONT_SIZE}px`,
+            fontWeight: 900,
+            lineHeight: 0.9,
+            textTransform: "uppercase",
+            color: "#ffffff",
+            mixBlendMode: "difference",
+            display: "inline-flex",
+            justifyContent: "center",
+          }}>
+            {heroWordObj.word.split("").map((char, charIdx) => {
+              const isHeroActive = currentTime >= heroWordObj.start;
+              return (
+                <motion.span
+                  key={`hero-char-${charIdx}`}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: isHeroActive ? 1 : 0, y: isHeroActive ? 0 : 40 }}
+                  transition={{ duration: 0.3, delay: isHeroActive ? charIdx * 0.05 : 0 }}
+                >
+                  {char}
+                </motion.span>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bottom Line (Gilroy, basic in animation) */}
+        {bottomWords.length > 0 && (
+          <div style={{ textAlign: "right", width: "100%", position: "relative", visibility: opts.heroOnly ? "hidden" : "visible" }}>
+            <div style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: `${SUB_FONT_SIZE}px`,
+              lineHeight: 0.9,
+              color: primaryColor,
+              textAlign: "right",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "0.5em",
+            }}>
+              {bottomWords.map((w, idx) => {
+                const isSpoken = currentTime >= w.start;
+                return (
+                  <motion.span
+                    key={`bottom-${idx}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: isSpoken ? 1 : 0.15 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ whiteSpace: "pre" }}
+                  >
+                    {w.word}
+                  </motion.span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // NxtgenAlpha Style — Cursive style: Top('Aston Script') → Hero(1 word with shimmer) → Bottom('Aston Script')
   const renderNxtgenAlpha = (caption: typeof activeCaption) => {
     if (!caption || !caption.words) return null;
@@ -1172,7 +1322,7 @@ export default function VideoPlayer() {
               src={videoUrl}
               className={`h-full w-full object-contain shadow-2xl transition-opacity duration-300 ${captionStyle.alphaChannel ? "opacity-0 pointer-events-none" : "opacity-100"
                 }`}
-              style={{ zIndex: 1, position: "relative" }}
+              style={{ position: "relative" }}
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={handleLoadedMetadata}
               onPlay={() => setIsPlaying(true)}
@@ -1195,7 +1345,7 @@ export default function VideoPlayer() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 pointer-events-none z-0"
+                className="absolute inset-0 pointer-events-none"
               >
                 {/* Rule of thirds grid */}
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
@@ -1227,7 +1377,7 @@ export default function VideoPlayer() {
 
           {/* Captions Overlay Container */}
           <div
-            className="absolute inset-0 pointer-events-none z-10"
+            className="absolute inset-0 pointer-events-none"
             ref={containerRef}
           >
           {/* Draggable Handle wrapper */}
@@ -1239,7 +1389,7 @@ export default function VideoPlayer() {
               transform: 'translate(-50%, -50%)',
               textAlign: captionStyle.layout === "ali-abdaal"
                 ? captionStyle.aliAbdaalPosition
-                : (captionStyle.layout === "hormozi" || captionStyle.layout === "gadzhi" || captionStyle.layout === "bubble" || captionStyle.layout === "apple")
+                : (captionStyle.layout === "hormozi" || captionStyle.layout === "gadzhi" || captionStyle.layout === "bubble" || captionStyle.layout === "apple" || captionStyle.layout === "holo")
                   ? 'center'
                   : captionStyle.textAlignment,
               letterSpacing: `${captionStyle.letterSpacing}px`,
@@ -1257,10 +1407,10 @@ export default function VideoPlayer() {
             onPointerCancel={handlePointerUp}
           >
             {/* Bounding Box overlay */}
-            <div className={`absolute inset-0 border-2 border-dashed ${resizeMode !== 'none' ? 'border-sky-400/50' : 'border-sky-400/0'} group-hover:border-sky-400/50 transition-colors pointer-events-none z-50`}>
+            <div className={`absolute inset-0 border-2 border-dashed ${resizeMode !== 'none' ? 'border-sky-400/50' : 'border-sky-400/30 md:border-sky-400/0'} group-hover:border-sky-400/50 transition-colors pointer-events-none z-50`}>
               {/* Left Edge Width */}
               <div
-                className={`absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-8 bg-white border border-sky-500 rounded-full opacity-0 group-hover:opacity-100 cursor-ew-resize pointer-events-auto ${resizeMode === 'width-left' ? 'opacity-100 scale-110' : ''} transition-transform`}
+                className={`absolute left-[-10px] md:left-[-6px] top-1/2 -translate-y-1/2 w-5 h-8 md:w-3 md:h-8 bg-white border border-sky-500 rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 cursor-ew-resize pointer-events-auto touch-none ${resizeMode === 'width-left' ? 'opacity-100 scale-110' : ''} transition-transform`}
                 onPointerDown={(e) => handleResizeStart(e, "width-left")}
                 onPointerMove={handleResizeMove}
                 onPointerUp={handleResizeUp}
@@ -1268,7 +1418,7 @@ export default function VideoPlayer() {
               />
               {/* Right Edge Width */}
               <div
-                className={`absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-8 bg-white border border-sky-500 rounded-full opacity-0 group-hover:opacity-100 cursor-ew-resize pointer-events-auto ${resizeMode === 'width-right' ? 'opacity-100 scale-110' : ''} transition-transform`}
+                className={`absolute right-[-10px] md:right-[-6px] top-1/2 -translate-y-1/2 w-5 h-8 md:w-3 md:h-8 bg-white border border-sky-500 rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 cursor-ew-resize pointer-events-auto touch-none ${resizeMode === 'width-right' ? 'opacity-100 scale-110' : ''} transition-transform`}
                 onPointerDown={(e) => handleResizeStart(e, "width-right")}
                 onPointerMove={handleResizeMove}
                 onPointerUp={handleResizeUp}
@@ -1276,7 +1426,7 @@ export default function VideoPlayer() {
               />
               {/* Corner Scales */}
               <div
-                className={`absolute top-[-6px] left-[-6px] w-3 h-3 bg-sky-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 cursor-nwse-resize pointer-events-auto ${resizeMode === 'scale-tl' ? 'opacity-100 scale-150' : ''} transition-transform`}
+                className={`absolute top-[-10px] md:top-[-6px] left-[-10px] md:left-[-6px] w-5 h-5 md:w-3 md:h-3 bg-sky-500 border-2 border-white rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 cursor-nwse-resize pointer-events-auto touch-none ${resizeMode === 'scale-tl' ? 'opacity-100 scale-150' : ''} transition-transform`}
                 onPointerDown={(e) => handleResizeStart(e, "scale-tl")}
                 onPointerMove={handleResizeMove}
                 onPointerUp={handleResizeUp}
@@ -1284,7 +1434,7 @@ export default function VideoPlayer() {
               />
               {/* TR */}
               <div
-                className={`absolute top-[-6px] right-[-6px] w-3 h-3 bg-sky-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 cursor-nesw-resize pointer-events-auto ${resizeMode === 'scale-tr' ? 'opacity-100 scale-150' : ''} transition-transform`}
+                className={`absolute top-[-10px] md:top-[-6px] right-[-10px] md:right-[-6px] w-5 h-5 md:w-3 md:h-3 bg-sky-500 border-2 border-white rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 cursor-nesw-resize pointer-events-auto touch-none ${resizeMode === 'scale-tr' ? 'opacity-100 scale-150' : ''} transition-transform`}
                 onPointerDown={(e) => handleResizeStart(e, "scale-tr")}
                 onPointerMove={handleResizeMove}
                 onPointerUp={handleResizeUp}
@@ -1292,7 +1442,7 @@ export default function VideoPlayer() {
               />
               {/* BL */}
               <div
-                className={`absolute bottom-[-6px] left-[-6px] w-3 h-3 bg-sky-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 cursor-nesw-resize pointer-events-auto ${resizeMode === 'scale-bl' ? 'opacity-100 scale-150' : ''} transition-transform`}
+                className={`absolute bottom-[-10px] md:bottom-[-6px] left-[-10px] md:left-[-6px] w-5 h-5 md:w-3 md:h-3 bg-sky-500 border-2 border-white rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 cursor-nesw-resize pointer-events-auto touch-none ${resizeMode === 'scale-bl' ? 'opacity-100 scale-150' : ''} transition-transform`}
                 onPointerDown={(e) => handleResizeStart(e, "scale-bl")}
                 onPointerMove={handleResizeMove}
                 onPointerUp={handleResizeUp}
@@ -1300,7 +1450,7 @@ export default function VideoPlayer() {
               />
               {/* BR */}
               <div
-                className={`absolute bottom-[-6px] right-[-6px] w-3 h-3 bg-sky-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 cursor-nwse-resize pointer-events-auto ${resizeMode === 'scale-br' ? 'opacity-100 scale-150' : ''} transition-transform`}
+                className={`absolute bottom-[-10px] md:bottom-[-6px] right-[-10px] md:right-[-6px] w-5 h-5 md:w-3 md:h-3 bg-sky-500 border-2 border-white rounded-full opacity-100 md:opacity-0 group-hover:opacity-100 cursor-nwse-resize pointer-events-auto touch-none ${resizeMode === 'scale-br' ? 'opacity-100 scale-150' : ''} transition-transform`}
                 onPointerDown={(e) => handleResizeStart(e, "scale-br")}
                 onPointerMove={handleResizeMove}
                 onPointerUp={handleResizeUp}
@@ -1309,9 +1459,15 @@ export default function VideoPlayer() {
             </div>
             {captionStyle.layout === "modern" ? (
               <ModernCaption />
+            ) : captionStyle.layout === "holo" ? (
+              <HoloCaption />
             ) : (
               <AnimatePresence>
-                {activeCaption && (
+                {activeCaption && captionStyle.layout === "nxtgen-vengence" ? (
+                  <div key={activeCaption.id} className="w-full px-16">
+                    {renderNxtgenVengence(activeCaption, { hideHero: true })}
+                  </div>
+                ) : activeCaption && (
                   <motion.div
                     key={activeCaption.id}
                     {...animProps}
@@ -1334,6 +1490,33 @@ export default function VideoPlayer() {
               </AnimatePresence>
             )}
           </div>
+          {/* Secondary wrapper for Nxtgen Vengence Hero line (to break out of transform stacking context) */}
+          <AnimatePresence>
+            {activeCaption && captionStyle.layout === "nxtgen-vengence" && (
+              <div
+                className="absolute pointer-events-none select-none"
+                style={{
+                  top: `${captionStyle.positionY}%`,
+                  left: `${captionStyle.positionX}%`,
+                  transform: 'translate(-50%, -50%)',
+                  textAlign: 'center',
+                  letterSpacing: `${captionStyle.letterSpacing}px`,
+                  lineHeight: captionStyle.lineSpacing,
+                  fontSize: `${captionStyle.fontSize}px`,
+                  fontFamily: `'${captionStyle.fontFamily}', sans-serif`,
+                  width: `${captionStyle.width}%`,
+                  maxWidth: '100%',
+                  padding: '1rem',
+                  mixBlendMode: 'difference',
+                  zIndex: 20,
+                }}
+              >
+                <div className="w-full px-16">
+                  {renderNxtgenVengence(activeCaption, { heroOnly: true })}
+                </div>
+              </div>
+            )}
+          </AnimatePresence>
         </div>
         </div> {/* Close the new aspect ratio wrapper div */}
 

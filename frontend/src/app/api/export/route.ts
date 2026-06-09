@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
       serveUrl,
       composition:   "CaptionVideo",
       inputProps,
-      codec:         finalAlphaChannel ? "webm" : "h264",
+      codec:         finalAlphaChannel ? "vp9" : "h264",
       framesPerLambda: calculatedFramesPerLambda,
       logLevel:      "warn",
       outName:       outKey,
@@ -213,6 +213,8 @@ export async function POST(request: NextRequest) {
 
     if (finalAlphaChannel) {
       remotionOptions.transparent = true;
+      remotionOptions.imageFormat = "png";
+      remotionOptions.pixelFormat = "yuva420p";
     }
 
     const result = await renderMediaOnLambda(remotionOptions);

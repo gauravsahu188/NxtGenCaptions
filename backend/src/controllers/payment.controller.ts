@@ -3,13 +3,15 @@ import {
   initiatePayment,
   verifyPaymentSignature,
   generateOrderId,
-  PLAN_PRICING,
+  PLAN_PRICING_INR,
+  PLAN_PRICING_USD,
   checkPaymentStatus,
 } from '../services/payment.service';
 import { prisma } from '../lib/prisma';
 
 interface InitiatePaymentRequest {
   planType: 'EDITOR' | 'CREATOR' | 'BUSINESS';
+  currency?: 'INR' | 'USD';
 }
 
 interface PaymentCallbackBody {
@@ -32,9 +34,11 @@ export async function initiatePaymentHandler(
       return;
     }
 
-    const { planType }: InitiatePaymentRequest = req.body;
+    const { planType, currency = 'INR' }: InitiatePaymentRequest = req.body;
 
-    if (!planType || !PLAN_PRICING[planType]) {
+    const pricingMap = currency === 'USD' ? PLAN_PRICING_USD : PLAN_PRICING_INR;
+
+    if (!planType || !pricingMap[planType]) {
       res.status(400).json({
         error: 'Invalid plan type. Must be EDITOR, CREATOR, or BUSINESS',
       });
@@ -51,7 +55,7 @@ export async function initiatePaymentHandler(
     }
 
     const orderId = generateOrderId(userId);
-    const planDetails = PLAN_PRICING[planType];
+    const planDetails = pricingMap[planType];
 
     const result = await initiatePayment({
       userId,
@@ -60,6 +64,7 @@ export async function initiatePaymentHandler(
       planType,
       email: user.email || undefined,
       mobile: undefined,
+      currency,
     });
 
     if (!result.success) {
@@ -140,10 +145,12 @@ export async function handlePaymentCallback(
       return;
     }
 
-    const planDetails = PLAN_PRICING[planType as keyof typeof PLAN_PRICING];
+    const currency = orderDetails.currency === 'USD' ? 'USD' : 'INR';
+    const pricingMap = currency === 'USD' ? PLAN_PRICING_USD : PLAN_PRICING_INR;
+    const planDetails = pricingMap[planType as keyof typeof pricingMap];
 
     if (!planDetails) {
-      console.error(`[PaymentCallback] Invalid plan type: ${planType}`);
+      console.error(`[PaymentCallback] Invalid plan type: ${planType} for currency: ${currency}`);
       res.status(400).json({ error: 'Invalid plan type' });
       return;
     }
@@ -268,7 +275,7 @@ export async function checkPaymentStatusHandler(
       return;
     }
 
-    const status = await checkPaymentStatus(orderId);
+    const status = await checkPaymentStatus(orderId as string);
 
     if (!status) {
       res.status(404).json({ error: 'Order not found' });

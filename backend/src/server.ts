@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import path from "path";
 
-// Load shared env from root
+// Load shared env from root - trigger reload 2
 const envPath = path.join(__dirname, "../../.env.local");
 const envResult = dotenv.config({ path: envPath, override: true });
 console.log("[Server] Loaded env from", envPath);

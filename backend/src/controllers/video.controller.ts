@@ -7,7 +7,8 @@ import { S3Service } from "../services/s3.service";
 import { SubjectIsolationService } from "../services/subject-isolation.service";
 import { sendUploadNotification, isSqsConfigured } from "../lib/sqs";
 import { ValidationError, NotFoundError, AppError } from "../utils/errors";
-import { processHinglishCaptions } from "../utils/transliterate";
+import { processHinglishCaptions, containsDevanagari } from "../utils/transliterate";
+import { TranslationService } from "../services/translation.service";
 import path from "path";
 import { prisma } from "../lib/prisma";
 import fs from "fs";
@@ -18,6 +19,7 @@ const audioService         = new AudioEnhancementService();
 const remotionService      = new RemotionRenderService();
 const s3Service            = new S3Service();
 const subjectIsolationService = new SubjectIsolationService();
+const translationService   = new TranslationService();
 
 // ─── Default style fallback ───────────────────────────────────────────────────
 const DEFAULT_STYLE: CaptionStyleProps = {
@@ -75,21 +77,19 @@ export class VideoController {
 
       if (user && !isAdmin) {
         // Charge based on actual duration - fair usage
-        // Convert seconds to minutes (e.g., 28s = 0.467 minutes)
-        const durationMinutes = durationSeconds / 60;
-        // Round to 2 decimal places for cleaner accounting
-        const chargeAmount = Math.round(durationMinutes * 100) / 100;
+        // Charge based on actual duration exactly in minutes (as a float)
+        const chargeAmount = durationSeconds / 60;
 
         console.log(`[VideoController] Video duration: ${durationSeconds}s (${chargeAmount.toFixed(2)} min), charging: ${chargeAmount} credit(s)`);
 
         // Free plan: max 5 minutes
         const freePlanMinutes = 5;
-        if (user.planType === "FREE" && durationMinutes > freePlanMinutes) {
-          throw new AppError("FREE_LIMIT_EXCEEDED: Free plan allows max 5 minutes. Your video is " + durationMinutes.toFixed(1) + " minutes. Upgrade to continue.", 403);
+        if (user.planType === "FREE" && chargeAmount > freePlanMinutes) {
+          throw new AppError("FREE_LIMIT_EXCEEDED: Free plan allows max 5 minutes. Your video is " + chargeAmount.toFixed(1) + " minutes. Upgrade to continue.", 403);
         }
 
         if (typeof user.transcriptionBalance === "number" && user.transcriptionBalance < chargeAmount) {
-          throw new AppError("NO_CREDITS: You have " + user.transcriptionBalance + " minutes left but need " + chargeAmount.toFixed(2) + ". Upgrade to get more minutes.", 403);
+          throw new AppError("NO_CREDITS: You have " + user.transcriptionBalance + " minutes left but need " + chargeAmount + ". Upgrade to get more minutes.", 403);
         }
 
         try {
@@ -97,7 +97,7 @@ export class VideoController {
             where: { id: userId },
             data: { transcriptionBalance: { decrement: chargeAmount } }
           });
-          console.log(`[VideoController] Deducted ${chargeAmount.toFixed(2)} transcription credit(s)`);
+          console.log(`[VideoController] Deducted ${chargeAmount} transcription credit(s)`);
         } catch (e) {
           console.warn("[VideoController] Could not deduct transcription balance:", e);
         }
@@ -136,7 +136,11 @@ export class VideoController {
       console.log(`[VideoController] Transcribing with language: ${language}`);
       sendEvent("status", {
         message: `Generating captions (${
-          language === "hinglish" ? "Hinglish" : language === "hi" ? "Hindi" : "English"
+          language === "hinglish"
+            ? "Hinglish"
+            : language === "hi"
+            ? "Hindi"
+            : "English"
         })...`,
       });
 
@@ -146,19 +150,18 @@ export class VideoController {
         { language }
       );
 
-      // For Hinglish, convert Devanagari to Roman script and then send
+      // Post-process captions based on requested language
       if (language === "hinglish") {
-        console.log("[VideoController] Transliterating Hinglish captions to Roman script...");
+        console.log("[VideoController] Transliterating captions to Roman script (Hinglish)...");
         captions = processHinglishCaptions(captions);
-        // Send transliterated segments
-        for (const segment of captions) {
-          sendEvent("segment", { segment });
-        }
-      } else {
-        // For non-Hinglish, send original segments
-        for (const segment of captions) {
-          sendEvent("segment", { segment });
-        }
+      } else if (language === "en") {
+        console.log("[VideoController] Translating Devanagari captions to English...");
+        captions = await translationService.translateCaptions(captions);
+      }
+
+      // Send processed segments
+      for (const segment of captions) {
+        sendEvent("segment", { segment });
       }
 
       const srtFilename = `${path.basename(videoPath, path.extname(videoPath))}.srt`;

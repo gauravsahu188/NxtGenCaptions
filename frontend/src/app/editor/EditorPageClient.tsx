@@ -5,8 +5,7 @@ import { useCaptionContext, CaptionProvider } from "@/context/CaptionContext";
 import UploadDropzone from "@/components/UploadDropzone";
 import Editor from "@/components/Editor";
 import { motion } from "framer-motion";
-import ProfileMenu from "@/components/ProfileMenu";
-import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
 type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS";
 
@@ -94,28 +93,9 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
 
   return (
     <div className="min-h-screen w-full">
-      {/* Editor Navbar */}
-      <nav className="flex items-center justify-between px-5 py-3 border-b border-white/6 relative z-50">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <img src="/logo.png" alt="NxtGen Logo" className="w-6 h-6 rounded-sm" />
-          <span className="text-lg font-bold tracking-tighter text-white">
-            NxtGen<span className="text-accent">.</span>
-          </span>
-        </Link>
+      <Navbar />
 
-        {user && (
-          <ProfileMenu
-            user={{
-              name: user.name,
-              email: user.email,
-              image: user.image,
-              planType: user.planType,
-            }}
-          />
-        )}
-      </nav>
-
-      <main className={`relative z-10 ${!videoUrl ? "flex flex-col items-center justify-center p-6 sm:p-12 md:p-24 min-h-[calc(100vh-57px)]" : ""}`}>
+      <main className={`relative z-10 ${!videoUrl ? "flex flex-col items-center justify-center p-6 sm:p-12 md:p-24 min-h-[calc(100vh-64px)]" : ""}`}>
         <div className="aurora-bg" />
 
         {!videoUrl ? (

@@ -35,67 +35,69 @@ export default function AboutSection() {
     { label: "Discovery", value: "Multi-language translation" },
   ];
 
+  const expoOut = [0.16, 1, 0.3, 1] as const;
+
   return (
-    <section className="w-full py-24 px-4 relative">
+    <section className="w-full py-32 px-4 relative border-t border-white/[0.03]">
       <div className="max-w-6xl mx-auto">
         {/* Welcome Message */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: expoOut }}
+          className="text-center mb-24"
         >
-          <div className="flex justify-center mb-6">
-            <ScrollRevealText 
-              as="h2"
-              text="Welcome to NxtGen Captions"
-              className="text-3xl md:text-4xl font-semibold text-white tracking-tight justify-center"
-            />
+          <div className="flex justify-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight">
+              Welcome to NxtGen Captions
+            </h1>
           </div>
-          <div className="max-w-3xl mx-auto text-lg leading-relaxed text-center">
-            <ScrollRevealText 
+          <div className="max-w-3xl mx-auto text-lg leading-relaxed text-center font-medium">
+            <ScrollRevealText
               text="NxtGen Captions is a production-grade, AI-driven storytelling platform built to bridge the gap between raw footage and viral, cinematic content. Born from a deep understanding of the advanced video editing landscape, we provide creators with the tools to produce high-energy, professional-grade captions with the click of a button."
-              className="text-[var(--color-fg-muted)] justify-center"
+              className="text-(--color-fg-muted) justify-center"
             />
           </div>
-          <div className="max-w-3xl mx-auto text-lg leading-relaxed mt-6 text-center">
-            <ScrollRevealText 
+          <div className="max-w-3xl mx-auto text-lg leading-relaxed mt-6 text-center font-medium">
+            <ScrollRevealText
               text="In an era where 80% of social media videos are watched on mute, captions aren't just an accessory—they are the heartbeat of your engagement. NxtGen Captions ensures your message is never missed, regardless of the language or the noise."
-              className="text-[var(--color-fg-muted)] justify-center"
+              className="text-(--color-fg-muted) justify-center"
             />
           </div>
         </motion.div>
 
         {/* What Defines Us */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-16"
-        >
-          <h3 className="text-2xl md:text-3xl font-semibold text-white text-center mb-12">
+        <div className="mb-24">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: expoOut }}
+            className="text-3xl md:text-4xl font-display font-bold text-white text-center mb-16"
+          >
             What Defines Us
-          </h3>
+          </motion.h2>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-8 perspective-1000">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 30, rotateX: 10 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                whileHover={{ scale: 1.02, rotateX: 2, rotateY: -2, z: 10 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
-                className="group p-6 rounded-2xl border border-[var(--color-border-default)] bg-[var(--color-surface)]/50 hover:bg-[var(--color-surface)] hover:border-[var(--color-border-hover)] transition-all duration-300"
+                transition={{ duration: 0.6, delay: index * 0.1, ease: expoOut }}
+                style={{ transformStyle: 'preserve-3d' }}
+                className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-[#0a0a0c] hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.1)] transition-colors duration-500 cursor-pointer"
               >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="w-6 h-6 text-[var(--color-accent)]" />
+                <div className="flex items-start gap-6" style={{ transform: 'translateZ(20px)' }}>
+                  <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-accent/20 group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500">
+                    <feature.icon className="w-6 h-6 text-white/70 group-hover:text-white" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-white mb-2">{feature.title}</h4>
-                    <p className="text-[var(--color-fg-muted)] text-sm leading-relaxed">
+                    <h3 className="text-xl font-display font-bold text-white mb-3 tracking-wide">{feature.title}</h3>
+                    <p className="text-(--color-fg-muted) text-sm font-medium leading-relaxed group-hover:text-white/80 transition-colors duration-300">
                       {feature.description}
                     </p>
                   </div>
@@ -103,40 +105,41 @@ export default function AboutSection() {
               </motion.div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* The NxtGen Promise */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-16"
+          transition={{ duration: 0.8, ease: expoOut }}
+          className="mb-24"
         >
-          <h3 className="text-2xl md:text-3xl font-semibold text-white text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-white text-center mb-8">
             The NxtGen Promise
-          </h3>
-          <p className="text-lg text-[var(--color-fg-muted)] max-w-3xl mx-auto text-center leading-relaxed mb-8">
+          </h2>
+          <p className="text-lg text-(--color-fg-muted) font-medium max-w-3xl mx-auto text-center leading-relaxed mb-12">
             We believe that every creator deserves access to the high-end visuals typically reserved for massive production houses. Whether you are a solo creator building your brand or a creative agency managing high-volume output, NxtGen Captions is engineered for:
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 perspective-1000">
             {highlights.map((item, index) => (
               <motion.div
                 key={item.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 30, rotateX: 10 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                whileHover={{ y: -5, scale: 1.02 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                className="p-6 rounded-xl border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5 text-center"
+                transition={{ duration: 0.6, delay: index * 0.1, ease: expoOut }}
+                className="p-8 rounded-2xl border border-accent/20 bg-[#0a0a0c] text-center shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center mx-auto mb-4">
-                  {index === 0 && <Zap className="w-5 h-5 text-[var(--color-accent)]" />}
-                  {index === 1 && <Target className="w-5 h-5 text-[var(--color-accent)]" />}
-                  {index === 2 && <Globe className="w-5 h-5 text-[var(--color-accent)]" />}
+                <div className="w-12 h-12 rounded-full bg-(--color-accent)/10 border border-accent/20 flex items-center justify-center mx-auto mb-6">
+                  {index === 0 && <Zap className="w-5 h-5 text-(--color-accent-bright)" />}
+                  {index === 1 && <Target className="w-5 h-5 text-(--color-accent-bright)" />}
+                  {index === 2 && <Globe className="w-5 h-5 text-(--color-accent-bright)" />}
                 </div>
-                <h4 className="text-lg font-semibold text-white mb-2">{item.label}</h4>
-                <p className="text-[var(--color-fg-muted)] text-sm">{item.value}</p>
+                <h3 className="text-lg font-display font-bold text-white mb-2">{item.label}</h3>
+                <p className="text-(--color-fg-muted) font-medium text-sm">{item.value}</p>
               </motion.div>
             ))}
           </div>
@@ -144,17 +147,17 @@ export default function AboutSection() {
 
         {/* Our Vision */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center py-12 border-t border-[var(--color-border-default)]"
+          transition={{ duration: 0.8, ease: expoOut }}
+          className="text-center py-16 border-t border-white/5"
         >
-          <h3 className="text-2xl md:text-3xl font-semibold text-white mb-4">Our Vision</h3>
-          <p className="text-lg text-[var(--color-fg-muted)] max-w-3xl mx-auto leading-relaxed">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-6">Our Vision</h2>
+          <p className="text-lg text-(--color-fg-muted) font-medium max-w-3xl mx-auto leading-relaxed">
             To empower the next generation of digital storytellers by providing an intelligent, &quot;What You See Is What You Get&quot; editing experience. We don&apos;t just add text to your screen; we add impact to your story.
           </p>
-          <div className="mt-6 text-xl font-semibold text-[var(--color-accent)]">
+          <div className="mt-8 text-2xl font-display font-bold text-gradient-accent">
             Your content. Our captions. NxtGen results.
           </div>
         </motion.div>

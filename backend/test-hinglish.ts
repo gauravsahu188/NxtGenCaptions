@@ -5,7 +5,7 @@ import FormData from "form-data";
 import http from "http";
 
 // Use a real video file that has audio content
-const testVideoPath = path.join(process.cwd(), "uploads", "video-1777636040883-523889098.mp4");
+const testVideoPath = path.join(process.cwd(), "uploads", "video-1779009411365-551621373.mp4");
 
 async function testHinglishSupport() {
   console.log("Testing Hinglish language support...");
