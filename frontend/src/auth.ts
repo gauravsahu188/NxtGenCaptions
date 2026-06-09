@@ -6,7 +6,6 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
-import Apple from "next-auth/providers/apple"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./lib/prisma"
 
@@ -22,7 +21,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   providers: [
     ...(process.env.GOOGLE_CLIENT_ID ? [Google({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET })] : []),
-    ...(process.env.APPLE_ID ? [Apple({ clientId: process.env.APPLE_ID, clientSecret: process.env.APPLE_SECRET })] : []),
     Credentials({
       id: "credentials",
       name: "Email and Password",

@@ -5,7 +5,6 @@
  */
 import type { NextAuthConfig } from "next-auth"
 import Google from "next-auth/providers/google"
-import Apple from "next-auth/providers/apple"
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
@@ -15,7 +14,6 @@ export const authConfig: NextAuthConfig = {
   },
   providers: [
     ...(process.env.GOOGLE_CLIENT_ID ? [Google({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET })] : []),
-    ...(process.env.APPLE_ID ? [Apple({ clientId: process.env.APPLE_ID, clientSecret: process.env.APPLE_SECRET })] : []),
   ],
   callbacks: {
     // `authorized` is ONLY called by middleware — do not spread this into auth.ts
