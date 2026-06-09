@@ -54,10 +54,18 @@ export async function GET(request: NextRequest) {
 
       if (progress.outputFile) {
         try {
-          // Parse bucket and key from the output file path
-          const bucketMatch = progress.outputFile.match(/s3:\/\/([^/]+)\/(.+)/);
-          if (bucketMatch) {
-            const [, bucket, key] = bucketMatch;
+          let bucket: string | undefined;
+          let key: string | undefined;
+
+          if (progress.outputFile.startsWith("s3://")) {
+            const match = progress.outputFile.match(/s3:\/\/([^/]+)\/(.+)/);
+            if (match) { bucket = match[1]; key = match[2]; }
+          } else if (progress.outputFile.startsWith("https://")) {
+            const match = progress.outputFile.match(/https:\/\/([^.]+)\.s3[^/]*\/(.+)/);
+            if (match) { bucket = match[1]; key = match[2]; }
+          }
+
+          if (bucket && key) {
             const command = new GetObjectCommand({ Bucket: bucket, Key: key });
             downloadUrl = await getSignedUrl(s3Client, command, { expiresIn: 86400 });
           }

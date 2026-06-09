@@ -196,13 +196,8 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
 
             // Auto-download video
             if (pd.downloadUrl) {
-              const ext = alphaChannel ? "webm" : "mp4";
-              const a = document.createElement("a");
-              a.href = pd.downloadUrl;
-              a.setAttribute("download", `${projectName}.${ext}`);
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
+              // Using window.location to bypass browser popup blockers inside setInterval
+              window.location.assign(pd.downloadUrl);
             }
 
             // Auto-download SRT if enabled

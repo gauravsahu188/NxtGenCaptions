@@ -285,9 +285,18 @@ export async function GET(request: NextRequest) {
       }));
       try {
         if (progress.outputFile) {
-          const bucketMatch = progress.outputFile.match(/s3:\/\/([^/]+)\/(.+)/);
-          if (bucketMatch) {
-            const [, bucket, key] = bucketMatch;
+          let bucket: string | undefined;
+          let key: string | undefined;
+
+          if (progress.outputFile.startsWith("s3://")) {
+            const match = progress.outputFile.match(/s3:\/\/([^/]+)\/(.+)/);
+            if (match) { bucket = match[1]; key = match[2]; }
+          } else if (progress.outputFile.startsWith("https://")) {
+            const match = progress.outputFile.match(/https:\/\/([^.]+)\.s3[^/]*\/(.+)/);
+            if (match) { bucket = match[1]; key = match[2]; }
+          }
+
+          if (bucket && key) {
             downloadUrl = await getPresignedDownloadUrl(bucket, key);
           }
         } else {
