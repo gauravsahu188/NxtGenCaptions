@@ -1,17 +1,11 @@
 import dotenv from "dotenv";
 import path from "path";
-import fs from "fs";
 
-// Load shared env from root .env.local only in local dev
-// On App Runner / production, env vars are injected by the service
+// Load shared env from root - trigger reload 2
 const envPath = path.join(__dirname, "../../.env.local");
-if (fs.existsSync(envPath)) {
-  const envResult = dotenv.config({ path: envPath, override: true });
-  console.log("[Server] Loaded env from", envPath);
-  console.log("[Server] Dotenv parsed keys:", envResult.parsed ? Object.keys(envResult.parsed) : envResult.error);
-} else {
-  console.log("[Server] No .env.local found - using environment variables from host");
-}
+const envResult = dotenv.config({ path: envPath, override: true });
+console.log("[Server] Loaded env from", envPath);
+console.log("[Server] Dotenv parsed keys:", envResult.parsed ? Object.keys(envResult.parsed) : envResult.error);
 import express, { Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -61,8 +55,8 @@ app.use("/api/webhooks", webhookRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req: Request, res: Response) => {
-  res.json({ 
-    status: "ok", 
+  res.json({
+    status: "ok",
     message: "Auto Captions Generator Backend running",
     apiKeyLength: process.env.DEEPGRAM_API_KEY?.length || 0,
     hasApiKey: !!process.env.DEEPGRAM_API_KEY,
@@ -74,7 +68,7 @@ app.get("/api/health", (req: Request, res: Response) => {
 // Basic error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
-  
+
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({ status: "error", message: err.message });
   }
