@@ -42,10 +42,7 @@ const PLAN_MAX_RES: Record<string, number> = {
   BUSINESS: 2160,
 };
 
-// ─── S3 client ──────────────────────────────────────────────────────────────
-
-// Credentials resolved automatically via IAM role (Amplify) or env vars (local)
-const s3 = new S3Client({ region: AWS_REGION });
+import { s3Client } from "@/lib/s3";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -57,7 +54,7 @@ async function getRemotionFunction(): Promise<FunctionInfo> {
 
 async function getPresignedSourceUrl(key: string): Promise<string> {
   const cmd = new GetObjectCommand({ Bucket: SOURCE_BUCKET, Key: key });
-  return getSignedUrl(s3, cmd, { expiresIn: 7200 });
+  return getSignedUrl(s3Client, cmd, { expiresIn: 7200 });
 }
 
 async function getPresignedDownloadUrl(bucket: string, key: string): Promise<string> {
@@ -70,7 +67,7 @@ async function getPresignedDownloadUrl(bucket: string, key: string): Promise<str
     // @ts-ignore
     ResponseContentDisposition: `attachment; filename="NxtGen-Export.${ext}"`,
   });
-  return getSignedUrl(s3, cmd, { expiresIn: 3600 });
+  return getSignedUrl(s3Client, cmd, { expiresIn: 3600 });
 }
 
 // ─── POST /api/export — start Lambda render ─────────────────────────────────

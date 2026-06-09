@@ -122,18 +122,18 @@ async function getRemotionFunction(): Promise<FunctionInfo> {
   return fn ?? functions[0];
 }
 
+import { s3Client } from "@/lib/s3";
+
 /**
  * Generate a presigned URL to GET the source video
  */
 async function getVideoPresignedUrl(key: string): Promise<string> {
-  const client = new S3Client({ region: process.env.AWS_REGION ?? "ap-south-1" });
-
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET ?? "nxtgencaption-export",
     Key: key,
   });
 
-  return getSignedUrl(client, command, { expiresIn: 3600 });
+  return getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
 export async function POST(request: NextRequest) {

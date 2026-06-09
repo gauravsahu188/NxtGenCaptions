@@ -5,9 +5,19 @@ const BUCKET = process.env.AWS_S3_BUCKET ?? "nxtgencaption-export";
 const REGION = process.env.AWS_REGION ?? "ap-south-1";
 
 // Credentials are resolved automatically:
-// - On Amplify: uses the IAM service role attached to the app
+// - On Amplify: uses the IAM service role attached to the app, OR uses REMOTION_AWS_* env vars if set manually
 // - Locally: uses AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars
-const s3Client = new S3Client({ region: REGION });
+const customCredentials = process.env.REMOTION_AWS_ACCESS_KEY_ID && process.env.REMOTION_AWS_SECRET_ACCESS_KEY
+  ? {
+      accessKeyId: process.env.REMOTION_AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.REMOTION_AWS_SECRET_ACCESS_KEY,
+    }
+  : undefined;
+
+export const s3Client = new S3Client({ 
+  region: REGION,
+  ...(customCredentials ? { credentials: customCredentials } : {})
+});
 
 /**
  * Generate a presigned URL for uploading a file to S3.

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { getRenderProgress } from "@remotion/lambda";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { s3Client } from "@/lib/s3";
 
 const AWS_REGION = process.env.AWS_REGION ?? "ap-south-1";
 const EXPORTS_BUCKET = process.env.AWS_EXPORTS_BUCKET ?? "nxtgen-completed-exports";
@@ -53,13 +54,12 @@ export async function GET(request: NextRequest) {
 
       if (progress.outputFile) {
         try {
-          const client = new S3Client({ region: AWS_REGION });
           // Parse bucket and key from the output file path
           const bucketMatch = progress.outputFile.match(/s3:\/\/([^/]+)\/(.+)/);
           if (bucketMatch) {
             const [, bucket, key] = bucketMatch;
             const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-            downloadUrl = await getSignedUrl(client, command, { expiresIn: 86400 });
+            downloadUrl = await getSignedUrl(s3Client, command, { expiresIn: 86400 });
           }
         } catch (s3Error) {
           console.warn("[RenderStatus] Failed to generate presigned URL:", s3Error);
