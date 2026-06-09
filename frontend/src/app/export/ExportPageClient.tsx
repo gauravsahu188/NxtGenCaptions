@@ -189,6 +189,13 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
 
           if (pd.done) {
             clearInterval(pollRef.current!);
+            
+            if (pd.downloadError) {
+              setErrorMsg(pd.downloadError);
+              setPhase("error");
+              return;
+            }
+
             setProgress(100);
             setStageLabel("Export complete!");
             setDownloadUrl(pd.downloadUrl);

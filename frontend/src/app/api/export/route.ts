@@ -283,6 +283,7 @@ export async function GET(request: NextRequest) {
         outputFile: progress.outputFile,
         bucketName
       }));
+      let downloadError: string | null = null;
       try {
         if (progress.outputFile) {
           let bucket: string | undefined;
@@ -298,17 +299,18 @@ export async function GET(request: NextRequest) {
 
           if (bucket && key) {
             downloadUrl = await getPresignedDownloadUrl(bucket, key);
+          } else {
+            downloadError = "Could not parse bucket and key from outputFile: " + progress.outputFile;
           }
         } else {
           // Fallback if outputFile is not available
           const finalKey = (progress as any).outKey || outKey;
-          // IMPORTANT: If we are here, we should assume EXPORTS_BUCKET since bucketName is likely the Remotion bucket
           downloadUrl = await getPresignedDownloadUrl(EXPORTS_BUCKET, finalKey);
         }
-      } catch (e) {
+      } catch (e: any) {
+        downloadError = e.message || "Failed to generate presigned URL";
         console.warn("[Export] Could not generate download URL:", e);
       }
-    }
 
     return NextResponse.json({
       done:         progress.done,
@@ -316,6 +318,7 @@ export async function GET(request: NextRequest) {
       errors:       progress.errors,
       fatalErrorEncountered: progress.fatalErrorEncountered,
       downloadUrl,
+      downloadError,
       costs:        progress.costs,
     });
   } catch (err: any) {
