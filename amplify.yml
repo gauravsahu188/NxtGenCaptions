@@ -6,11 +6,11 @@ frontend:
         - nvm use 20 || nvm install 20
         - node --version
         - npm --version
-        - cd frontend && npm ci
+        - cd $CODEBUILD_SRC_DIR/frontend && npm ci
     build:
       commands:
-        - cd frontend && npx prisma generate
-        - cd frontend && npm run build
+        - cd $CODEBUILD_SRC_DIR/frontend && npx prisma generate
+        - cd $CODEBUILD_SRC_DIR/frontend && npm run build
   artifacts:
     baseDirectory: frontend/.next
     files:
