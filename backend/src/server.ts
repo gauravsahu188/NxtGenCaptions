@@ -53,6 +53,15 @@ app.use("/api/render", renderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/webhooks", webhookRoutes);
 
+// Root endpoint to prevent "Cannot GET /"
+app.get("/", (req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    message: "Auto Captions Generator Backend running",
+    healthCheck: "/api/health"
+  });
+});
+
 // Health check endpoint
 app.get("/api/health", (req: Request, res: Response) => {
   res.json({
