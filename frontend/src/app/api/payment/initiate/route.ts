@@ -1,65 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import {
+  initiatePayment,
+  generateOrderId,
+  PLAN_PRICING_INR,
+  PLAN_PRICING_USD,
+} from "@/lib/payment";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-
-interface InitiatePaymentRequest {
-  planType: 'EDITOR' | 'CREATOR' | 'BUSINESS';
-}
+const VALID_PLANS = ["EDITOR", "CREATOR", "BUSINESS"] as const;
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
-    const body: InitiatePaymentRequest = await request.json();
-    const { planType } = body;
+    const { planType, currency = "INR" } = await request.json();
 
-    if (!planType) {
-      return NextResponse.json(
-        { error: "Missing required field: planType" },
-        { status: 400 }
-      );
-    }
-
-    const validPlans = ['EDITOR', 'CREATOR', 'BUSINESS'];
-    if (!validPlans.includes(planType)) {
+    if (!planType || !VALID_PLANS.includes(planType)) {
       return NextResponse.json(
         { error: "Invalid plan type. Must be EDITOR, CREATOR, or BUSINESS" },
         { status: 400 }
       );
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/payment/initiate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': session.user.id,
-      },
-      body: JSON.stringify({ planType }),
+    const pricingMap = currency === "USD" ? PLAN_PRICING_USD : PLAN_PRICING_INR;
+    const planDetails = pricingMap[planType];
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const orderId = generateOrderId(userId);
+
+    const result = await initiatePayment({
+      userId,
+      orderId,
+      amount: planDetails.amount,
+      planType,
+      email: user.email || undefined,
+      currency,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
+    if (!result.success) {
       return NextResponse.json(
-        { error: errorData.error || "Failed to initiate payment" },
-        { status: response.status }
+        { error: result.error || "Failed to initiate payment" },
+        { status: 500 }
       );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json({
+      success: true,
+      orderId,
+      paymentPayload: result.paymentPayload,
+      planDetails: {
+        planType,
+        amount: planDetails.amount,
+        transcriptionBalance: planDetails.transcriptionBalance,
+        audioCredits: planDetails.audioCredits,
+      },
+    });
   } catch (error) {
     console.error("[PaymentInitiate] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to initiate payment" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to initiate payment" }, { status: 500 });
   }
 }
