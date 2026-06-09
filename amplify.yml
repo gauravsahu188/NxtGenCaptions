@@ -12,10 +12,10 @@ frontend:
         - cd $CODEBUILD_SRC_DIR/NxtGenCaptions/frontend && npx prisma generate
         - cd $CODEBUILD_SRC_DIR/NxtGenCaptions/frontend && npm run build
   artifacts:
-    baseDirectory: NxtGenCaptions/frontend/.next
+    baseDirectory: frontend/.next
     files:
       - '**/*'
   cache:
     paths:
-      - NxtGenCaptions/frontend/node_modules/**/*
-      - NxtGenCaptions/frontend/.next/cache/**/*
+      - frontend/node_modules/**/*
+      - frontend/.next/cache/**/*
