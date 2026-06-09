@@ -1,21 +1,23 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - nvm use 20 || nvm install 20
-        - node --version
-        - npm --version
-        - cd $CODEBUILD_SRC_DIR/NxtGenCaptions/frontend && npm ci
-    build:
-      commands:
-        - cd $CODEBUILD_SRC_DIR/NxtGenCaptions/frontend && npx prisma generate
-        - cd $CODEBUILD_SRC_DIR/NxtGenCaptions/frontend && npm run build
-  artifacts:
-    baseDirectory: frontend/.next
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - frontend/node_modules/**/*
-      - frontend/.next/cache/**/*
+applications:
+  - appRoot: frontend
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - nvm use 20 || nvm install 20
+            - node --version
+            - npm --version
+            - npm ci
+        build:
+          commands:
+            - npx prisma generate
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*
