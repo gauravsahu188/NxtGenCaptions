@@ -284,8 +284,18 @@ export async function GET(request: NextRequest) {
         bucketName
       }));
       try {
-        const finalKey = (progress as any).outKey || outKey;
-        downloadUrl = await getPresignedDownloadUrl(bucketName, finalKey);
+        if (progress.outputFile) {
+          const bucketMatch = progress.outputFile.match(/s3:\/\/([^/]+)\/(.+)/);
+          if (bucketMatch) {
+            const [, bucket, key] = bucketMatch;
+            downloadUrl = await getPresignedDownloadUrl(bucket, key);
+          }
+        } else {
+          // Fallback if outputFile is not available
+          const finalKey = (progress as any).outKey || outKey;
+          // IMPORTANT: If we are here, we should assume EXPORTS_BUCKET since bucketName is likely the Remotion bucket
+          downloadUrl = await getPresignedDownloadUrl(EXPORTS_BUCKET, finalKey);
+        }
       } catch (e) {
         console.warn("[Export] Could not generate download URL:", e);
       }
