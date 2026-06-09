@@ -15,6 +15,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://nxtgencaptions.com"),
   title: "NxtGen Captions — Caption AI and AI Subtitle Generator",
   description: "Auto-generate stunning, accurate video captions with our AI subtitle generator. Auto subtitle generator featuring modern captions, .srt file exports, and alpha channel captions.",
   keywords: [
