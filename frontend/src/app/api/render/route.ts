@@ -242,6 +242,7 @@ export async function POST(request: NextRequest) {
       codec: "h264" as const,
       framesPerLambda: 30,
       logLevel: "info" as const,
+      privacy: "no-acl" as const,
       outName: {
         bucketName: EXPORTS_BUCKET,
         key: `${userId}/exports/${timestamp}-rendered.mp4`

@@ -202,6 +202,7 @@ export async function POST(request: NextRequest) {
       codec:         finalAlphaChannel ? "vp9" : "h264",
       framesPerLambda: calculatedFramesPerLambda,
       logLevel:      "warn",
+      privacy:       "no-acl",
       outName: {
         bucketName: EXPORTS_BUCKET,
         key:        outKey,

@@ -162,6 +162,7 @@ export class RenderController {
         codec: "h264",
         framesPerLambda: calculatedFramesPerLambda,
         logLevel: "info",
+        privacy: "no-acl" as const,
         outName: {
           bucketName: EXPORTS_BUCKET,
           key: `${userId}/exports/${timestamp}-rendered.mp4`,
