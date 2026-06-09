@@ -12,7 +12,7 @@ const AWS_REGION = process.env.AWS_REGION ?? "ap-south-1";
 const EXPORTS_BUCKET = process.env.AWS_EXPORTS_BUCKET ?? "nxtgen-completed-exports";
 const SOURCE_BUCKET = process.env.AWS_S3_BUCKET ?? "nxtgencaption-export";
 
-const REMOTION_REGION = process.env.REMOTION_REGION ?? "us-east-1";
+const REMOTION_REGION = (process.env.REMOTION_AWS_REGION || process.env.REMOTION_REGION || "ap-south-1") as any;
 const REMOTION_FUNCTION_NAME = process.env.REMOTION_FUNCTION_NAME ?? "remotion-render-4-0-457-mem2048mb-disk2048mb-120sec";
 const REMOTION_SITE_URL = process.env.REMOTION_SITE_URL ?? "https://remotionlambda-useast1-4vs6zydhbr.s3.us-east-1.amazonaws.com/sites/xxiv6xm77x/index.html";
 
@@ -152,6 +152,7 @@ export class RenderController {
       console.log(`[Render] Using site: ${REMOTION_SITE_URL}`);
       console.log(`[Render] totalFrames: ${totalFrames}, framesPerLambda: ${calculatedFramesPerLambda}`);
 
+      const timestamp = Date.now();
       const renderResult = await renderMediaOnLambda({
         region: REMOTION_REGION,
         functionName: functionInfo.functionName,
@@ -161,6 +162,10 @@ export class RenderController {
         codec: "h264",
         framesPerLambda: calculatedFramesPerLambda,
         logLevel: "info",
+        outName: {
+          bucketName: EXPORTS_BUCKET,
+          key: `${userId}/exports/${timestamp}-rendered.mp4`,
+        },
       });
 
       console.log(`[Render] Lambda render started: ${renderResult.renderId}`);
@@ -168,12 +173,28 @@ export class RenderController {
       return res.json({
         success: true,
         renderId: renderResult.renderId,
-        outputUrl: `s3://${EXPORTS_BUCKET}/${userId}/exports/${Date.now()}-rendered.mp4`,
+        outputUrl: `s3://${EXPORTS_BUCKET}/${userId}/exports/${timestamp}-rendered.mp4`,
         dimensions,
         message: "Render started. Poll the render status for completion.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("[Render] Error:", error);
+
+      if (
+        error.name === "TooManyRequestsException" ||
+        error.code === "TooManyRequestsException" ||
+        error.$metadata?.httpStatusCode === 429 ||
+        (error.message && error.message.includes("TooManyRequestsException")) ||
+        (error.message && error.message.includes("Rate exceeded"))
+      ) {
+        console.warn("[Render] Lambda concurrency limit reached (TooManyRequestsException). Requesting frontend to Queue render.");
+        return res.status(429).json({
+          error: "AWS Lambda concurrency limit reached. Please Queue the render.",
+          code: "TooManyRequestsException",
+          shouldQueue: true
+        });
+      }
+
       return res.status(500).json({ error: "Failed to start render" });
     }
   }

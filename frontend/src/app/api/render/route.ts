@@ -19,8 +19,10 @@ const VALID_REGIONS = [
 // S3 bucket for completed exports
 const EXPORTS_BUCKET = process.env.AWS_EXPORTS_BUCKET ?? "nxtgen-completed-exports";
 
-// Default to us-east-1 if region not in valid list
-const REMOTION_REGION = (VALID_REGIONS.includes(process.env.REMOTION_REGION as typeof VALID_REGIONS[number])
+// Default to ap-south-1 if region not in valid list
+const REMOTION_REGION = (VALID_REGIONS.includes(process.env.REMOTION_AWS_REGION as any)
+  ? process.env.REMOTION_AWS_REGION
+  : VALID_REGIONS.includes(process.env.REMOTION_REGION as any)
   ? process.env.REMOTION_REGION
   : "ap-south-1") as typeof VALID_REGIONS[number];
 
@@ -240,7 +242,10 @@ export async function POST(request: NextRequest) {
       codec: "h264" as const,
       framesPerLambda: 30,
       logLevel: "info" as const,
-      outName: `${userId}/exports/${timestamp}-rendered.mp4`,
+      outName: {
+        bucketName: EXPORTS_BUCKET,
+        key: `${userId}/exports/${timestamp}-rendered.mp4`
+      },
       downloadBehavior: {
         type: "download" as const,
         fileName: "NxtGenExport.mp4"
@@ -262,6 +267,25 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Render] Error:", error);
+
+    const err = error as any;
+    if (
+      err.name === "TooManyRequestsException" ||
+      err.code === "TooManyRequestsException" ||
+      err.$metadata?.httpStatusCode === 429 ||
+      (err.message && err.message.includes("TooManyRequestsException")) ||
+      (err.message && err.message.includes("Rate exceeded"))
+    ) {
+      console.warn("[Render] Lambda concurrency limit reached (TooManyRequestsException). Requesting frontend to Queue render.");
+      return NextResponse.json(
+        {
+          error: "AWS Lambda concurrency limit reached. Please Queue the render.",
+          code: "TooManyRequestsException",
+          shouldQueue: true
+        },
+        { status: 429 }
+      );
+    }
 
     if (error instanceof Error) {
       if (error.message.includes("not configured")) {

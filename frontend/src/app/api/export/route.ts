@@ -24,7 +24,9 @@ const SOURCE_BUCKET  = process.env.AWS_S3_BUCKET ?? "nxtgencaption-export";
 const AWS_REGION     = (process.env.AWS_REGION ?? "ap-south-1") as ValidRegion;
 
 const REMOTION_REGION = (
-  VALID_REGIONS.includes(process.env.REMOTION_REGION as ValidRegion)
+  VALID_REGIONS.includes(process.env.REMOTION_AWS_REGION as any)
+    ? process.env.REMOTION_AWS_REGION
+    : VALID_REGIONS.includes(process.env.REMOTION_REGION as any)
     ? process.env.REMOTION_REGION
     : "ap-south-1"
 ) as ValidRegion;
@@ -208,7 +210,10 @@ export async function POST(request: NextRequest) {
       codec:         finalAlphaChannel ? "vp9" : "h264",
       framesPerLambda: calculatedFramesPerLambda,
       logLevel:      "warn",
-      outName:       outKey,
+      outName: {
+        bucketName: EXPORTS_BUCKET,
+        key:        outKey,
+      },
     };
 
     if (finalAlphaChannel) {
@@ -231,6 +236,25 @@ export async function POST(request: NextRequest) {
     });
   } catch (err: any) {
     console.error("[Export] Error:", err);
+
+    if (
+      err.name === "TooManyRequestsException" ||
+      err.code === "TooManyRequestsException" ||
+      err.$metadata?.httpStatusCode === 429 ||
+      (err.message && err.message.includes("TooManyRequestsException")) ||
+      (err.message && err.message.includes("Rate exceeded"))
+    ) {
+      console.warn("[Export] Lambda concurrency limit reached (TooManyRequestsException). Requesting frontend to Queue render.");
+      return NextResponse.json(
+        {
+          error: "AWS Lambda concurrency limit reached. Please Queue the render.",
+          code: "TooManyRequestsException",
+          shouldQueue: true
+        },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json(
       { error: err?.message ?? "Failed to start render" },
       { status: 500 }

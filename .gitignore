@@ -78,3 +78,6 @@ skills-lock.json
 .git_backup/
 **/.git_backup/
 
+
+# sst
+.sst

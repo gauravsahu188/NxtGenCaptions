@@ -14,6 +14,7 @@ import fs from "fs";
 import videoRoutes from "./routes/video.routes";
 import renderRoutes from "./routes/render.routes";
 import paymentRoutes from "./routes/payment.routes";
+import webhookRoutes from "./routes/webhook.routes";
 import { AppError } from "./utils/errors";
 
 const app = express();
@@ -23,7 +24,14 @@ app.use(helmet({ crossOriginResourcePolicy: false })); // Allow cross-origin sta
 app.use(cors({ origin: "*" })); // Adjust in production
 
 // Body parsing
-app.use(express.json({ limit: "50mb" }));
+app.use(
+  express.json({
+    limit: "50mb",
+    verify: (req: any, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Request logging
@@ -43,6 +51,7 @@ app.use("/uploads", express.static(uploadDir));
 app.use("/api/video", videoRoutes);
 app.use("/api/render", renderRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/webhooks", webhookRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req: Request, res: Response) => {
