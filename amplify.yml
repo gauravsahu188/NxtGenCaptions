@@ -6,16 +6,16 @@ frontend:
         - nvm use 20 || nvm install 20
         - node --version
         - npm --version
-        - cd $CODEBUILD_SRC_DIR/frontend && npm ci
+        - cd $CODEBUILD_SRC_DIR/NxtGenCaptions/frontend && npm ci
     build:
       commands:
-        - cd $CODEBUILD_SRC_DIR/frontend && npx prisma generate
-        - cd $CODEBUILD_SRC_DIR/frontend && npm run build
+        - cd $CODEBUILD_SRC_DIR/NxtGenCaptions/frontend && npx prisma generate
+        - cd $CODEBUILD_SRC_DIR/NxtGenCaptions/frontend && npm run build
   artifacts:
-    baseDirectory: frontend/.next
+    baseDirectory: NxtGenCaptions/frontend/.next
     files:
       - '**/*'
   cache:
     paths:
-      - frontend/node_modules/**/*
-      - frontend/.next/cache/**/*
+      - NxtGenCaptions/frontend/node_modules/**/*
+      - NxtGenCaptions/frontend/.next/cache/**/*
