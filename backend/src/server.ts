@@ -1,11 +1,17 @@
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 
-// Load shared env from root - trigger reload 2
+// Load shared env from root .env.local only in local dev
+// On App Runner / production, env vars are injected by the service
 const envPath = path.join(__dirname, "../../.env.local");
-const envResult = dotenv.config({ path: envPath, override: true });
-console.log("[Server] Loaded env from", envPath);
-console.log("[Server] Dotenv parsed keys:", envResult.parsed ? Object.keys(envResult.parsed) : envResult.error);
+if (fs.existsSync(envPath)) {
+  const envResult = dotenv.config({ path: envPath, override: true });
+  console.log("[Server] Loaded env from", envPath);
+  console.log("[Server] Dotenv parsed keys:", envResult.parsed ? Object.keys(envResult.parsed) : envResult.error);
+} else {
+  console.log("[Server] No .env.local found - using environment variables from host");
+}
 import express, { Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import cors from "cors";
