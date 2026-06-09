@@ -80,7 +80,8 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
       const headers: Record<string, string> = {};
       if (userId) headers["x-user-id"] = userId;
 
-      const res = await fetch("http://localhost:3001/api/video/upload", {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      const res = await fetch(`${BACKEND_URL}/api/video/upload`, {
         method: "POST",
         headers,
         body: formData,

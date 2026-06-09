@@ -121,7 +121,7 @@ export default function EditorLayout({ user }: { user?: any }) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 min
 
-      const response = await fetch("http://localhost:3001/api/video/render", {
+      const response = await fetch("/api/render", {
         method: "POST",
         headers,
         signal: controller.signal,

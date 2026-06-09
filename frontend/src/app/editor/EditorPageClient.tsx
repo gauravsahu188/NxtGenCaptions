@@ -46,7 +46,8 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
         const headers: Record<string, string> = {};
         if (user?.id) headers["x-user-id"] = user.id;
 
-        const res = await fetch(`http://localhost:3001/api/video/project/${projectId}`, {
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+        const res = await fetch(`${BACKEND_URL}/api/video/project/${projectId}`, {
           headers,
         });
 

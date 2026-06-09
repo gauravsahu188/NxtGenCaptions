@@ -353,7 +353,8 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
 
     setIsEnhancing(true);
     try {
-      const res = await fetch("http://localhost:3001/api/video/enhance-audio", {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      const res = await fetch(`${BACKEND_URL}/api/video/enhance-audio`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
