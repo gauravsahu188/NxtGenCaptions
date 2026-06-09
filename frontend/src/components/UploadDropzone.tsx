@@ -6,15 +6,28 @@ import { UploadCloud, FileVideo, Globe, Sparkles, Zap } from "lucide-react";
 import { useCaptionContext } from "../context/CaptionContext";
 
 const LANGUAGES = [
-  { code: "auto", name: "Auto Detect", flag: "🌐" },
-  { code: "en", name: "English", flag: "🇬🇧" },
-  { code: "hinglish", name: "Hinglish", flag: "🇮🇳" },
-  { code: "hi", name: "Hindi", flag: "🇮🇳" },
+  { code: "auto", name: "Auto Detect International", flag: "🌐", description: "Automatically detects any international language spoken in the video." },
+  { code: "en", name: "English", flag: "🇬🇧", description: "Transcribes English speech, or translates non-English languages to English." },
+  { code: "hinglish", name: "Hinglish", flag: "🇮🇳", description: "Forces Romanized Hindi transliteration (e.g., writing spoken Hindi using English alphabets like \"kaise ho\")." },
+  { code: "hi", name: "Hindi", flag: "🇮🇳", description: "Forces Hindi transcription using the traditional Devanagari script (e.g., \"कैसे हो\")." },
+  { code: "ne", name: "Nepali", flag: "🇳🇵", description: "Forces Nepali transcription using the Devanagari script (e.g., \"नमस्ते\")." },
+  { code: "ur", name: "Urdu", flag: "🇵🇰", description: "Forces Urdu transcription using the Arabic Nastaliq script." },
+  { code: "ta", name: "Tamil", flag: "🇮🇳", description: "Forces Tamil transcription using the Tamil script." },
+  { code: "ml", name: "Malayalam", flag: "🇮🇳", description: "Forces Malayalam transcription using the Malayalam script." },
+  { code: "gu", name: "Gujarati", flag: "🇮🇳", description: "Forces Gujarati transcription using the Gujarati script." },
+  { code: "bn", name: "Bengali", flag: "🇮🇳", description: "Forces Bengali transcription using the Bengali script." },
+  { code: "pa", name: "Punjabi", flag: "🇮🇳", description: "Forces Punjabi transcription using the Gurmukhi script." },
+  { code: "te", name: "Telugu", flag: "🇮🇳", description: "Forces Telugu transcription using the Telugu script." },
+  { code: "sd", name: "Sindhi", flag: "🇵🇰", description: "Forces Sindhi transcription using the Arabic script." },
+  { code: "mr", name: "Marathi", flag: "🇮🇳", description: "Forces Marathi transcription using the Devanagari script." },
+  { code: "kn", name: "Kannada", flag: "🇮🇳", description: "Forces Kannada transcription using the Kannada script." },
+  { code: "ps", name: "Pushto", flag: "🇦🇫", description: "Forces Pushto transcription using the Arabic script." },
+  { code: "ms", name: "Malay", flag: "🇲🇾", description: "Forces Malay transcription using the Latin script." },
 ];
 
 export default function UploadDropzone({ userId, transcriptionBalance, audioCredits }: { userId?: string; transcriptionBalance?: number; audioCredits?: number }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("auto");
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [audioEnhance, setAudioEnhance] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { setVideoUrl, setCaptions, setIsProcessing, setProcessingMessage, setOriginalWords, setS3Key } = useCaptionContext();
@@ -171,7 +184,7 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
           <Globe className="w-4 h-4 text-zinc-400" />
           <span>Transcription Language</span>
         </div>
-        <div className="flex flex-wrap justify-center gap-2 max-w-xl">
+        <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
@@ -192,47 +205,20 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
         {/* Dynamic Helper Text */}
         <div className="min-h-10 mt-1 text-center max-w-lg px-4 flex items-center justify-center">
           <span className="text-xs text-zinc-400 font-normal leading-relaxed">
-
-            {selectedLanguage === "auto" && (
-              <motion.span
-                key="auto"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-block"
-              >
-                🌐 Automatically detects the primary language spoken in the video (e.g., outputs traditional Hindi or English).
-              </motion.span>
-            )}
-            {selectedLanguage === "en" && (
-              <motion.span
-                key="en"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-block"
-              >
-                🇬🇧 Transcribes English speech, or translates non-English languages to English.
-              </motion.span>
-            )}
-            {selectedLanguage === "hinglish" && (
-              <motion.span
-                key="hinglish"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-block"
-              >
-                🇮🇳 Forces Romanized Hindi transliteration (e.g., writing spoken Hindi using English alphabets like &quot;kaise ho&quot;).
-              </motion.span>
-            )}
-            {selectedLanguage === "hi" && (
-              <motion.span
-                key="hi"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-block"
-              >
-                🇮🇳 Forces Hindi transcription using the traditional Devanagari script (e.g., &quot;कैसे हो&quot;).
-              </motion.span>
-            )}
+            {(() => {
+              const currentLang = LANGUAGES.find(l => l.code === selectedLanguage);
+              if (!currentLang) return null;
+              return (
+                <motion.span
+                  key={currentLang.code}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="inline-block"
+                >
+                  {currentLang.flag} {currentLang.description}
+                </motion.span>
+              );
+            })()}
           </span>
         </div>
       </div>

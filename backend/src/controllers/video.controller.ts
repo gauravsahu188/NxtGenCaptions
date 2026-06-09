@@ -33,6 +33,26 @@ const DEFAULT_STYLE: CaptionStyleProps = {
   borderRadius:    12,
 };
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  auto: "Auto Detect International",
+  en: "English",
+  hinglish: "Hinglish",
+  hi: "Hindi",
+  ne: "Nepali",
+  ur: "Urdu",
+  ta: "Tamil",
+  ml: "Malayalam",
+  gu: "Gujarati",
+  bn: "Bengali",
+  pa: "Punjabi",
+  te: "Telugu",
+  sd: "Sindhi",
+  mr: "Marathi",
+  kn: "Kannada",
+  ps: "Pushto",
+  ms: "Malay"
+};
+
 export class VideoController {
   // ─── POST /api/video/upload ─────────────────────────────────────────────────
   async uploadAndTranscribe(req: Request, res: Response, next: NextFunction) {
@@ -134,14 +154,9 @@ export class VideoController {
 
       const language = (req.body.language || req.query.language || "auto") as string;
       console.log(`[VideoController] Transcribing with language: ${language}`);
+      const languageName = LANGUAGE_NAMES[language] || "English";
       sendEvent("status", {
-        message: `Generating captions (${
-          language === "hinglish"
-            ? "Hinglish"
-            : language === "hi"
-            ? "Hindi"
-            : "English"
-        })...`,
+        message: `Generating captions (${languageName})...`,
       });
 
       let captions = await transcriptionService.transcribeAudio(

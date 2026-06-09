@@ -1,4 +1,4 @@
-import { PlanType } from "@prisma/client"
+import { PlanType } from "../../generated/prisma"
 import { prisma } from "./prisma"
 
 export interface SubscriptionTier {

@@ -16,9 +16,29 @@ export interface CaptionSegment {
 }
 
 export interface TranscriptionOptions {
-  language?: string; // 'en', 'hi', 'hinglish', 'auto'
+  language?: string; // 'en', 'hi', 'hinglish', 'auto', 'ne', 'ur', 'ta', 'ml', 'gu', 'bn', 'pa', 'te', 'sd', 'mr', 'kn', 'ps', 'ms'
   model?: string; // 'whisper-medium', 'whisper-large', etc.
 }
+
+const LANGUAGE_MODEL_MAPPING: Record<string, string> = {
+  hi: "nova-2",
+  en: "nova-2",
+  ne: "whisper-large",
+  ur: "nova-2",
+  ta: "nova-2",
+  ml: "whisper-large",
+  gu: "nova-2",
+  bn: "nova-2",
+  pa: "whisper-large",
+  te: "nova-2",
+  sd: "whisper-large",
+  mr: "nova-2",
+  kn: "nova-2",
+  ps: "whisper-large",
+  ms: "nova-2",
+  auto: "nova-2",
+  hinglish: "nova-2"
+};
 
 export class DeepgramTranscriptionService {
   private defaultModel = "nova-2"; // nova-2 supports detect_language; whisper does not
@@ -26,7 +46,7 @@ export class DeepgramTranscriptionService {
 
   async transcribeAudio(audioPath: string, onSegment?: (segment: CaptionSegment) => void, options?: TranscriptionOptions): Promise<CaptionSegment[]> {
     const language = options?.language || this.defaultLanguage;
-    const model = options?.model || this.defaultModel;
+    const model = options?.model || LANGUAGE_MODEL_MAPPING[language] || this.defaultModel;
     const apiKey = process.env.DEEPGRAM_API_KEY;
     console.log("[DeepgramTranscription] Transcribe called. apiKey exists:", !!apiKey, "length:", apiKey?.length);
     console.log("[DeepgramTranscription] Checking if condition:", (!apiKey || apiKey === "your_deepgram_api_key_here"));
@@ -195,6 +215,14 @@ export class DeepgramTranscriptionService {
   }
 
   private getMockCaptions(language: string = "en"): CaptionSegment[] {
+    const languageNames: Record<string, string> = {
+      en: "English", hi: "Hindi", hinglish: "Hinglish", ne: "Nepali",
+      ur: "Urdu", ta: "Tamil", ml: "Malayalam", gu: "Gujarati",
+      bn: "Bengali", pa: "Punjabi", te: "Telugu", sd: "Sindhi",
+      mr: "Marathi", kn: "Kannada", ps: "Pushto", ms: "Malay", auto: "Auto Detect International"
+    };
+    const langName = languageNames[language] || "English";
+
     const phrases = language === "hinglish" || language === "hi"
       ? [
           "Deepgram Transcription Service",
@@ -206,24 +234,12 @@ export class DeepgramTranscriptionService {
           "precise word-level timing ke liye",
           "Ready to enhance your video!"
         ]
-      : language === "auto"
-      ? [
-          "Deepgram Transcription Service",
-          "Detecting language automatically",
-          "Please ensure DEEPGRAM_API_KEY is valid",
-          "in your backend .env file.",
-          "Once connected, we will use",
-          "whisper-medium model",
-          "for precise word-level timing.",
-          "Ready to enhance your video!"
-        ]
       : [
           "Deepgram Transcription Service",
-          "is now handling your audio.",
+          `Generating captions for ${langName}.`,
           "Please ensure DEEPGRAM_API_KEY is valid",
           "in your backend .env file.",
-          "Once connected, we will use",
-          "whisper-medium model",
+          "Once connected, we will use the model",
           "for precise word-level timing.",
           "Ready to enhance your video!"
         ];
