@@ -68,6 +68,7 @@ model User {
   name                 String?
   email                String?       @unique
   emailVerified        DateTime?
+  password             String?
   image                String?
   planType             PlanType      @default(FREE)
   transcriptionBalance Float         @default(5)

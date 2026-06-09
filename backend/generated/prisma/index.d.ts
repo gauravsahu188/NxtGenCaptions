@@ -5919,6 +5919,7 @@ export namespace Prisma {
     name: string | null
     email: string | null
     emailVerified: Date | null
+    password: string | null
     image: string | null
     planType: $Enums.PlanType | null
     transcriptionBalance: number | null
@@ -5933,6 +5934,7 @@ export namespace Prisma {
     name: string | null
     email: string | null
     emailVerified: Date | null
+    password: string | null
     image: string | null
     planType: $Enums.PlanType | null
     transcriptionBalance: number | null
@@ -5947,6 +5949,7 @@ export namespace Prisma {
     name: number
     email: number
     emailVerified: number
+    password: number
     image: number
     planType: number
     transcriptionBalance: number
@@ -5975,6 +5978,7 @@ export namespace Prisma {
     name?: true
     email?: true
     emailVerified?: true
+    password?: true
     image?: true
     planType?: true
     transcriptionBalance?: true
@@ -5989,6 +5993,7 @@ export namespace Prisma {
     name?: true
     email?: true
     emailVerified?: true
+    password?: true
     image?: true
     planType?: true
     transcriptionBalance?: true
@@ -6003,6 +6008,7 @@ export namespace Prisma {
     name?: true
     email?: true
     emailVerified?: true
+    password?: true
     image?: true
     planType?: true
     transcriptionBalance?: true
@@ -6104,6 +6110,7 @@ export namespace Prisma {
     name: string | null
     email: string | null
     emailVerified: Date | null
+    password: string | null
     image: string | null
     planType: $Enums.PlanType
     transcriptionBalance: number
@@ -6137,6 +6144,7 @@ export namespace Prisma {
     name?: boolean
     email?: boolean
     emailVerified?: boolean
+    password?: boolean
     image?: boolean
     planType?: boolean
     transcriptionBalance?: boolean
@@ -6156,6 +6164,7 @@ export namespace Prisma {
     name?: boolean
     email?: boolean
     emailVerified?: boolean
+    password?: boolean
     image?: boolean
     planType?: boolean
     transcriptionBalance?: boolean
@@ -6170,6 +6179,7 @@ export namespace Prisma {
     name?: boolean
     email?: boolean
     emailVerified?: boolean
+    password?: boolean
     image?: boolean
     planType?: boolean
     transcriptionBalance?: boolean
@@ -6184,6 +6194,7 @@ export namespace Prisma {
     name?: boolean
     email?: boolean
     emailVerified?: boolean
+    password?: boolean
     image?: boolean
     planType?: boolean
     transcriptionBalance?: boolean
@@ -6193,7 +6204,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "planType" | "transcriptionBalance" | "audioCredits" | "storageUsed" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "password" | "image" | "planType" | "transcriptionBalance" | "audioCredits" | "storageUsed" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -6217,6 +6228,7 @@ export namespace Prisma {
       name: string | null
       email: string | null
       emailVerified: Date | null
+      password: string | null
       image: string | null
       planType: $Enums.PlanType
       transcriptionBalance: number
@@ -6655,6 +6667,7 @@ export namespace Prisma {
     readonly name: FieldRef<"User", 'String'>
     readonly email: FieldRef<"User", 'String'>
     readonly emailVerified: FieldRef<"User", 'DateTime'>
+    readonly password: FieldRef<"User", 'String'>
     readonly image: FieldRef<"User", 'String'>
     readonly planType: FieldRef<"User", 'PlanType'>
     readonly transcriptionBalance: FieldRef<"User", 'Float'>
@@ -8376,6 +8389,7 @@ export namespace Prisma {
     name: 'name',
     email: 'email',
     emailVerified: 'emailVerified',
+    password: 'password',
     image: 'image',
     planType: 'planType',
     transcriptionBalance: 'transcriptionBalance',
@@ -8872,6 +8886,7 @@ export namespace Prisma {
     name?: StringNullableFilter<"User"> | string | null
     email?: StringNullableFilter<"User"> | string | null
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
+    password?: StringNullableFilter<"User"> | string | null
     image?: StringNullableFilter<"User"> | string | null
     planType?: EnumPlanTypeFilter<"User"> | $Enums.PlanType
     transcriptionBalance?: FloatFilter<"User"> | number
@@ -8890,6 +8905,7 @@ export namespace Prisma {
     name?: SortOrderInput | SortOrder
     email?: SortOrderInput | SortOrder
     emailVerified?: SortOrderInput | SortOrder
+    password?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
     planType?: SortOrder
     transcriptionBalance?: SortOrder
@@ -8911,6 +8927,7 @@ export namespace Prisma {
     NOT?: UserWhereInput | UserWhereInput[]
     name?: StringNullableFilter<"User"> | string | null
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
+    password?: StringNullableFilter<"User"> | string | null
     image?: StringNullableFilter<"User"> | string | null
     planType?: EnumPlanTypeFilter<"User"> | $Enums.PlanType
     transcriptionBalance?: FloatFilter<"User"> | number
@@ -8929,6 +8946,7 @@ export namespace Prisma {
     name?: SortOrderInput | SortOrder
     email?: SortOrderInput | SortOrder
     emailVerified?: SortOrderInput | SortOrder
+    password?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
     planType?: SortOrder
     transcriptionBalance?: SortOrder
@@ -8951,6 +8969,7 @@ export namespace Prisma {
     name?: StringNullableWithAggregatesFilter<"User"> | string | null
     email?: StringNullableWithAggregatesFilter<"User"> | string | null
     emailVerified?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+    password?: StringNullableWithAggregatesFilter<"User"> | string | null
     image?: StringNullableWithAggregatesFilter<"User"> | string | null
     planType?: EnumPlanTypeWithAggregatesFilter<"User"> | $Enums.PlanType
     transcriptionBalance?: FloatWithAggregatesFilter<"User"> | number
@@ -9377,6 +9396,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -9395,6 +9415,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -9413,6 +9434,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -9431,6 +9453,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -9449,6 +9472,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -9463,6 +9487,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -9477,6 +9502,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -10051,6 +10077,7 @@ export namespace Prisma {
     name?: SortOrder
     email?: SortOrder
     emailVerified?: SortOrder
+    password?: SortOrder
     image?: SortOrder
     planType?: SortOrder
     transcriptionBalance?: SortOrder
@@ -10071,6 +10098,7 @@ export namespace Prisma {
     name?: SortOrder
     email?: SortOrder
     emailVerified?: SortOrder
+    password?: SortOrder
     image?: SortOrder
     planType?: SortOrder
     transcriptionBalance?: SortOrder
@@ -10085,6 +10113,7 @@ export namespace Prisma {
     name?: SortOrder
     email?: SortOrder
     emailVerified?: SortOrder
+    password?: SortOrder
     image?: SortOrder
     planType?: SortOrder
     transcriptionBalance?: SortOrder
@@ -10747,6 +10776,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -10764,6 +10794,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -10797,6 +10828,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -10814,6 +10846,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -10831,6 +10864,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -10848,6 +10882,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -10881,6 +10916,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -10898,6 +10934,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -10915,6 +10952,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -10932,6 +10970,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -10965,6 +11004,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -10982,6 +11022,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -11275,6 +11316,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -11292,6 +11334,7 @@ export namespace Prisma {
     name?: string | null
     email?: string | null
     emailVerified?: Date | string | null
+    password?: string | null
     image?: string | null
     planType?: $Enums.PlanType
     transcriptionBalance?: number
@@ -11325,6 +11368,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number
@@ -11342,6 +11386,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     transcriptionBalance?: FloatFieldUpdateOperationsInput | number

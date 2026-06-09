@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Mail, Loader2, CheckCircle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Mail, Loader2, Lock, User as UserIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Google Icon SVG
 const GoogleIcon = () => (
@@ -23,106 +24,82 @@ const AppleIcon = () => (
   </svg>
 );
 
-type Mode = "main" | "email" | "otp";
+type Mode = "main" | "login" | "signup";
 
 export default function SignInPage() {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>("main");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Auto-focus first OTP input when switching to OTP mode
-  useEffect(() => {
-    if (mode === "otp") {
-      inputRefs.current[0]?.focus();
-    }
-  }, [mode]);
 
   const handleOAuth = async (provider: "google" | "apple") => {
     setLoading(provider);
     await signIn(provider, { callbackUrl: "/dashboard" });
   };
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    setLoading("email");
+    if (!email || !password) return;
+    setLoading("login");
     setError("");
 
-    try {
-      const res = await fetch("/api/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-      setLoading(null);
-
-      if (!res.ok) {
-        setError(data.error || "Failed to send OTP. Please try again.");
-      } else {
-        setMode("otp");
-      }
-    } catch (err) {
-      setLoading(null);
-      setError("An unexpected error occurred. Please try again.");
-    }
-  };
-
-  const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) value = value[value.length - 1]; // Only take last character
-    if (!/^\d*$/.test(value)) return; // Only allow digits
-
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleVerifyOtp = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    const otpString = otp.join("");
-    if (otpString.length !== 6) return;
-
-    setLoading("verify");
-    setError("");
-
-    const res = await signIn("otp", {
+    const res = await signIn("credentials", {
       email,
-      otp: otpString,
+      password,
       redirect: false,
       callbackUrl: "/dashboard",
     });
 
     if (res?.error) {
       setLoading(null);
-      setError("Invalid or expired code. Please try again.");
-      setOtp(["", "", "", "", "", ""]);
-      inputRefs.current[0]?.focus();
+      setError("Invalid email or password. Please try again.");
     } else {
       window.location.href = "/dashboard";
     }
   };
 
-  // Auto-submit when all 6 digits are entered
-  useEffect(() => {
-    if (otp.every(digit => digit !== "") && otp.join("").length === 6) {
-      handleVerifyOtp();
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !name) return;
+    setLoading("signup");
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoading(null);
+        setError(data.error || "Failed to create account. Please try again.");
+      } else {
+        // Automatically sign in after sign up
+        const signInRes = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+          callbackUrl: "/dashboard",
+        });
+
+        if (signInRes?.error) {
+          setLoading(null);
+          setError("Account created, but failed to log in automatically.");
+        } else {
+          window.location.href = "/dashboard";
+        }
+      }
+    } catch (err) {
+      setLoading(null);
+      setError("An unexpected error occurred. Please try again.");
     }
-  }, [otp]);
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center relative overflow-hidden">
@@ -151,7 +128,7 @@ export default function SignInPage() {
               NxtGen<span className="text-accent">.</span>
             </span>
             <p className="text-zinc-400 text-sm mt-2">
-              Sign in to your account to continue
+              {mode === "signup" ? "Create a new account" : "Sign in to your account to continue"}
             </p>
           </div>
 
@@ -194,10 +171,10 @@ export default function SignInPage() {
                   <div className="grow border-t border-white/10" />
                 </div>
 
-                {/* Email */}
+                {/* Email Login */}
                 <button
                   id="btn-sign-in-email"
-                  onClick={() => setMode("email")}
+                  onClick={() => setMode("login")}
                   disabled={!!loading}
                   className="w-full flex items-center justify-center gap-3 bg-transparent hover:bg-white/5 text-white border border-white/10 font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -206,6 +183,10 @@ export default function SignInPage() {
                 </button>
 
                 <p className="text-center text-xs text-zinc-500 pt-4">
+                  Don't have an account?{" "}
+                  <button onClick={() => setMode("signup")} className="text-accent hover:text-white transition-colors font-medium">Sign Up</button>
+                </p>
+                <p className="text-center text-xs text-zinc-500 pt-2">
                   By continuing, you agree to our{" "}
                   <span className="text-zinc-300 hover:text-white cursor-pointer transition-colors">Terms of Service</span>{" "}
                   and{" "}
@@ -214,22 +195,22 @@ export default function SignInPage() {
               </motion.div>
             )}
 
-            {mode === "email" && (
+            {mode === "login" && (
               <motion.div
-                key="email"
+                key="login"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.25 }}
               >
                 <button
-                  onClick={() => setMode("main")}
+                  onClick={() => { setMode("main"); setError(""); setPassword(""); }}
                   className="flex items-center gap-1 text-zinc-400 hover:text-white text-sm mb-6 transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back
                 </button>
 
-                <form onSubmit={handleSendOtp} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">
                   <div>
                     <label className="block text-sm text-zinc-300 mb-2 font-medium">
                       Email address
@@ -245,84 +226,129 @@ export default function SignInPage() {
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm text-zinc-300 mb-2 font-medium">
+                      Password
+                    </label>
+                    <input
+                      id="input-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-accent/50 focus:bg-white/8 transition-all"
+                    />
+                  </div>
+
                   {error && (
                     <p className="text-red-400 text-sm">{error}</p>
                   )}
 
                   <button
-                    id="btn-send-otp"
+                    id="btn-login"
                     type="submit"
                     disabled={!!loading}
-                    className="w-full bg-accent hover:bg-accent-bright text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_0_1px_rgba(94,106,210,0.5),0_4px_12px_rgba(94,106,210,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98]"
+                    className="w-full bg-accent hover:bg-accent-bright text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_0_1px_rgba(94,106,210,0.5),0_4px_12px_rgba(94,106,210,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] mt-2"
                   >
-                    {loading === "email" ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+                    {loading === "login" ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Logging in...</>
                     ) : (
-                      "Send Code"
+                      "Sign In"
                     )}
                   </button>
+                  
+                  <p className="text-center text-xs text-zinc-500 pt-4">
+                    Don't have an account?{" "}
+                    <button type="button" onClick={() => { setMode("signup"); setError(""); }} className="text-accent hover:text-white transition-colors font-medium">Sign Up</button>
+                  </p>
                 </form>
               </motion.div>
             )}
 
-            {mode === "otp" && (
+            {mode === "signup" && (
               <motion.div
-                key="otp"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="text-center space-y-6"
+                key="signup"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
               >
-                <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <ShieldCheck className="w-8 h-8 text-accent" />
-                </div>
-                
-                <div>
-                  <h3 className="text-white font-semibold text-xl">Verification Code</h3>
-                  <p className="text-zinc-400 text-sm mt-1">
-                    We sent a 6-digit code to <span className="text-white font-medium">{email}</span>
-                  </p>
-                </div>
+                <button
+                  onClick={() => { setMode("main"); setError(""); setPassword(""); }}
+                  className="flex items-center gap-1 text-zinc-400 hover:text-white text-sm mb-6 transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back
+                </button>
 
-                <div className="flex justify-between gap-2">
-                  {otp.map((digit, index) => (
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-zinc-300 mb-2 font-medium">
+                      Full Name
+                    </label>
                     <input
-                      key={index}
-                      ref={(el) => { inputRefs.current[index] = el; }}
+                      id="input-name"
                       type="text"
-                      inputMode="numeric"
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-14 bg-white/5 border border-white/10 rounded-xl text-center text-2xl font-bold text-white focus:outline-none focus:border-accent focus:bg-white/10 transition-all"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="John Doe"
+                      required
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-accent/50 focus:bg-white/8 transition-all"
                     />
-                  ))}
-                </div>
+                  </div>
 
-                {error && (
-                  <p className="text-red-400 text-sm">{error}</p>
-                )}
+                  <div>
+                    <label className="block text-sm text-zinc-300 mb-2 font-medium">
+                      Email address
+                    </label>
+                    <input
+                      id="input-email-signup"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-accent/50 focus:bg-white/8 transition-all"
+                    />
+                  </div>
 
-                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-zinc-300 mb-2 font-medium">
+                      Password
+                    </label>
+                    <input
+                      id="input-password-signup"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-accent/50 focus:bg-white/8 transition-all"
+                    />
+                  </div>
+
+                  {error && (
+                    <p className="text-red-400 text-sm">{error}</p>
+                  )}
+
                   <button
-                    onClick={() => handleVerifyOtp()}
-                    disabled={otp.some(d => !d) || loading === "verify"}
-                    className="w-full bg-accent hover:bg-accent-bright text-white font-bold py-3 rounded-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 shadow-[0_0_0_1px_rgba(94,106,210,0.5),0_4px_12px_rgba(94,106,210,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98]"
+                    id="btn-signup"
+                    type="submit"
+                    disabled={!!loading}
+                    className="w-full bg-accent hover:bg-accent-bright text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_0_1px_rgba(94,106,210,0.5),0_4px_12px_rgba(94,106,210,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] mt-2"
                   >
-                    {loading === "verify" ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>
+                    {loading === "signup" ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Creating Account...</>
                     ) : (
-                      "Verify & Sign In"
+                      "Sign Up"
                     )}
                   </button>
 
-                  <button
-                    onClick={() => { setMode("email"); setOtp(["", "", "", "", "", ""]); setError(""); }}
-                    className="text-zinc-500 hover:text-white text-sm transition-colors"
-                  >
-                    Change email address
-                  </button>
-                </div>
+                  <p className="text-center text-xs text-zinc-500 pt-4">
+                    Already have an account?{" "}
+                    <button type="button" onClick={() => { setMode("login"); setError(""); }} className="text-accent hover:text-white transition-colors font-medium">Log In</button>
+                  </p>
+                </form>
               </motion.div>
             )}
           </AnimatePresence>

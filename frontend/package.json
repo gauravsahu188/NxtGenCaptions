@@ -19,6 +19,7 @@
     "@prisma/client": "^7.8.0",
     "@remotion/lambda": "^4.0.459",
     "@remotion/lambda-client": "^4.0.459",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "framer-motion": "^12.38.0",
     "gsap": "^3.15.0",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.19.40",
     "@types/nodemailer": "^8.0.0",
     "@types/pg": "^8.20.0",

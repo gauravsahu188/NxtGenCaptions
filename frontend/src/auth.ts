@@ -23,49 +23,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...(process.env.GOOGLE_CLIENT_ID ? [Google({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET })] : []),
     ...(process.env.APPLE_ID ? [Apple({ clientId: process.env.APPLE_ID, clientSecret: process.env.APPLE_SECRET })] : []),
     Credentials({
-      id: "otp",
-      name: "OTP",
+      id: "credentials",
+      name: "Email and Password",
       credentials: {
         email: { label: "Email", type: "email" },
-        otp:   { label: "OTP",   type: "text"  },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         const email = credentials?.email as string
-        const otp   = credentials?.otp   as string
+        const password = credentials?.password as string
 
-        if (!email || !otp) return null
+        if (!email || !password) return null
 
-        // Look up stored OTP
-        const record = await prisma.verificationToken.findUnique({
-          where: { identifier_token: { identifier: email, token: otp } },
-        })
-
-        if (!record) return null
-        if (record.expires < new Date()) {
-          // Expired — clean up
-          await prisma.verificationToken.delete({
-            where: { identifier_token: { identifier: email, token: otp } },
-          })
+        // Find user
+        const user = await prisma.user.findUnique({ where: { email } })
+        
+        if (!user || !user.password) {
+          // No user found, or user signed up via OAuth without a password
           return null
         }
 
-        // Valid OTP — delete it (one-time use)
-        await prisma.verificationToken.delete({
-          where: { identifier_token: { identifier: email, token: otp } },
-        })
+        const bcrypt = await import("bcryptjs")
+        const isValid = await bcrypt.compare(password, user.password)
 
-        // Find or create user
-        let user = await prisma.user.findUnique({ where: { email } })
-        if (!user) {
-          user = await prisma.user.create({
-            data: { email, emailVerified: new Date() },
-          })
-        } else if (!user.emailVerified) {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { emailVerified: new Date() },
-          })
-        }
+        if (!isValid) return null
 
         return {
           id: user.id,

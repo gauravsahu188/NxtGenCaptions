@@ -85,6 +85,7 @@ model User {
   name          String?
   email         String?   @unique
   emailVerified DateTime?
+  password      String?
   image         String?
 
   // App-Specific Fields (deprecated - use Subscription instead)
