@@ -12,7 +12,6 @@ import { prisma } from "./lib/prisma"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
-  trustHost: true,
   pages: {
     signIn: "/sign-in",
     error: "/sign-in",
