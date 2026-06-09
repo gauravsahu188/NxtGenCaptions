@@ -9,8 +9,15 @@ import Google from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./lib/prisma"
 
+// In AWS Amplify, Host headers can be manipulated or missing. 
+// We ensure AUTH_URL is set in production to prevent "Configuration" errors.
+if (process.env.NODE_ENV !== "development" && !process.env.AUTH_URL) {
+  process.env.AUTH_URL = "https://nxtgencaptions.com";
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: process.env.AUTH_SECRET,
+  // Fallback to the known secret if not set in Amplify environment
+  secret: process.env.AUTH_SECRET || "+ISXtUO9W4U9r7PpHoAqwKpTz3VKiAEXzCUI2eopnEU=",
   trustHost: true,
   pages: {
     signIn: "/sign-in",
@@ -20,7 +27,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   providers: [
-    ...(process.env.GOOGLE_CLIENT_ID ? [Google({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET })] : []),
+    ...((process.env.GOOGLE_CLIENT_ID || "97552505798-tk5osr5gomr4fb8th8vdlro4fgjkud7s.apps.googleusercontent.com") ? [Google({
+      clientId: process.env.GOOGLE_CLIENT_ID || "97552505798-tk5osr5gomr4fb8th8vdlro4fgjkud7s.apps.googleusercontent.com",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "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"
+    })] : []),
     Credentials({
       id: "credentials",
       name: "Email and Password",
@@ -36,7 +46,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Find user
         const user = await prisma.user.findUnique({ where: { email } })
-        
+
         if (!user || !user.password) {
           // No user found, or user signed up via OAuth without a password
           return null

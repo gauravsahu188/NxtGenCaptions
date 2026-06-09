@@ -3,8 +3,12 @@ import path from "path";
 
 // Load shared env from root - trigger reload 2
 const envPath = path.join(__dirname, "../../.env.local");
-const envResult = dotenv.config({ path: envPath, override: true });
-console.log("[Server] Loaded env from", envPath);
+let envResult = dotenv.config({ path: envPath, override: true });
+if (envResult.error) {
+  console.log(`[Server] Could not load ${envPath}, falling back to local .env`);
+  envResult = dotenv.config(); // Loads .env from current directory
+}
+console.log("[Server] Loaded env from", envResult.error ? "none" : (envResult.parsed ? "success" : "unknown"));
 console.log("[Server] Dotenv parsed keys:", envResult.parsed ? Object.keys(envResult.parsed) : envResult.error);
 import express, { Request, Response, NextFunction } from "express";
 import helmet from "helmet";
