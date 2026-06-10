@@ -292,7 +292,12 @@ export async function GET(request: NextRequest) {
           if (progress.outputFile.startsWith("s3://")) {
             const match = progress.outputFile.match(/s3:\/\/([^/]+)\/(.+)/);
             if (match) { bucket = match[1]; key = match[2]; }
+          } else if (progress.outputFile.startsWith("https://s3")) {
+            // Path-style: https://s3.region.amazonaws.com/bucket/key
+            const match = progress.outputFile.match(/https:\/\/s3[^/]*\.amazonaws\.com\/([^/]+)\/(.+)/);
+            if (match) { bucket = match[1]; key = match[2]; }
           } else if (progress.outputFile.startsWith("https://")) {
+            // Virtual-hosted style: https://bucket.s3.region.amazonaws.com/key
             const match = progress.outputFile.match(/https:\/\/([^.]+)\.s3[^/]*\/(.+)/);
             if (match) { bucket = match[1]; key = match[2]; }
           }
