@@ -195,6 +195,18 @@ exports.Prisma.ProjectScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.TransactionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  planType: 'planType',
+  razorpayOrderId: 'razorpayOrderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -233,7 +245,8 @@ exports.Prisma.ModelName = {
   VerificationToken: 'VerificationToken',
   Subscription: 'Subscription',
   User: 'User',
-  Project: 'Project'
+  Project: 'Project',
+  Transaction: 'Transaction'
 };
 
 /**

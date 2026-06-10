@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfileMenu from "@/components/ProfileMenu";
 import type { Session } from "next-auth";
@@ -43,6 +43,7 @@ export default function Navbar({ initialSession }: NavbarProps) {
     ? [
         { label: "Dashboard", href: "/dashboard", active: pathname === "/dashboard" || pathname === "/dashboard/profile" },
         { label: "Editor", href: "/editor", active: pathname === "/editor" },
+        { label: "Subscription", href: "/dashboard/subscription", active: pathname === "/dashboard/subscription" },
       ]
     : [
         { label: "About", href: "/about", active: pathname === "/about" },
@@ -194,13 +195,24 @@ export default function Navbar({ initialSession }: NavbarProps) {
                     <span className="text-sm font-semibold text-white">{user.name ?? "User"}</span>
                     <span className="text-xs text-(--color-fg-muted)">{user.email}</span>
                   </div>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="px-4 py-2 bg-accent/20 text-accent hover:bg-accent/30 border border-accent/20 rounded-lg text-sm font-medium transition-all"
-                  >
-                    Dashboard
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="px-4 py-2 bg-accent/20 text-accent hover:bg-accent/30 border border-accent/20 rounded-lg text-sm font-medium transition-all"
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        signOut({ callbackUrl: "/" });
+                      }}
+                      className="px-4 py-2 bg-white/5 text-white hover:bg-white/10 border border-white/5 rounded-lg text-sm font-medium transition-all"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)}>

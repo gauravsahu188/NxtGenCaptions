@@ -98,6 +98,18 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      await prisma.transaction.create({
+        data: {
+          userId,
+          amount: (paymentEntity.amount || 0) / 100,
+          currency,
+          status: "SUCCESS",
+          planType: planType as any,
+          razorpayOrderId: paymentEntity.order_id,
+          razorpayPaymentId: paymentEntity.id,
+        },
+      });
+
       console.log(`[Webhook] Updated user ${userId} to ${planType}`);
     }
   } catch (error) {

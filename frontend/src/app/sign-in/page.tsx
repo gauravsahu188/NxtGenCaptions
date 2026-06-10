@@ -17,7 +17,7 @@ const GoogleIcon = () => (
   </svg>
 );
 
-type Mode = "main" | "login" | "signup";
+type Mode = "main" | "login" | "signup" | "verify-otp";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -25,6 +25,7 @@ export default function SignInPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -61,17 +62,45 @@ export default function SignInPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         setLoading(null);
-        setError(data.error || "Failed to create account. Please try again.");
+        setError(data.error || "Failed to send OTP. Please try again.");
+      } else {
+        setLoading(null);
+        setMode("verify-otp");
+      }
+    } catch (err) {
+      setLoading(null);
+      setError("An unexpected error occurred. Please try again.");
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !name || !otp) return;
+    setLoading("verify-otp");
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, otp }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoading(null);
+        setError(data.error || "Invalid OTP. Please try again.");
       } else {
         // Automatically sign in after sign up
         const signInRes = await signIn("credentials", {
@@ -121,7 +150,7 @@ export default function SignInPage() {
               NxtGen<span className="text-accent">.</span>
             </span>
             <p className="text-zinc-400 text-sm mt-2">
-              {mode === "signup" ? "Create a new account" : "Sign in to your account to continue"}
+              {mode === "signup" ? "Create a new account" : mode === "verify-otp" ? "Verify your email" : "Sign in to your account to continue"}
             </p>
           </div>
 
@@ -332,6 +361,64 @@ export default function SignInPage() {
                     Already have an account?{" "}
                     <button type="button" onClick={() => { setMode("login"); setError(""); }} className="text-accent hover:text-white transition-colors font-medium">Log In</button>
                   </p>
+                </form>
+              </motion.div>
+            )}
+
+            {mode === "verify-otp" && (
+              <motion.div
+                key="verify-otp"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+              >
+                <button
+                  onClick={() => { setMode("signup"); setError(""); setOtp(""); }}
+                  className="flex items-center gap-1 text-zinc-400 hover:text-white text-sm mb-6 transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back
+                </button>
+
+                <div className="mb-6 text-center">
+                  <p className="text-zinc-300 text-sm">
+                    We've sent a 6-digit code to <span className="text-white font-medium">{email}</span>.
+                  </p>
+                </div>
+
+                <form onSubmit={handleVerifyOtp} className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-zinc-300 mb-2 font-medium">
+                      Verification Code
+                    </label>
+                    <input
+                      id="input-otp"
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="123456"
+                      required
+                      maxLength={6}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-accent/50 focus:bg-white/8 transition-all text-center tracking-[0.5em] font-mono text-xl"
+                    />
+                  </div>
+
+                  {error && (
+                    <p className="text-red-400 text-sm">{error}</p>
+                  )}
+
+                  <button
+                    id="btn-verify-otp"
+                    type="submit"
+                    disabled={!!loading}
+                    className="w-full bg-accent hover:bg-accent-bright text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_0_1px_rgba(94,106,210,0.5),0_4px_12px_rgba(94,106,210,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98] mt-2"
+                  >
+                    {loading === "verify-otp" ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>
+                    ) : (
+                      "Verify & Create Account"
+                    )}
+                  </button>
                 </form>
               </motion.div>
             )}

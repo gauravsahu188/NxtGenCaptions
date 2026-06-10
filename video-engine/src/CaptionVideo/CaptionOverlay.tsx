@@ -1250,6 +1250,100 @@ export const CaptionOverlay: React.FC<{
     );
   };
 
+  // ── renderHoloText ────────────────────────────────────────────────────────
+  const renderHoloText = () => {
+    const words = activeCaption.words;
+    if (words.length === 0) return null;
+
+    const segmentStartFrame = secToFrame(words[0].start, fps);
+    // Mimic the STAGGER of 0.03 seconds per character from HoloCaption.tsx
+    const framesPerChar = Math.max(1, Math.round(0.03 * fps));
+
+    let charCount = 0;
+    const wordElements = words.map((w, wIdx) => {
+      const isGlitch = (wIdx + 1) % 4 === 0;
+      const chars = w.word.split("");
+
+      const charElements = chars.map((char, cIdx) => {
+        const revealFrame = segmentStartFrame + charCount * framesPerChar;
+        charCount++;
+
+        const opacity = frame >= revealFrame ? 1 : 0;
+        return (
+          <span
+            key={cIdx}
+            style={{ opacity, display: "inline-block" }}
+          >
+            {char}
+          </span>
+        );
+      });
+
+      let transform = "none";
+      let textShadow = undefined;
+
+      if (isGlitch) {
+        // Fast repeating glitch animation based on current frame modulo
+        const glitchCycle = Math.floor(frame / (fps * 0.25)) % 6; 
+        // 0.25s duration loop -> 6 keyframes
+        if (glitchCycle === 1) transform = "skewX(-15deg) translateX(-3px)";
+        else if (glitchCycle === 2) transform = "skewX(10deg) translateX(3px)";
+        else if (glitchCycle === 3) transform = "skewX(-5deg) translateX(-1px)";
+        else if (glitchCycle === 4) transform = "skewX(5deg) translateX(1px)";
+        
+        textShadow = "-2px 0 red, 2px 0 blue";
+      }
+
+      return (
+        <div
+          key={wIdx}
+          style={{
+            display: "flex",
+            whiteSpace: "pre",
+            marginRight: "0.3em",
+            transform,
+            textShadow,
+          }}
+        >
+          {charElements}
+        </div>
+      );
+    });
+
+    return (
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
+        `}</style>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+            fontFamily: `'${style.fontFamily}', monospace`,
+            fontWeight: style.fontWeight || 700,
+            fontSize: `${style.fontSize}px`,
+            color: style.primaryColor || "#00FF41",
+            backgroundColor: "rgba(0, 255, 65, 0.08)",
+            border: `1px solid ${style.primaryColor || "#00FF41"}`,
+            boxShadow: `0 0 ${15 * renderScale}px ${style.primaryColor || "#00FF41"}40, inset 0 0 ${10 * renderScale}px ${style.primaryColor || "#00FF41"}30`,
+            padding: `${16 * renderScale}px ${24 * renderScale}px`,
+            borderRadius: `${8 * renderScale}px`,
+            letterSpacing: `${style.letterSpacing}px`,
+            lineHeight: style.lineSpacing || 1.25,
+            textShadow: style.dropShadow
+              ? `2px 2px ${style.dropShadowOpacity}px ${style.dropShadowColor}`
+              : `0 0 8px ${style.primaryColor || "#00FF41"}`,
+          }}
+        >
+          {wordElements}
+        </div>
+      </div>
+    );
+  };
+
   // ── Layout / positioning (mirrors the editor's draggable handle exactly) ──
   const textAlign =
     style.layout === "ali-abdaal"
@@ -1259,6 +1353,21 @@ export const CaptionOverlay: React.FC<{
       : (style.textAlignment as any);
 
 
+
+  // Animation for standard/fallback captions (mirrors frontend 'animProps')
+  const isAnimationEnabled = style.animationEnabled !== false;
+  const segmentStartFrameForFallback = secToFrame(activeCaption.start, fps);
+  const fallbackAnimDuration = Math.round(fps * 0.2); // 0.2s duration
+  
+  const fallbackOpacity = isAnimationEnabled
+    ? interpolate(frame, [segmentStartFrameForFallback, segmentStartFrameForFallback + fallbackAnimDuration], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+    : 1;
+  const fallbackScale = isAnimationEnabled
+    ? interpolate(frame, [segmentStartFrameForFallback, segmentStartFrameForFallback + fallbackAnimDuration], [0.95, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+    : 1;
+  const fallbackY = isAnimationEnabled
+    ? interpolate(frame, [segmentStartFrameForFallback, segmentStartFrameForFallback + fallbackAnimDuration], [10, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+    : 0;
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
@@ -1292,8 +1401,18 @@ export const CaptionOverlay: React.FC<{
       >
         {style.layout === "modern" ? (
           <ModernCaption caption={activeCaption} style={style} fps={fps} />
+        ) : style.layout === "holo" ? (
+          renderHoloText()
         ) : (
-          <div style={{ width: "100%", padding: `0 ${Math.round(64 * renderScale)}px`, boxSizing: "border-box" }}>
+          <div 
+            style={{ 
+              width: "100%", 
+              padding: `0 ${Math.round(64 * renderScale)}px`, 
+              boxSizing: "border-box",
+              opacity: fallbackOpacity,
+              transform: `scale(${fallbackScale}) translateY(${fallbackY}px)`,
+            }}
+          >
             {style.layout === "bubble"              ? renderBubbleText()         :
              style.layout === "hormozi"             ? renderHormoziText()        :
              style.layout === "ali-abdaal"          ? renderAliAbdaalText()      :

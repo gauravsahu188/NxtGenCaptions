@@ -5,11 +5,11 @@ import bcrypt from 'bcryptjs';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, password } = body;
+    const { name, email, password, otp } = body;
 
-    if (!email || !password) {
+    if (!email || !password || !otp) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email, password, and OTP are required' },
         { status: 400 }
       );
     }
@@ -25,6 +25,28 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Verify OTP
+    const verificationToken = await prisma.verificationToken.findFirst({
+      where: {
+        identifier: email,
+        token: otp,
+      },
+    });
+
+    if (!verificationToken || verificationToken.expires < new Date()) {
+      return NextResponse.json(
+        { error: 'Invalid or expired OTP' },
+        { status: 400 }
+      );
+    }
+
+    // Delete used token
+    await prisma.verificationToken.deleteMany({
+      where: {
+        identifier: email,
+      },
+    });
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
