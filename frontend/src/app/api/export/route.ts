@@ -277,13 +277,13 @@ export async function GET(request: NextRequest) {
 
     // Build download URL when done
     let downloadUrl: string | null = null;
+    let downloadError: string | null = null;
     if (progress.done) {
       console.log("[Export] Render done. Progress object:", JSON.stringify({
         outKey: (progress as any).outKey,
         outputFile: progress.outputFile,
         bucketName
       }));
-      let downloadError: string | null = null;
       try {
         if (progress.outputFile) {
           let bucket: string | undefined;
