@@ -146,7 +146,7 @@ export default function Hero() {
     <section className="relative w-full min-h-[92vh] lg:min-h-[98vh] flex items-center justify-center pt-24 pb-8 overflow-hidden">
       
       {/* Editorial Grid Base inside Hero section */}
-      <div className="absolute inset-x-0 top-0 h-[800px] bg-[linear-gradient(to_right,rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:4rem_4rem] z-0 pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black_75%,transparent_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-[800px] bg-[linear-gradient(to_right,rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-size-[4rem_4rem] z-0 pointer-events-none mask-[radial-gradient(ellipse_at_center,black_75%,transparent_100%)]" />
       
       <motion.div
         style={{ scale, y }}
@@ -193,7 +193,7 @@ export default function Hero() {
             <Link href="/sign-in" className="w-full sm:w-auto">
               <button id="btn-hero-primary" className="group relative flex h-11 w-full sm:w-auto items-center justify-center gap-4 rounded-xl bg-white px-6 font-display text-sm font-semibold text-black transition-all hover:bg-white/95 active:scale-[0.98] shadow-[0_4px_30px_rgba(255,255,255,0.15)] overflow-hidden">
                 {/* Shimmer light effect */}
-                <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.5)_50%,transparent_75%)] bg-[length:250%_250%] opacity-0 group-hover:opacity-100 group-hover:animate-shimmer pointer-events-none" />
+                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.5)_50%,transparent_75%)] bg-size-[250%_250%] opacity-0 group-hover:opacity-100 group-hover:animate-shimmer pointer-events-none" />
                 
                 <span>Generate Captions Free</span>
                 <ArrowRight className="h-4 w-4 text-black group-hover:translate-x-1 transition-transform" />
@@ -245,7 +245,7 @@ export default function Hero() {
               className="w-full glass-panel border border-white/10 bg-[#050508]/60 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.08)] p-2 relative group/card"
             >
               {/* Diagonal Shimmer Sweep Reflection */}
-              <div className="absolute inset-0 z-20 pointer-events-none bg-[linear-gradient(105deg,transparent_30%,rgba(255,255,255,0.04)_40%,rgba(255,255,255,0.08)_45%,rgba(255,255,255,0.04)_50%,transparent_60%)] bg-[length:200%_100%] bg-left transition-all duration-1000 group-hover/card:bg-right opacity-0 group-hover/card:opacity-100 mix-blend-overlay" />
+               <div className="absolute inset-0 z-20 pointer-events-none bg-[linear-gradient(105deg,transparent_30%,rgba(255,255,255,0.04)_40%,rgba(255,255,255,0.08)_45%,rgba(255,255,255,0.04)_50%,transparent_60%)] bg-size-[200%_100%] bg-left transition-all duration-1000 group-hover/card:bg-right opacity-0 group-hover/card:opacity-100 mix-blend-overlay" />
 
               {/* Workspace Screenshot Asset */}
               <img 
@@ -284,7 +284,7 @@ export default function Hero() {
                 {/* Line Segment 1 */}
                 <div className="flex-1 h-[2px] bg-white/5 relative self-center mb-6">
                   <motion.div 
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-accent to-accent-bright shadow-[0_0_8px_rgba(94,106,210,0.5)]"
+                    className="absolute top-0 left-0 h-full bg-linear-to-r from-accent to-accent-bright shadow-[0_0_8px_rgba(94,106,210,0.5)]"
                     style={{
                       width: activeStep === 0 ? `${progress}%` : activeStep > 0 ? '100%' : '0%'
                     }}
@@ -308,7 +308,7 @@ export default function Hero() {
                 {/* Line Segment 2 */}
                 <div className="flex-1 h-[2px] bg-white/5 relative self-center mb-6">
                   <motion.div 
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-accent to-accent-bright shadow-[0_0_8px_rgba(94,106,210,0.5)]"
+                    className="absolute top-0 left-0 h-full bg-linear-to-r from-accent to-accent-bright shadow-[0_0_8px_rgba(94,106,210,0.5)]"
                     style={{
                       width: activeStep === 1 ? `${progress}%` : activeStep > 1 ? '100%' : '0%'
                     }}

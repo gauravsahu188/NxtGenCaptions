@@ -16,11 +16,11 @@ export default function LandingPage() {
       {/* Background System: 3D Spatial Environment */}
 
       {/* Layer 1: Base Dark Void */}
-      <div className="absolute inset-0 bg-[#020203] z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-bg-deep z-0 pointer-events-none" />
 
       {/* Layer 2: 3D Spatial Grid (Floor) */}
       <div className="absolute inset-x-0 bottom-[-20%] h-[80vh] perspective-1000 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:4rem_4rem] [transform:rotateX(75deg)_scale(2.5)] [transform-origin:bottom_center] opacity-60 [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-size-[4rem_4rem] transform-[rotateX(75deg)_scale(2.5)] origin-[bottom_center] opacity-60 mask-[radial-gradient(ellipse_at_top,black_20%,transparent_70%)]" />
       </div>
 
       {/* Layer 3: Editorial Core Lighting */}

@@ -70,7 +70,7 @@ export default function NotFound() {
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="text-4xl sm:text-6xl font-bold font-display tracking-tight text-white"
               >
-                Lost In <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-bright">Translation</span>
+                Lost In <span className="text-transparent bg-clip-text bg-linear-to-r from-accent to-accent-bright">Translation</span>
               </motion.h1>
               
               <motion.p
@@ -107,8 +107,8 @@ export default function NotFound() {
                 {/* Background Wave/Radar scan */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(94,106,210,0.05)_0%,rgba(0,0,0,0)_75%)]" />
                 <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-                  <div className="w-[80%] h-[1px] bg-white" />
-                  <div className="h-[80%] w-[1px] bg-white absolute" />
+                  <div className="w-[80%] h-px bg-white" />
+                  <div className="h-[80%] w-px bg-white absolute" />
                 </div>
 
                 <VideoOff className="w-12 h-12 text-white/20 relative z-10" />

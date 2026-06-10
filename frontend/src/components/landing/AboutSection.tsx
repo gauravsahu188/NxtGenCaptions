@@ -38,7 +38,7 @@ export default function AboutSection() {
   const expoOut = [0.16, 1, 0.3, 1] as const;
 
   return (
-    <section className="w-full py-32 px-4 relative border-t border-white/[0.03]">
+    <section className="w-full py-32 px-4 relative border-t border-white/3">
       <div className="max-w-6xl mx-auto">
         {/* Welcome Message */}
         <motion.div
@@ -89,7 +89,7 @@ export default function AboutSection() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1, ease: expoOut }}
                 style={{ transformStyle: 'preserve-3d' }}
-                className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-[#0a0a0c] hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.1)] transition-colors duration-500 cursor-pointer"
+                className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-bg-elevated hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.1)] transition-colors duration-500 cursor-pointer"
               >
                 <div className="flex items-start gap-6" style={{ transform: 'translateZ(20px)' }}>
                   <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-accent/20 group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500">
@@ -131,9 +131,9 @@ export default function AboutSection() {
                 whileHover={{ y: -5, scale: 1.02 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1, ease: expoOut }}
-                className="p-8 rounded-2xl border border-accent/20 bg-[#0a0a0c] text-center shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer"
+                className="p-8 rounded-2xl border border-accent/20 bg-bg-elevated text-center shadow-[0_10px_30px_rgba(0,0,0,0.5)] cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-full bg-(--color-accent)/10 border border-accent/20 flex items-center justify-center mx-auto mb-6">
+                <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-6">
                   {index === 0 && <Zap className="w-5 h-5 text-(--color-accent-bright)" />}
                   {index === 1 && <Target className="w-5 h-5 text-(--color-accent-bright)" />}
                   {index === 2 && <Globe className="w-5 h-5 text-(--color-accent-bright)" />}

@@ -8,7 +8,7 @@ export default function SEOSection() {
   const expoOut = [0.16, 1, 0.3, 1] as const;
 
   return (
-    <section className="w-full py-28 px-4 relative border-t border-white/[0.03]">
+    <section className="w-full py-28 px-4 relative border-t border-white/3">
       <div className="max-w-6xl mx-auto">
         
         {/* Section Header */}
@@ -52,7 +52,7 @@ export default function SEOSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: expoOut }}
             style={{ transformStyle: 'preserve-3d' }}
-            className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-[#0a0a0c] hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.08)] transition-all duration-500 cursor-pointer"
+            className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-bg-elevated hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.08)] transition-all duration-500 cursor-pointer"
           >
             <div className="flex flex-col h-full" style={{ transform: 'translateZ(20px)' }}>
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:bg-accent/20 group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500">
@@ -75,7 +75,7 @@ export default function SEOSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1, ease: expoOut }}
             style={{ transformStyle: 'preserve-3d' }}
-            className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-[#0a0a0c] hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.08)] transition-all duration-500 cursor-pointer"
+            className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-bg-elevated hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.08)] transition-all duration-500 cursor-pointer"
           >
             <div className="flex flex-col h-full" style={{ transform: 'translateZ(20px)' }}>
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:bg-accent/20 group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500">
@@ -98,7 +98,7 @@ export default function SEOSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2, ease: expoOut }}
             style={{ transformStyle: 'preserve-3d' }}
-            className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-[#0a0a0c] hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.08)] transition-all duration-500 cursor-pointer"
+            className="group p-8 rounded-3xl border border-white/5 bg-black/40 hover:bg-bg-elevated hover:border-accent/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_40px_rgba(94,106,210,0.08)] transition-all duration-500 cursor-pointer"
           >
             <div className="flex flex-col h-full" style={{ transform: 'translateZ(20px)' }}>
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:bg-accent/20 group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500">
@@ -121,7 +121,7 @@ export default function SEOSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease: expoOut }}
-          className="text-center p-10 rounded-3xl border border-white/5 bg-gradient-to-b from-[#0a0a0c] to-[#050506]"
+          className="text-center p-10 rounded-3xl border border-white/5 bg-linear-to-b from-bg-elevated to-bg-base"
         >
           <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-6">
             <Captions className="w-5 h-5 text-(--color-accent-bright)" />

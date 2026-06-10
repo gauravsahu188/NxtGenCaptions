@@ -4,9 +4,9 @@ import React from "react";
 
 export default function DashboardLoading() {
   return (
-    <div className="min-h-screen bg-[#050506] text-[#EDEDEF] relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-bg-base text-[#EDEDEF] relative overflow-hidden font-sans">
       {/* Background Lighting System */}
-      <div className="absolute inset-0 bg-[#020203] z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-bg-deep z-0 pointer-events-none" />
       <div className="absolute top-0 inset-x-0 h-[500px] bg-[radial-gradient(ellipse_at_top,rgba(94,106,210,0.05),transparent_50%)] z-0 pointer-events-none" />
 
       <div className="relative z-10">

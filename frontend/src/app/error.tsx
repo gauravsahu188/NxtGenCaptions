@@ -77,7 +77,7 @@ export default function Error({
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="text-4xl sm:text-6xl font-bold font-display tracking-tight text-white"
               >
-                Pipeline <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-300 to-accent-bright">Interrupted</span>
+                Pipeline <span className="text-transparent bg-clip-text bg-linear-to-r from-red-400 via-amber-300 to-accent-bright">Interrupted</span>
               </motion.h1>
               
               <motion.p

@@ -4,9 +4,9 @@ import React from "react";
 
 export default function EditorLoading() {
   return (
-    <div className="min-h-screen bg-[#050506] text-[#EDEDEF] relative overflow-hidden font-sans flex flex-col">
+    <div className="min-h-screen bg-bg-base text-[#EDEDEF] relative overflow-hidden font-sans flex flex-col">
       {/* Background Lighting System */}
-      <div className="absolute inset-0 bg-[#020203] z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-bg-deep z-0 pointer-events-none" />
       <div className="absolute top-0 inset-x-0 h-[300px] bg-[radial-gradient(ellipse_at_top,rgba(94,106,210,0.03),transparent_50%)] z-0 pointer-events-none" />
 
       {/* Navbar skeleton */}
@@ -25,7 +25,7 @@ export default function EditorLoading() {
       {/* Workspace Skeleton */}
       <div className="flex-1 flex min-h-0 relative z-10 w-full">
         {/* Left Sidebar (Captions List skeleton) */}
-        <div className="w-80 md:w-96 border-r border-white/5 bg-[#050506]/60 backdrop-blur-md flex flex-col shrink-0">
+        <div className="w-80 md:w-96 border-r border-white/5 bg-bg-base/60 backdrop-blur-md flex flex-col shrink-0">
           {/* Sidebar Header */}
           <div className="p-5 border-b border-white/5 flex items-center justify-between">
             <div className="space-y-1.5">
@@ -54,12 +54,12 @@ export default function EditorLoading() {
         </div>
 
         {/* Center / Right Editor Workspace */}
-        <div className="flex-1 flex flex-col md:flex-row min-h-0 bg-[#020203]/40">
+        <div className="flex-1 flex flex-col md:flex-row min-h-0 bg-bg-deep/40">
           {/* Main Video Screen Area */}
           <div className="flex-1 flex flex-col p-6 space-y-6">
             {/* Player Frame skeleton */}
             <div className="flex-1 bg-black/60 rounded-3xl border border-white/5 flex items-center justify-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_4px] opacity-20" />
+              <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[100%_4px] opacity-20" />
               <div className="flex flex-col items-center space-y-4">
                 <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center animate-pulse">
                   <div className="w-4 h-4 bg-white/10 rounded-full" />
@@ -87,7 +87,7 @@ export default function EditorLoading() {
           </div>
 
           {/* Right Sidebar (Properties panel skeleton) */}
-          <div className="w-80 border-t md:border-t-0 md:border-l border-white/5 bg-[#050506]/40 backdrop-blur-md p-6 space-y-6 shrink-0 hidden lg:block">
+          <div className="w-80 border-t md:border-t-0 md:border-l border-white/5 bg-bg-base/40 backdrop-blur-md p-6 space-y-6 shrink-0 hidden lg:block">
             <div className="w-36 h-6 rounded bg-white/5 animate-pulse" />
             <div className="h-px bg-white/5" />
             <div className="space-y-4">

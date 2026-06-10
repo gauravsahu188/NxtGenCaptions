@@ -94,7 +94,7 @@ export default function GenzTemplateSection() {
 
       {/* Grid Floor overlay with color adaptation */}
       <div 
-        className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:4rem_4rem] z-0 pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_100%)] transition-opacity duration-1000"
+        className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-size-[4rem_4rem] z-0 pointer-events-none mask-[radial-gradient(ellipse_at_center,black_70%,transparent_100%)] transition-opacity duration-1000"
       />
       
       {/* Background ambient lighting adaptive color blob */}
@@ -109,13 +109,13 @@ export default function GenzTemplateSection() {
 
         {/* Left: Text Content & Controls */}
         <div className="flex-1 space-y-8 text-left select-none">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/5 bg-white/[0.02] text-white/80 text-xs font-mono tracking-widest uppercase backdrop-blur-md shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/5 bg-white/2 text-white/80 text-xs font-mono tracking-widest uppercase backdrop-blur-md shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
             <ActiveIcon className="w-3.5 h-3.5 text-accent-bright animate-pulse" />
             Premium Exclusive
           </div>
 
           <h2 className="text-4xl md:text-6xl font-bold font-display text-white tracking-tight leading-none h-[120px] md:h-auto flex flex-col justify-end">
-            <span>The <span className={`text-transparent bg-clip-text bg-gradient-to-r ${activeTemplate.gradientText} transition-all duration-700`}>{activeTemplate.name}</span></span>
+            <span>The <span className={`text-transparent bg-clip-text bg-linear-to-r ${activeTemplate.gradientText} transition-all duration-700`}>{activeTemplate.name}</span></span>
             <span className="mt-1.5 text-white/90">Template Preset</span>
           </h2>
 
@@ -171,13 +171,13 @@ export default function GenzTemplateSection() {
 
           {/* Preset Highlights */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/2 border border-white/5">
               <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/5">
                 <TrendingUp className="w-4.5 h-4.5 text-pink-400" />
               </div>
               <span className="text-white font-medium text-sm">Proven to boost retention</span>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/2 border border-white/5">
               <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/5">
                 <Activity className="w-4.5 h-4.5 text-yellow-400" />
               </div>
@@ -213,7 +213,7 @@ export default function GenzTemplateSection() {
             </div>
 
             {/* Metallic screen glare edge */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.04] to-transparent pointer-events-none z-20" />
+            <div className="absolute inset-0 bg-linear-to-tr from-white/4 to-transparent pointer-events-none z-20" />
 
             {/* Scrolling Reel Animation Container */}
             <div className="absolute inset-0 w-full h-full overflow-hidden rounded-[26px]">

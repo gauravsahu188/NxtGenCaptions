@@ -157,16 +157,16 @@ exports.Prisma.SubscriptionScalarFieldEnum = {
   maxExportRes: 'maxExportRes',
   transcriptionUsedMins: 'transcriptionUsedMins',
   storageUsedBytes: 'storageUsedBytes',
-  audioCredits: 'audioCredits',
-  maxVideoLengthMinutes: 'maxVideoLengthMinutes',
-  alphaChannelEnabled: 'alphaChannelEnabled',
-  srtRenderEnabled: 'srtRenderEnabled',
-  customFontEnabled: 'customFontEnabled',
-  prioritySupport: 'prioritySupport',
   billingCycleStart: 'billingCycleStart',
   billingCycleEnd: 'billingCycleEnd',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  audioCredits: 'audioCredits',
+  alphaChannelEnabled: 'alphaChannelEnabled',
+  customFontEnabled: 'customFontEnabled',
+  maxVideoLengthMinutes: 'maxVideoLengthMinutes',
+  prioritySupport: 'prioritySupport',
+  srtRenderEnabled: 'srtRenderEnabled'
 };
 
 exports.Prisma.UserScalarFieldEnum = {
@@ -174,6 +174,7 @@ exports.Prisma.UserScalarFieldEnum = {
   name: 'name',
   email: 'email',
   emailVerified: 'emailVerified',
+  password: 'password',
   image: 'image',
   planType: 'planType',
   transcriptionBalance: 'transcriptionBalance',
@@ -192,6 +193,18 @@ exports.Prisma.ProjectScalarFieldEnum = {
   duration: 'duration',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TransactionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  planType: 'planType',
+  razorpayOrderId: 'razorpayOrderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -232,7 +245,8 @@ exports.Prisma.ModelName = {
   VerificationToken: 'VerificationToken',
   Subscription: 'Subscription',
   User: 'User',
-  Project: 'Project'
+  Project: 'Project',
+  Transaction: 'Transaction'
 };
 
 /**

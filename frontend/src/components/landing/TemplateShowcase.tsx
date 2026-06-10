@@ -94,7 +94,7 @@ export default function TemplateShowcase() {
   const expoOut = [0.16, 1, 0.3, 1] as const;
 
   return (
-    <section id="templates" className="w-full pt-12 pb-24 flex flex-col items-center justify-center overflow-hidden relative z-10 border-t border-white/[0.03]">
+    <section id="templates" className="w-full pt-12 pb-24 flex flex-col items-center justify-center overflow-hidden relative z-10 border-t border-white/3">
       
       {/* Background radial highlight behind active card */}
       <div 
@@ -111,7 +111,7 @@ export default function TemplateShowcase() {
         transition={{ duration: 0.8, ease: expoOut }}
         className="flex flex-col items-center mb-16 space-y-4 px-4 text-center preserve-3d"
       >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/[0.05] bg-white/[0.02] text-(--color-fg-muted) text-xs font-mono tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.02)]">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/5 bg-white/2 text-(--color-fg-muted) text-xs font-mono tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.02)]">
           <LayoutTemplate className="w-3.5 h-3.5" />
           PREMIUM DESIGN PATTERNS
         </div>
@@ -165,7 +165,7 @@ export default function TemplateShowcase() {
                 </div>
 
                 {/* Metallic screen glare edge */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.04] to-transparent pointer-events-none z-20" />
+                <div className="absolute inset-0 bg-linear-to-tr from-white/4 to-transparent pointer-events-none z-20" />
                 
                 {/* Looping video element */}
                 <video
@@ -179,7 +179,7 @@ export default function TemplateShowcase() {
 
                 {/* Dark gradient mapping overlay */}
                 <div className="absolute inset-0 shadow-[inset_0_0_80px_rgba(0,0,0,0.9)] pointer-events-none z-10" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/10 to-transparent z-10 pointer-events-none" />
 
                 {/* Mute toggle button */}
                 {isActive && (
@@ -259,7 +259,7 @@ export default function TemplateShowcase() {
               <span className="text-xs text-white font-medium">{currentTemplate.details.niche}</span>
             </div>
             <div>
-              <span className="text-[10px] text-white/45 font-mono block uppercase flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5 text-green-400" /> Retention Boost</span>
+              <span className="text-[10px] text-white/45 font-mono uppercase flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5 text-green-400" /> Retention Boost</span>
               <span className="text-sm text-green-400 font-extrabold">{currentTemplate.details.boost}</span>
             </div>
           </div>

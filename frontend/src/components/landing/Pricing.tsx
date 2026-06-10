@@ -210,7 +210,7 @@ export default function Pricing() {
   };
 
   return (
-    <section id="pricing" className="w-full max-w-[1400px] mx-auto py-32 px-6 relative z-10 border-t border-white/[0.03]">
+    <section id="pricing" className="w-full max-w-[1400px] mx-auto py-32 px-6 relative z-10 border-t border-white/3">
 
       {/* Header */}
       <div className="flex flex-col items-center mb-20 space-y-4 text-center">
@@ -269,8 +269,8 @@ export default function Pricing() {
             key={i}
             style={{ transformStyle: 'preserve-3d' }}
             className={`relative rounded-3xl p-8 flex flex-col cursor-pointer transition-colors duration-500 ${plan.highlight
-                ? 'bg-[#0a0a0c] border border-accent/40 shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_80px_rgba(94,106,210,0.15)] md:scale-105 z-20'
-                : 'bg-black/40 border border-white/5 hover:bg-white/[0.02] hover:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] z-10'
+                ? 'bg-bg-elevated border border-accent/40 shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_80px_rgba(94,106,210,0.15)] md:scale-105 z-20'
+                : 'bg-black/40 border border-white/5 hover:bg-white/2 hover:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] z-10'
               }`}
           >
             {plan.highlight && (
@@ -280,7 +280,7 @@ export default function Pricing() {
             <div className="flex justify-between items-start mb-6 relative z-10" style={{ transform: 'translateZ(10px)' }}>
               <h3 className="text-xl font-display font-bold text-white tracking-tight">{plan.name}</h3>
               {plan.badge && (
-                <span className="bg-(--color-accent)/20 border border-accent/40 text-(--color-accent-bright) text-[10px] font-mono tracking-widest px-3 py-1 rounded-full uppercase shadow-[0_0_10px_rgba(94,106,210,0.2)]">
+                <span className="bg-accent/20 border border-accent/40 text-(--color-accent-bright) text-[10px] font-mono tracking-widest px-3 py-1 rounded-full uppercase shadow-[0_0_10px_rgba(94,106,210,0.2)]">
                   {plan.badge}
                 </span>
               )}

@@ -93,7 +93,7 @@ export default function SubscriptionClient({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 relative overflow-hidden"
+              className="bg-[#0a0a0a] border border-white/5 rounded-4xl p-8 relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-[80px] pointer-events-none" />
               
@@ -146,7 +146,7 @@ export default function SubscriptionClient({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8"
+              className="bg-[#0a0a0a] border border-white/5 rounded-4xl p-8"
             >
               <div className="flex items-center gap-3 mb-6">
                 <Receipt className="w-5 h-5 text-zinc-400" />
@@ -195,7 +195,7 @@ export default function SubscriptionClient({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-linear-to-b from-white/5 to-transparent border border-white/5 rounded-[2rem] p-8"
+              className="bg-linear-to-b from-white/5 to-transparent border border-white/5 rounded-4xl p-8"
             >
               <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6">
                 <HeadphonesIcon className="w-6 h-6 text-purple-400" />
@@ -216,7 +216,7 @@ export default function SubscriptionClient({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8"
+              className="bg-[#0a0a0a] border border-white/5 rounded-4xl p-8"
             >
               <h3 className="text-lg font-bold mb-4">Frequently Asked</h3>
               <ul className="space-y-4 text-sm">
