@@ -311,6 +311,7 @@ export async function GET(request: NextRequest) {
         downloadError = e.message || "Failed to generate presigned URL";
         console.warn("[Export] Could not generate download URL:", e);
       }
+    }
 
     return NextResponse.json({
       done:         progress.done,
