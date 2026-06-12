@@ -116,7 +116,10 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
 
             switch (data.type) {
               case "init":
-                setVideoUrl(data.videoUrl);
+                // Keep the local blob URL for videoUrl to prevent the video from disappearing 
+                // due to hardcoded localhost backend URLs or network timeouts.
+                // Store the backend's local filename in s3Key so export can find it before S3 upload finishes.
+                if (data.videoId) setS3Key(data.videoId);
                 break;
               case "status":
                 setProcessingMessage(data.message);
