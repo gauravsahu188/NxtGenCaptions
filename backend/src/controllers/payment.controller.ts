@@ -180,6 +180,8 @@ export async function handlePaymentCallback(
           data: {
             planType: planType as any,
             transcriptionLimitMins: transcriptionBalance,
+            transcriptionUsedMins: 0,
+            audioCredits,
             maxExportRes,
             storageLimitGb,
             maxVideoLengthMinutes,
@@ -198,6 +200,7 @@ export async function handlePaymentCallback(
             userId,
             planType: planType as any,
             transcriptionLimitMins: transcriptionBalance,
+            transcriptionUsedMins: 0,
             maxExportRes,
             storageLimitGb,
             maxVideoLengthMinutes,
@@ -217,8 +220,8 @@ export async function handlePaymentCallback(
         where: { id: userId },
         data: {
           planType: planType as any,
-          transcriptionBalance: { increment: transcriptionBalance },
-          audioCredits: { increment: audioCredits },
+          transcriptionBalance: transcriptionBalance,
+          audioCredits: audioCredits,
         },
       });
 

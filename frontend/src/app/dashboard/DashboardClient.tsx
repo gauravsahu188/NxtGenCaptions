@@ -131,9 +131,9 @@ export default function DashboardClient({ user, projects = [] }: { user: User; p
       label: "Transcription Left",
       value: user.transcriptionBalance <= 0 ? "0 min" : `${user.transcriptionBalance.toFixed(1)} min`,
       valueClassName: user.transcriptionBalance <= 0 ? "text-3xl text-red-400" : "text-4xl",
-      sub: user.transcriptionBalance <= 0 ? "Out of credits" : `${(plan.transcription - user.transcriptionBalance).toFixed(1)} min used of ${plan.transcription} min`,
+      sub: user.transcriptionBalance <= 0 ? "Out of credits" : `${Math.max(0, plan.transcription - user.transcriptionBalance).toFixed(1)} min used of ${plan.transcription} min`,
       bar: { 
-        used: plan.transcription - Math.max(0, user.transcriptionBalance), 
+        used: Math.max(0, plan.transcription - Math.max(0, user.transcriptionBalance)), 
         max: plan.transcription, 
         color: user.transcriptionBalance <= 0 ? "text-red-500" : "text-accent" 
       },

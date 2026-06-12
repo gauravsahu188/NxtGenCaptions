@@ -58,6 +58,8 @@ export async function POST(request: NextRequest) {
           where: { userId },
           data: {
             planType: planType as any, transcriptionLimitMins: transcriptionBalance,
+            transcriptionUsedMins: 0,
+            audioCredits,
             maxExportRes, storageLimitGb, maxVideoLengthMinutes, alphaChannelEnabled,
             srtRenderEnabled, customFontEnabled, prioritySupport,
             billingCycleStart: new Date(),
@@ -69,6 +71,7 @@ export async function POST(request: NextRequest) {
         await prisma.subscription.create({
           data: {
             userId, planType: planType as any, transcriptionLimitMins: transcriptionBalance,
+            transcriptionUsedMins: 0,
             maxExportRes, storageLimitGb, maxVideoLengthMinutes, alphaChannelEnabled,
             srtRenderEnabled, customFontEnabled, prioritySupport, audioCredits,
             billingCycleStart: new Date(),
@@ -81,8 +84,8 @@ export async function POST(request: NextRequest) {
         where: { id: userId },
         data: {
           planType: planType as any,
-          transcriptionBalance: { increment: transcriptionBalance },
-          audioCredits: { increment: audioCredits },
+          transcriptionBalance: transcriptionBalance,
+          audioCredits: audioCredits,
         },
       });
 

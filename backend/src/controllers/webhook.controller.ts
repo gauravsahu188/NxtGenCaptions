@@ -103,6 +103,8 @@ export async function razorpayWebhookHandler(
           data: {
             planType: planType as any,
             transcriptionLimitMins: transcriptionBalance,
+            transcriptionUsedMins: 0,
+            audioCredits,
             maxExportRes,
             storageLimitGb,
             maxVideoLengthMinutes,
@@ -121,6 +123,7 @@ export async function razorpayWebhookHandler(
             userId,
             planType: planType as any,
             transcriptionLimitMins: transcriptionBalance,
+            transcriptionUsedMins: 0,
             maxExportRes,
             storageLimitGb,
             maxVideoLengthMinutes,
@@ -140,8 +143,8 @@ export async function razorpayWebhookHandler(
         where: { id: userId },
         data: {
           planType: planType as any,
-          transcriptionBalance: { increment: transcriptionBalance },
-          audioCredits: { increment: audioCredits },
+          transcriptionBalance: transcriptionBalance,
+          audioCredits: audioCredits,
         },
       });
 
