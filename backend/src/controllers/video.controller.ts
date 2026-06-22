@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { FFmpegService } from "../services/ffmpeg.service";
 import { DeepgramTranscriptionService } from "../services/deepgram.service";
-import { whisperxService } from "../services/whisperx.service";
 import { AudioEnhancementService } from "../services/audio.service";
 import { RemotionRenderService, CaptionStyleProps } from "../services/remotion.service";
 import { S3Service } from "../services/s3.service";
@@ -14,24 +13,24 @@ import path from "path";
 import { prisma } from "../lib/prisma";
 import fs from "fs";
 
-const ffmpegService        = new FFmpegService();
+const ffmpegService = new FFmpegService();
 const transcriptionService = new DeepgramTranscriptionService();
-const audioService         = new AudioEnhancementService();
-const remotionService      = new RemotionRenderService();
-const s3Service            = new S3Service();
+const audioService = new AudioEnhancementService();
+const remotionService = new RemotionRenderService();
+const s3Service = new S3Service();
 const subjectIsolationService = new SubjectIsolationService();
-const translationService   = new TranslationService();
+const translationService = new TranslationService();
 
 // ─── Default style fallback ───────────────────────────────────────────────────
 const DEFAULT_STYLE: CaptionStyleProps = {
-  template:        "modern",
-  layout:          "bottom",
-  fontSize:        52,
-  primaryColor:    "#38bdf8",
-  secondaryColor:  "#ffffff",
+  template: "modern",
+  layout: "bottom",
+  fontSize: 52,
+  primaryColor: "#38bdf8",
+  secondaryColor: "#ffffff",
   backgroundColor: "rgba(0,0,0,0.55)",
-  fontFamily:      "'Inter', sans-serif",
-  borderRadius:    12,
+  fontFamily: "'Inter', sans-serif",
+  borderRadius: 12,
 };
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -69,11 +68,11 @@ export class VideoController {
         res.write(`data: ${JSON.stringify({ type, ...data })}\n\n`);
       };
 
-      const videoPath     = req.file.path;
+      const videoPath = req.file.path;
       const audioFilename = `${path.basename(videoPath, path.extname(videoPath))}.mp3`;
 
       sendEvent("init", {
-        videoId:  req.file.filename,
+        videoId: req.file.filename,
         videoUrl: `http://localhost:3001/uploads/${req.file.filename}`,
       });
 
@@ -154,32 +153,15 @@ export class VideoController {
       }
 
       const language = (req.body.language || req.query.language || "auto") as string;
-      const languageName = LANGUAGE_NAMES[language] || "Unknown";
-      console.log(`[VideoController] Transcribing — language: ${language}`);
+      console.log(`[VideoController] Transcribing with language: ${language}`);
+      const languageName = LANGUAGE_NAMES[language] || "English";
+      sendEvent("status", { message: `Generating captions (${languageName})...` });
 
-      // ── Try WhisperX first (phoneme-level accuracy) ──────────────────────
-      // Falls back to Deepgram automatically if service is not running.
-      let captions: Awaited<ReturnType<typeof transcriptionService.transcribeAudio>>;
-      const wxAvailable = !!process.env.WHISPERX_SERVICE_URL && await whisperxService.isAvailable();
-
-      if (wxAvailable) {
-        console.log("[VideoController] WhisperX service is up — using phoneme-level alignment.");
-        sendEvent("status", { message: `Generating captions with WhisperX (${languageName})...` });
-        try {
-          captions = await whisperxService.transcribeAudio(cleanedAudioPath, language);
-          console.log(`[VideoController] WhisperX returned ${captions.length} segments.`);
-        } catch (wxErr: any) {
-          console.warn(`[VideoController] WhisperX failed (${wxErr.message}), falling back to Deepgram.`);
-          sendEvent("status", { message: `Falling back to Deepgram (${languageName})...` });
-          captions = await transcriptionService.transcribeAudio(cleanedAudioPath, (segment) => {}, { language });
-        }
-      } else {
-        if (process.env.WHISPERX_SERVICE_URL) {
-          console.log("[VideoController] WhisperX service is not reachable — using Deepgram.");
-        }
-        sendEvent("status", { message: `Generating captions (${languageName})...` });
-        captions = await transcriptionService.transcribeAudio(cleanedAudioPath, (segment) => {}, { language });
-      }
+      let captions = await transcriptionService.transcribeAudio(
+        cleanedAudioPath,
+        (segment) => { },
+        { language }
+      );
 
       // Post-process captions based on requested language
       if (language === "hinglish") {
@@ -203,7 +185,7 @@ export class VideoController {
         if (fs.existsSync(cleanedAudioPath) && cleanedAudioPath !== rawAudioPath) {
           fs.unlinkSync(cleanedAudioPath);
         }
-      } catch (e) {}
+      } catch (e) { }
 
       let s3SourceKey = "";
       let projectId = "";
@@ -283,8 +265,8 @@ export class VideoController {
         captions,
         style,
         durationInSeconds,
-        fps    = 30,
-        width  = 1280,
+        fps = 30,
+        width = 1280,
         height = 720,
         removeWatermark = false,
       } = req.body;
@@ -295,7 +277,7 @@ export class VideoController {
 
       let videoUrl = "";
       const isS3Key = videoId.includes("/");
-      
+
       if (isS3Key) {
         // videoId is actually the S3 key
         videoUrl = await s3Service.getSignedDownloadUrl(videoId, 3600);
@@ -306,7 +288,7 @@ export class VideoController {
         }
         videoUrl = `http://localhost:3001/uploads/${videoId}`;
       }
-      
+
       // Derive duration from last caption end if not provided
       let duration: number = durationInSeconds;
       if (!duration) {
@@ -326,7 +308,7 @@ export class VideoController {
             where: { id: userId },
             include: { subscription: true },
           });
-          
+
           if (dbUserObj?.email === "nxtgencaptions@gmail.com") {
             showWatermark = !removeWatermark;
           } else {
@@ -353,10 +335,10 @@ export class VideoController {
       // 1. Render with Remotion
       console.log(`[VideoController] Calling remotionService.render...`);
       renderedPath = await remotionService.render({
-        src:               videoUrl,
+        src: videoUrl,
         durationInSeconds: duration,
         captions,
-        style:             mergedStyle,
+        style: mergedStyle,
         fps,
         width,
         height,
@@ -384,7 +366,7 @@ export class VideoController {
             data: { storageUsed: { increment: stat.size } }
           });
         }
-        
+
         // Clean up local render file if uploaded to S3
         remotionService.cleanup(renderedPath);
       } catch (s3Error) {
@@ -392,7 +374,7 @@ export class VideoController {
         const uploadDir = path.join(process.cwd(), "uploads");
         const filename = path.basename(renderedPath);
         const localDest = path.join(uploadDir, filename);
-        
+
         // Move file from temp to uploads
         fs.renameSync(renderedPath, localDest);
         downloadUrl = `http://localhost:3001/uploads/${filename}`;
@@ -402,7 +384,7 @@ export class VideoController {
 
       return res.status(200).json({
         status: "success",
-        data:   { downloadUrl, s3Key },
+        data: { downloadUrl, s3Key },
       });
     } catch (error: any) {
       if (renderedPath) remotionService.cleanup(renderedPath);
