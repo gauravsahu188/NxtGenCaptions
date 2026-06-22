@@ -31,22 +31,24 @@ interface DeepgramWord {
 }
 
 const LANGUAGE_MODEL_MAPPING: Record<string, string> = {
-  hi: "nova-2",
-  en: "nova-2",
-  ne: "whisper-large",
-  ur: "nova-2",
-  ta: "nova-2",
-  ml: "whisper-large",
-  gu: "nova-2",
-  bn: "nova-2",
-  pa: "whisper-large",
-  te: "nova-2",
-  sd: "whisper-large",
-  mr: "nova-2",
-  kn: "nova-2",
-  ps: "whisper-large",
-  ms: "nova-2",
-  auto: "nova-2",
+  hi:       "nova-2",
+  en:       "nova-2",
+  ne:       "whisper-large",
+  ur:       "nova-2",
+  ta:       "nova-2",
+  // nova-2 returns proper Unicode Malayalam/Punjabi script;
+  // whisper-large tends to transliterate to phonetic English characters.
+  ml:       "nova-2",
+  gu:       "nova-2",
+  bn:       "nova-2",
+  pa:       "nova-2",
+  te:       "nova-2",
+  sd:       "whisper-large",
+  mr:       "nova-2",
+  kn:       "nova-2",
+  ps:       "whisper-large",
+  ms:       "nova-2",
+  auto:     "nova-2",
   hinglish: "nova-2"
 };
 
@@ -154,25 +156,39 @@ export class DeepgramTranscriptionService {
     const primaryModel = LANGUAGE_MODEL_MAPPING[langs.primary] || "nova-2";
     const secondaryModel = LANGUAGE_MODEL_MAPPING[langs.secondary] || "nova-2";
 
-    const callDeepgram = async (lang: string, model: string): Promise<DeepgramWord[]> => {
-      const url = this.buildApiUrl(model, lang);
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "audio/mpeg" },
-        body: audioBuffer
-      });
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Deepgram [${lang}] Error (${res.status}): ${err}`);
+    // Bug fix: forceExact=true so secondary "en" sends language=en (not language=multi)
+    const callDeepgram = async (lang: string, model: string, forceExact = false): Promise<DeepgramWord[]> => {
+      const url = this.buildApiUrl(model, lang, forceExact);
+      console.log(`[DeepgramDual] Calling Deepgram [${lang}] URL: ${url}`);
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "audio/mpeg" },
+          body: audioBuffer
+        });
+        if (!res.ok) {
+          const err = await res.text();
+          // Don't throw — a failing call should return [] so the other call
+          // can still be used rather than aborting the whole transcription.
+          console.error(`[DeepgramDual] [${lang}] API error (${res.status}): ${err}`);
+          return [];
+        }
+        const data = await res.json();
+        const words: DeepgramWord[] = data.results?.channels?.[0]?.alternatives?.[0]?.words ?? [];
+        console.log(`[DeepgramDual] [${lang}] returned ${words.length} words. First: ${words[0]?.word ?? "(none)"}`);
+        return words;
+      } catch (err: any) {
+        console.error(`[DeepgramDual] [${lang}] fetch error:`, err.message);
+        return [];
       }
-      const data = await res.json();
-      return data.results?.channels?.[0]?.alternatives?.[0]?.words ?? [];
     };
 
     // ── Fire both calls simultaneously ──────────────────────────────────────
+    //  forceExact=true on both so each call uses its exact language code,
+    //  not the "language=multi" override that buildApiUrl applies to "en".
     const [primaryWords, secondaryWords] = await Promise.all([
-      callDeepgram(langs.primary, primaryModel),
-      callDeepgram(langs.secondary, secondaryModel)
+      callDeepgram(langs.primary,   primaryModel,   true),   // e.g. language=ml
+      callDeepgram(langs.secondary, secondaryModel, true),   // e.g. language=en (NOT multi)
     ]);
 
     console.log(`[DeepgramDual] Primary (${langs.primary}): ${primaryWords.length} words`);
@@ -192,8 +208,15 @@ export class DeepgramTranscriptionService {
    *  large enough to average out per-word noise.
    */
   private mergeByConfidence(primary: DeepgramWord[], secondary: DeepgramWord[]): DeepgramWord[] {
-    if (!primary.length) return secondary;
-    if (!secondary.length) return primary;
+    if (!primary.length) {
+      console.warn("[DeepgramDual] Primary language returned 0 words — falling back to secondary only.");
+      return secondary;
+    }
+    if (!secondary.length) {
+      console.warn("[DeepgramDual] Secondary language returned 0 words — using primary only.");
+      return primary;
+    }
+    console.log(`[DeepgramDual] Merging ${primary.length} primary + ${secondary.length} secondary words by confidence.`);
 
     const WINDOW_MS = 0.5; // 500ms buckets
 
@@ -236,25 +259,32 @@ export class DeepgramTranscriptionService {
     return merged.sort((a, b) => a.start - b.start);
   }
 
-  private buildApiUrl(model: string, language: string): string {
+  /**
+   * Build Deepgram API URL.
+   * @param forceExact - When true, skip the "auto/en → multi" override.
+   *   Use this for dual-language calls where each call must target its
+   *   specific language (e.g. language=en, not language=multi).
+   */
+  private buildApiUrl(model: string, language: string, forceExact = false): string {
     const baseUrl = "https://api.deepgram.com/v1/listen";
 
-    // whisper models do NOT support detect_language or language=multi — use nova-2
-    const resolvesToMulti = (language === "auto" || language === "en");
+    // In normal (single) mode: "auto" and "en" use language=multi so Deepgram
+    // auto-detects. whisper doesn't support multi — swap to nova-2.
+    const resolvesToMulti = !forceExact && (language === "auto" || language === "en");
     const resolvedModel = (resolvesToMulti && model.startsWith("whisper")) ? "nova-2" : model;
 
     const params = new URLSearchParams({
       model: resolvedModel,
       smart_format: "true",
       punctuate: "true",
-      words: "true",    // word-level timestamps (correct param name)
+      words: "true",
       diarize: "false",
     });
 
     if (resolvesToMulti) {
       params.append("language", "multi");
     } else {
-      // Hinglish → use Hindi language code
+      // Hinglish → use Hindi language code; otherwise pass the exact code
       params.append("language", language === "hinglish" ? "hi" : language);
     }
 
