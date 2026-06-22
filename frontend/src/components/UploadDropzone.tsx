@@ -2,20 +2,45 @@
 
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { UploadCloud, FileVideo, Sparkles, Zap } from "lucide-react";
+import { UploadCloud, FileVideo, Globe, Sparkles, Zap } from "lucide-react";
 import { useCaptionContext } from "../context/CaptionContext";
-import LanguageSelector, { type LanguageConfig } from "./LanguageSelector";
 
+const LANGUAGES = [
+  { code: "auto",     name: "Auto Detect",  flag: "🌐", description: "Automatically detects any international language spoken in the video." },
+  { code: "en",       name: "English",       flag: "🇬🇧", description: "Transcribes English speech, or translates non-English languages to English." },
+  { code: "hinglish", name: "Hinglish",      flag: "🇮🇳", description: "Forces Romanized Hindi transliteration (e.g., \"kaise ho\")." },
+  { code: "hi",       name: "Hindi",         flag: "🇮🇳", description: "Forces Hindi transcription using Devanagari script (e.g., \"कैसे हो\")." },
+  { code: "ne",       name: "Nepali",        flag: "🇳🇵", description: "Forces Nepali transcription using Devanagari script." },
+  { code: "ur",       name: "Urdu",          flag: "🇵🇰", description: "Forces Urdu transcription using Arabic Nastaliq script." },
+  { code: "ta",       name: "Tamil",         flag: "🇮🇳", description: "Forces Tamil transcription using Tamil script." },
+  { code: "ml",       name: "Malayalam",     flag: "🇮🇳", description: "Forces Malayalam transcription using Malayalam script." },
+  { code: "gu",       name: "Gujarati",      flag: "🇮🇳", description: "Forces Gujarati transcription using Gujarati script." },
+  { code: "bn",       name: "Bengali",       flag: "🇮🇳", description: "Forces Bengali transcription using Bengali script." },
+  { code: "pa",       name: "Punjabi",       flag: "🇮🇳", description: "Forces Punjabi transcription using Gurmukhi script." },
+  { code: "te",       name: "Telugu",        flag: "🇮🇳", description: "Forces Telugu transcription using Telugu script." },
+  { code: "sd",       name: "Sindhi",        flag: "🇵🇰", description: "Forces Sindhi transcription using Arabic script." },
+  { code: "mr",       name: "Marathi",       flag: "🇮🇳", description: "Forces Marathi transcription using Devanagari script." },
+  { code: "kn",       name: "Kannada",       flag: "🇮🇳", description: "Forces Kannada transcription using Kannada script." },
+  { code: "ps",       name: "Pushto",        flag: "🇦🇫", description: "Forces Pushto transcription using Arabic script." },
+  { code: "ms",       name: "Malay",         flag: "🇲🇾", description: "Forces Malay transcription using Latin script." },
+];
 
-
-export default function UploadDropzone({ userId, transcriptionBalance, audioCredits }: { userId?: string; transcriptionBalance?: number; audioCredits?: number }) {
+export default function UploadDropzone({
+  userId,
+  transcriptionBalance,
+  audioCredits,
+}: {
+  userId?: string;
+  transcriptionBalance?: number;
+  audioCredits?: number;
+}) {
   const [isDragging, setIsDragging] = useState(false);
-  const [langConfig, setLangConfig] = useState<LanguageConfig>({ mode: "single", language: "en" });
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [audioEnhance, setAudioEnhance] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { setVideoUrl, setCaptions, setIsProcessing, setProcessingMessage, setOriginalWords, setS3Key } = useCaptionContext();
+  const { setVideoUrl, setCaptions, setIsProcessing, setProcessingMessage, setOriginalWords, setS3Key } =
+    useCaptionContext();
 
-  // Show remaining transcription time
   const remainingMinutes = transcriptionBalance ?? 0;
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -48,22 +73,13 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
       return;
     }
 
-    // Immediately show the Editor Layout
     setVideoUrl(URL.createObjectURL(file));
-    setCaptions([]); // CRITICAL: Clear old data
+    setCaptions([]);
     setIsProcessing(true);
-    
+
     const formData = new FormData();
     if (userId) formData.append("userId", userId);
-
-    // Attach language config — single or dual
-    if (langConfig.mode === "dual" && langConfig.dualLanguage) {
-      formData.append("dualLanguagePrimary", langConfig.dualLanguage.primary);
-      formData.append("dualLanguageSecondary", langConfig.dualLanguage.secondary);
-    } else {
-      formData.append("language", langConfig.language ?? "en");
-    }
-
+    formData.append("language", selectedLanguage);
     formData.append("audioEnhance", audioEnhance.toString());
     formData.append("video", file);
 
@@ -86,30 +102,27 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
 
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (value) {
           buffer += decoder.decode(value, { stream: !done });
         }
 
         const lines = buffer.split("\n\n");
-        
+
         if (!done) {
-          buffer = lines.pop() || ""; // Keep the last partial line in buffer
+          buffer = lines.pop() || "";
         } else {
-          buffer = ""; // We process all lines, clear the buffer
+          buffer = "";
         }
 
         for (const line of lines) {
           if (!line.trim() || !line.startsWith("data: ")) continue;
-          
+
           try {
             const data = JSON.parse(line.replace("data: ", ""));
 
             switch (data.type) {
               case "init":
-                // Keep the local blob URL for videoUrl to prevent the video from disappearing 
-                // due to hardcoded localhost backend URLs or network timeouts.
-                // Store the backend's local filename in s3Key so export can find it before S3 upload finishes.
                 if (data.videoId) setS3Key(data.videoId);
                 break;
               case "status":
@@ -117,32 +130,41 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
                 break;
               case "segment":
                 setCaptions((prev) => {
-                  // Prevent duplicate segments if they somehow arrive twice
-                  if (prev.some(s => s.id === data.segment.id)) return prev;
+                  if (prev.some((s) => s.id === data.segment.id)) return prev;
                   return [...prev, data.segment];
                 });
                 break;
               case "complete":
                 setCaptions(data.captions);
                 if (data.s3Key) setS3Key(data.s3Key);
-                // Save the flat word pool for lossless re-segmentation
                 setOriginalWords(
                   (data.captions as any[]).flatMap((seg: any) =>
                     seg.words && seg.words.length > 0
                       ? seg.words
                       : seg.text.split(" ").map((w: string, wi: number) => ({
                           word: w,
-                          start: seg.start + wi * ((seg.end - seg.start) / seg.text.split(" ").length),
-                          end: seg.start + (wi + 1) * ((seg.end - seg.start) / seg.text.split(" ").length),
+                          start:
+                            seg.start +
+                            wi * ((seg.end - seg.start) / seg.text.split(" ").length),
+                          end:
+                            seg.start +
+                            (wi + 1) *
+                              ((seg.end - seg.start) / seg.text.split(" ").length),
                         }))
                   )
                 );
                 setIsProcessing(false);
                 break;
               case "error":
-                // Check for specific error codes and redirect
-                if (data.message?.includes("FREE_LIMIT_EXCEEDED") || data.message?.includes("NO_CREDITS") || data.message?.includes("CREDIT_LIMIT_EXCEEDED")) {
-                  const upgrade = confirm(data.message + "\n\nClick OK to upgrade your plan, or Cancel to stay on this page.");
+                if (
+                  data.message?.includes("FREE_LIMIT_EXCEEDED") ||
+                  data.message?.includes("NO_CREDITS") ||
+                  data.message?.includes("CREDIT_LIMIT_EXCEEDED")
+                ) {
+                  const upgrade = confirm(
+                    data.message +
+                      "\n\nClick OK to upgrade your plan, or Cancel to stay on this page."
+                  );
                   if (upgrade) {
                     window.location.href = "/dashboard?upgrade=true";
                   }
@@ -156,7 +178,7 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
             console.error("Error parsing SSE line:", line, e);
           }
         }
-        
+
         if (done) break;
       }
     } catch (error) {
@@ -174,8 +196,48 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
       className="w-full max-w-2xl mx-auto"
     >
       {/* Language Selector */}
-      <div className="mb-4">
-        <LanguageSelector value={langConfig} onChange={setLangConfig} />
+      <div className="mb-4 flex flex-col items-center gap-3">
+        <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
+          <Globe className="w-4 h-4 text-zinc-400" />
+          <span>Transcription Language</span>
+        </div>
+        <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => setSelectedLanguage(lang.code)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-250 cursor-pointer ${
+                selectedLanguage === lang.code
+                  ? "bg-accent text-white shadow-lg shadow-accent/25 scale-[1.01]"
+                  : "bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-white"
+              }`}
+            >
+              <span className="mr-1">{lang.flag}</span>
+              {lang.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Dynamic Helper Text */}
+        <div className="min-h-10 mt-1 text-center max-w-lg px-4 flex items-center justify-center">
+          <span className="text-xs text-zinc-400 font-normal leading-relaxed">
+            {(() => {
+              const currentLang = LANGUAGES.find((l) => l.code === selectedLanguage);
+              if (!currentLang) return null;
+              return (
+                <motion.span
+                  key={currentLang.code}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="inline-block"
+                >
+                  {currentLang.flag} {currentLang.description}
+                </motion.span>
+              );
+            })()}
+          </span>
+        </div>
       </div>
 
       {/* Audio Enhance Toggle */}
@@ -190,10 +252,16 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
         >
           <Sparkles className={`w-4 h-4 ${audioEnhance ? "text-amber-400" : "text-zinc-500"}`} />
           <span className="text-sm font-medium">Audio Enhance</span>
-          <div className={`relative w-8 h-5 rounded-full transition-all ${audioEnhance ? "bg-amber-500" : "bg-zinc-700"}`}>
-            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
-              audioEnhance ? "left-3.5" : "left-0.5"
-            }`} />
+          <div
+            className={`relative w-8 h-5 rounded-full transition-all ${
+              audioEnhance ? "bg-amber-500" : "bg-zinc-700"
+            }`}
+          >
+            <div
+              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                audioEnhance ? "left-3.5" : "left-0.5"
+              }`}
+            />
           </div>
           <Zap className={`w-3 h-3 ${audioEnhance ? "text-amber-300" : "text-zinc-600"}`} />
         </button>
@@ -207,7 +275,7 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
             {remainingMinutes} min
           </span>
         </div>
-        
+
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800">
           <span className="text-xs text-zinc-400">Audio Credits:</span>
           <span className={`text-sm font-bold ${(audioCredits ?? 0) > 0 ? "text-amber-400" : "text-red-400"}`}>
@@ -218,9 +286,7 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
 
       <div
         className={`glass-panel relative flex flex-col items-center justify-center w-full h-80 rounded-3xl border-2 border-dashed transition-all duration-300 overflow-hidden cursor-pointer ${
-          isDragging
-            ? "border-accent bg-accent/10"
-            : "border-zinc-800 hover:border-zinc-700"
+          isDragging ? "border-accent bg-accent/10" : "border-zinc-800 hover:border-zinc-700"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -249,8 +315,8 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
               Upload your video
             </h3>
             <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">
-              Drag and drop your MP4, MOV, or WEBM file here, or click to
-              browse. We&apos;ll automatically generate high-quality captions.
+              Drag and drop your MP4, MOV, or WEBM file here, or click to browse. We&apos;ll
+              automatically generate high-quality captions.
             </p>
           </div>
         </div>
