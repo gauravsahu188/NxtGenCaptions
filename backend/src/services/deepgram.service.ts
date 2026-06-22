@@ -18,6 +18,16 @@ export interface CaptionSegment {
 export interface TranscriptionOptions {
   language?: string; // 'en', 'hi', 'hinglish', 'auto', 'ne', 'ur', 'ta', 'ml', 'gu', 'bn', 'pa', 'te', 'sd', 'mr', 'kn', 'ps', 'ms'
   model?: string; // 'whisper-medium', 'whisper-large', etc.
+  dualLanguage?: { primary: string; secondary: string }; // e.g. { primary: 'ml', secondary: 'en' }
+}
+
+// Internal word type that includes Deepgram's confidence score
+interface DeepgramWord {
+  word: string;
+  punctuated_word?: string;
+  start: number;
+  end: number;
+  confidence: number;
 }
 
 const LANGUAGE_MODEL_MAPPING: Record<string, string> = {
@@ -55,13 +65,17 @@ export class DeepgramTranscriptionService {
       console.log("[DeepgramTranscription] DEEPGRAM_API_KEY not set, returning mock data...");
       const mock = this.getMockCaptions(language);
       if (onSegment) {
-        // Simulate real-time streaming for mock data
         for (const s of mock) {
-          await new Promise(r => setTimeout(r, 800)); // 800ms delay per segment
+          await new Promise(r => setTimeout(r, 800));
           onSegment(s);
         }
       }
       return mock;
+    }
+
+    // ── Dual-language mode (e.g. Malayalam + English) ──────────────────────
+    if (options?.dualLanguage) {
+      return this.transcribeDualLanguage(audioPath, options.dualLanguage, onSegment);
     }
 
     try {
@@ -74,11 +88,9 @@ export class DeepgramTranscriptionService {
 
       const audioBuffer = fs.readFileSync(audioPath);
 
-      // Build API URL with language and other parameters
       const apiUrl = this.buildApiUrl(model, language);
       console.log(`[DeepgramTranscription] API URL: ${apiUrl}`);
 
-      // Call Deepgram API with word-level timestamps
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -94,7 +106,6 @@ export class DeepgramTranscriptionService {
       }
 
       const data = await response.json();
-
       console.log("[DeepgramTranscription] Received response from Deepgram.");
 
       if (!data.results?.channels?.length) {
@@ -105,7 +116,6 @@ export class DeepgramTranscriptionService {
       const channel = data.results.channels[0];
       console.log(`[DeepgramTranscription] Extracted ${channel.alternatives.length} alternatives.`);
 
-      // Get the best alternative
       const alternative = channel.alternatives[0];
 
       if (!alternative?.words?.length) {
@@ -121,6 +131,109 @@ export class DeepgramTranscriptionService {
       console.error("[DeepgramTranscription] CRITICAL FAILURE:", error.message);
       return [];
     }
+  }
+
+  /**
+   * Dual-language transcription:
+   * Runs two Deepgram calls in parallel (primary regional + English),
+   * then merges them by picking the higher-confidence language per 500ms window.
+   */
+  async transcribeDualLanguage(
+    audioPath: string,
+    langs: { primary: string; secondary: string },
+    onSegment?: (segment: CaptionSegment) => void
+  ): Promise<CaptionSegment[]> {
+    const apiKey = process.env.DEEPGRAM_API_KEY!;
+    console.log(`[DeepgramDual] Starting dual transcription: ${langs.primary} + ${langs.secondary}`);
+
+    if (!fs.existsSync(audioPath)) {
+      throw new Error(`Audio file not found: ${audioPath}`);
+    }
+    const audioBuffer = fs.readFileSync(audioPath);
+
+    const primaryModel = LANGUAGE_MODEL_MAPPING[langs.primary] || "nova-2";
+    const secondaryModel = LANGUAGE_MODEL_MAPPING[langs.secondary] || "nova-2";
+
+    const callDeepgram = async (lang: string, model: string): Promise<DeepgramWord[]> => {
+      const url = this.buildApiUrl(model, lang);
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "audio/mpeg" },
+        body: audioBuffer
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Deepgram [${lang}] Error (${res.status}): ${err}`);
+      }
+      const data = await res.json();
+      return data.results?.channels?.[0]?.alternatives?.[0]?.words ?? [];
+    };
+
+    // ── Fire both calls simultaneously ──────────────────────────────────────
+    const [primaryWords, secondaryWords] = await Promise.all([
+      callDeepgram(langs.primary, primaryModel),
+      callDeepgram(langs.secondary, secondaryModel)
+    ]);
+
+    console.log(`[DeepgramDual] Primary (${langs.primary}): ${primaryWords.length} words`);
+    console.log(`[DeepgramDual] Secondary (${langs.secondary}): ${secondaryWords.length} words`);
+
+    const mergedWords = this.mergeByConfidence(primaryWords, secondaryWords);
+    console.log(`[DeepgramDual] Merged: ${mergedWords.length} words`);
+
+    return this.groupWordsIntoSegments(mergedWords, onSegment);
+  }
+
+  /**
+   * Merges two word arrays by splitting audio into 500ms windows
+   * and picking the language with higher average confidence per window.
+   *
+   *  Window size: 500ms — small enough to catch fast switches,
+   *  large enough to average out per-word noise.
+   */
+  private mergeByConfidence(primary: DeepgramWord[], secondary: DeepgramWord[]): DeepgramWord[] {
+    if (!primary.length) return secondary;
+    if (!secondary.length) return primary;
+
+    const WINDOW_MS = 0.5; // 500ms buckets
+
+    // Find total audio duration
+    const maxEnd = Math.max(
+      primary[primary.length - 1]?.end ?? 0,
+      secondary[secondary.length - 1]?.end ?? 0
+    );
+
+    const merged: DeepgramWord[] = [];
+
+    for (let windowStart = 0; windowStart < maxEnd; windowStart += WINDOW_MS) {
+      const windowEnd = windowStart + WINDOW_MS;
+
+      // Words whose midpoint falls inside this window
+      const inWindow = (words: DeepgramWord[]) =>
+        words.filter(w => {
+          const mid = (w.start + w.end) / 2;
+          return mid >= windowStart && mid < windowEnd;
+        });
+
+      const primaryWindow = inWindow(primary);
+      const secondaryWindow = inWindow(secondary);
+
+      if (!primaryWindow.length && !secondaryWindow.length) continue;
+
+      // Average confidence for each language in this window
+      const avgConf = (words: DeepgramWord[]) =>
+        words.length === 0 ? 0 : words.reduce((sum, w) => sum + w.confidence, 0) / words.length;
+
+      const primaryConf = avgConf(primaryWindow);
+      const secondaryConf = avgConf(secondaryWindow);
+
+      // Pick the winner for this window
+      const winner = primaryConf >= secondaryConf ? primaryWindow : secondaryWindow;
+      merged.push(...winner);
+    }
+
+    // Sort by start time (windows may produce out-of-order words at boundaries)
+    return merged.sort((a, b) => a.start - b.start);
   }
 
   private buildApiUrl(model: string, language: string): string {

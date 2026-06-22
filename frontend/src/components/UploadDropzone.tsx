@@ -2,32 +2,15 @@
 
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { UploadCloud, FileVideo, Globe, Sparkles, Zap } from "lucide-react";
+import { UploadCloud, FileVideo, Sparkles, Zap } from "lucide-react";
 import { useCaptionContext } from "../context/CaptionContext";
+import LanguageSelector, { type LanguageConfig } from "./LanguageSelector";
 
-const LANGUAGES = [
-  { code: "auto", name: "Auto Detect International", flag: "🌐", description: "Automatically detects any international language spoken in the video." },
-  { code: "en", name: "English", flag: "🇬🇧", description: "Transcribes English speech, or translates non-English languages to English." },
-  { code: "hinglish", name: "Hinglish", flag: "🇮🇳", description: "Forces Romanized Hindi transliteration (e.g., writing spoken Hindi using English alphabets like \"kaise ho\")." },
-  { code: "hi", name: "Hindi", flag: "🇮🇳", description: "Forces Hindi transcription using the traditional Devanagari script (e.g., \"कैसे हो\")." },
-  { code: "ne", name: "Nepali", flag: "🇳🇵", description: "Forces Nepali transcription using the Devanagari script (e.g., \"नमस्ते\")." },
-  { code: "ur", name: "Urdu", flag: "🇵🇰", description: "Forces Urdu transcription using the Arabic Nastaliq script." },
-  { code: "ta", name: "Tamil", flag: "🇮🇳", description: "Forces Tamil transcription using the Tamil script." },
-  { code: "ml", name: "Malayalam", flag: "🇮🇳", description: "Forces Malayalam transcription using the Malayalam script." },
-  { code: "gu", name: "Gujarati", flag: "🇮🇳", description: "Forces Gujarati transcription using the Gujarati script." },
-  { code: "bn", name: "Bengali", flag: "🇮🇳", description: "Forces Bengali transcription using the Bengali script." },
-  { code: "pa", name: "Punjabi", flag: "🇮🇳", description: "Forces Punjabi transcription using the Gurmukhi script." },
-  { code: "te", name: "Telugu", flag: "🇮🇳", description: "Forces Telugu transcription using the Telugu script." },
-  { code: "sd", name: "Sindhi", flag: "🇵🇰", description: "Forces Sindhi transcription using the Arabic script." },
-  { code: "mr", name: "Marathi", flag: "🇮🇳", description: "Forces Marathi transcription using the Devanagari script." },
-  { code: "kn", name: "Kannada", flag: "🇮🇳", description: "Forces Kannada transcription using the Kannada script." },
-  { code: "ps", name: "Pushto", flag: "🇦🇫", description: "Forces Pushto transcription using the Arabic script." },
-  { code: "ms", name: "Malay", flag: "🇲🇾", description: "Forces Malay transcription using the Latin script." },
-];
+
 
 export default function UploadDropzone({ userId, transcriptionBalance, audioCredits }: { userId?: string; transcriptionBalance?: number; audioCredits?: number }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [langConfig, setLangConfig] = useState<LanguageConfig>({ mode: "single", language: "en" });
   const [audioEnhance, setAudioEnhance] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { setVideoUrl, setCaptions, setIsProcessing, setProcessingMessage, setOriginalWords, setS3Key } = useCaptionContext();
@@ -72,7 +55,15 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
     
     const formData = new FormData();
     if (userId) formData.append("userId", userId);
-    formData.append("language", selectedLanguage);
+
+    // Attach language config — single or dual
+    if (langConfig.mode === "dual" && langConfig.dualLanguage) {
+      formData.append("dualLanguagePrimary", langConfig.dualLanguage.primary);
+      formData.append("dualLanguageSecondary", langConfig.dualLanguage.secondary);
+    } else {
+      formData.append("language", langConfig.language ?? "en");
+    }
+
     formData.append("audioEnhance", audioEnhance.toString());
     formData.append("video", file);
 
@@ -183,48 +174,8 @@ export default function UploadDropzone({ userId, transcriptionBalance, audioCred
       className="w-full max-w-2xl mx-auto"
     >
       {/* Language Selector */}
-      <div className="mb-4 flex flex-col items-center gap-3">
-        <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
-          <Globe className="w-4 h-4 text-zinc-400" />
-          <span>Transcription Language</span>
-        </div>
-        <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
-          {LANGUAGES.map((lang) => (
-            <button
-              key={lang.code}
-              type="button"
-              onClick={() => setSelectedLanguage(lang.code)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-250 cursor-pointer ${
-                selectedLanguage === lang.code
-                  ? "bg-accent text-white shadow-lg shadow-accent/25 scale-[1.01]"
-                  : "bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-white"
-              }`}
-            >
-              <span className="mr-1">{lang.flag}</span>
-              {lang.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Dynamic Helper Text */}
-        <div className="min-h-10 mt-1 text-center max-w-lg px-4 flex items-center justify-center">
-          <span className="text-xs text-zinc-400 font-normal leading-relaxed">
-            {(() => {
-              const currentLang = LANGUAGES.find(l => l.code === selectedLanguage);
-              if (!currentLang) return null;
-              return (
-                <motion.span
-                  key={currentLang.code}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="inline-block"
-                >
-                  {currentLang.flag} {currentLang.description}
-                </motion.span>
-              );
-            })()}
-          </span>
-        </div>
+      <div className="mb-4">
+        <LanguageSelector value={langConfig} onChange={setLangConfig} />
       </div>
 
       {/* Audio Enhance Toggle */}

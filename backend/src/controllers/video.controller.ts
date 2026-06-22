@@ -152,18 +152,31 @@ export class VideoController {
         sendEvent("status", { message: "Using raw audio for transcription..." });
       }
 
-      const language = (req.body.language || req.query.language || "auto") as string;
-      console.log(`[VideoController] Transcribing with language: ${language}`);
-      const languageName = LANGUAGE_NAMES[language] || "English";
-      sendEvent("status", {
-        message: `Generating captions (${languageName})...`,
-      });
+      // ── Determine transcription mode ────────────────────────────────────────
+      const dualPrimary   = (req.body.dualLanguagePrimary   || "") as string;
+      const dualSecondary = (req.body.dualLanguageSecondary || "en") as string;
+      const isDual = !!dualPrimary;
 
-      let captions = await transcriptionService.transcribeAudio(
-        cleanedAudioPath,
-        (segment) => {},  // Don't send segments yet for Hinglish
-        { language }
-      );
+      const language = isDual ? dualPrimary : ((req.body.language || req.query.language || "auto") as string);
+      console.log(`[VideoController] Transcribing — mode: ${isDual ? `dual (${dualPrimary}+${dualSecondary})` : `single (${language})`}`);
+
+      const languageName = isDual
+        ? `${LANGUAGE_NAMES[dualPrimary] ?? dualPrimary} + ${LANGUAGE_NAMES[dualSecondary] ?? dualSecondary}`
+        : (LANGUAGE_NAMES[language] || "English");
+
+      sendEvent("status", { message: `Generating captions (${languageName})...` });
+
+      let captions = isDual
+        ? await transcriptionService.transcribeDualLanguage(
+            cleanedAudioPath,
+            { primary: dualPrimary, secondary: dualSecondary },
+            (segment) => {}
+          )
+        : await transcriptionService.transcribeAudio(
+            cleanedAudioPath,
+            (segment) => {},
+            { language }
+          );
 
       // Post-process captions based on requested language
       if (language === "hinglish") {
