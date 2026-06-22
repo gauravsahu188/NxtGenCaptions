@@ -1,0 +1,22 @@
+# WhisperX Microservice — Python Dependencies
+# ============================================
+# Install with:  pip install -r requirements.txt
+#
+# CUDA (GPU) setup — skip if CPU only:
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Core
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9          # for UploadFile / Form parsing
+
+# WhisperX + Whisper backend
+whisperx>=3.1.1
+openai-whisper>=20231117          # pulled in by whisperx but pin for safety
+
+# ML / Audio
+torch>=2.1.0                      # CPU version; swap for CUDA wheel above if using GPU
+torchaudio>=2.1.0
+numpy>=1.24.0
+soundfile>=0.12.1
+librosa>=0.10.1

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { FFmpegService } from "../services/ffmpeg.service";
 import { DeepgramTranscriptionService } from "../services/deepgram.service";
+import { whisperxService } from "../services/whisperx.service";
 import { AudioEnhancementService } from "../services/audio.service";
 import { RemotionRenderService, CaptionStyleProps } from "../services/remotion.service";
 import { S3Service } from "../services/s3.service";
@@ -153,15 +154,32 @@ export class VideoController {
       }
 
       const language = (req.body.language || req.query.language || "auto") as string;
-      console.log(`[VideoController] Transcribing with language: ${language}`);
-      const languageName = LANGUAGE_NAMES[language] || "English";
-      sendEvent("status", { message: `Generating captions (${languageName})...` });
+      const languageName = LANGUAGE_NAMES[language] || "Unknown";
+      console.log(`[VideoController] Transcribing — language: ${language}`);
 
-      let captions = await transcriptionService.transcribeAudio(
-        cleanedAudioPath,
-        (segment) => {},
-        { language }
-      );
+      // ── Try WhisperX first (phoneme-level accuracy) ──────────────────────
+      // Falls back to Deepgram automatically if service is not running.
+      let captions: Awaited<ReturnType<typeof transcriptionService.transcribeAudio>>;
+      const wxAvailable = !!process.env.WHISPERX_SERVICE_URL && await whisperxService.isAvailable();
+
+      if (wxAvailable) {
+        console.log("[VideoController] WhisperX service is up — using phoneme-level alignment.");
+        sendEvent("status", { message: `Generating captions with WhisperX (${languageName})...` });
+        try {
+          captions = await whisperxService.transcribeAudio(cleanedAudioPath, language);
+          console.log(`[VideoController] WhisperX returned ${captions.length} segments.`);
+        } catch (wxErr: any) {
+          console.warn(`[VideoController] WhisperX failed (${wxErr.message}), falling back to Deepgram.`);
+          sendEvent("status", { message: `Falling back to Deepgram (${languageName})...` });
+          captions = await transcriptionService.transcribeAudio(cleanedAudioPath, (segment) => {}, { language });
+        }
+      } else {
+        if (process.env.WHISPERX_SERVICE_URL) {
+          console.log("[VideoController] WhisperX service is not reachable — using Deepgram.");
+        }
+        sendEvent("status", { message: `Generating captions (${languageName})...` });
+        captions = await transcriptionService.transcribeAudio(cleanedAudioPath, (segment) => {}, { language });
+      }
 
       // Post-process captions based on requested language
       if (language === "hinglish") {
