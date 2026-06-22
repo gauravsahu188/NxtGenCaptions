@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
     // Calculate framesPerLambda to spawn at most 8 Lambdas to avoid TooManyRequestsException.
     const totalFrames = duration * fps;
     const MAX_CONCURRENT_LAMBDAS = 8;
-    const calculatedFramesPerLambda = Math.max(40, Math.ceil(totalFrames / MAX_CONCURRENT_LAMBDAS));
+    const calculatedFramesPerLambda = Math.min(200, Math.max(40, Math.ceil(totalFrames / MAX_CONCURRENT_LAMBDAS)));
 
     const remotionOptions: any = {
       region:        REMOTION_REGION,

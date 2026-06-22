@@ -146,7 +146,7 @@ export class RenderController {
       // AWS new account concurrency limit is often 10.
       // We reserve 1 for orchestrator and maybe 1 for safety, leaving ~8 for rendering chunks.
       const MAX_CONCURRENT_LAMBDAS = 8;
-      const calculatedFramesPerLambda = Math.max(30, Math.ceil(totalFrames / MAX_CONCURRENT_LAMBDAS));
+      const calculatedFramesPerLambda = Math.min(200, Math.max(30, Math.ceil(totalFrames / MAX_CONCURRENT_LAMBDAS)));
       
       console.log(`[Render] Starting Lambda render for user ${userId}`);
       console.log(`[Render] Using site: ${REMOTION_SITE_URL}`);

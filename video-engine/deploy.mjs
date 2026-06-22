@@ -23,8 +23,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Configuration ───────────────────────────────────────────────────────────
 const REGION = process.env.REMOTION_REGION || "ap-south-1";
-const MEMORY_MB = 2048;       // Lambda memory
-const TIMEOUT_SEC = 120;      // Lambda timeout
+const MEMORY_MB = 3008;       // Lambda memory
+const TIMEOUT_SEC = 900;      // Lambda timeout
 const DISK_MB = 2048;         // Lambda ephemeral storage
 
 async function main() {

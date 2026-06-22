@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
       composition: "CaptionVideo",
       inputProps: compositionInputProps,
       codec: "h264" as const,
-      framesPerLambda: 30,
+      framesPerLambda: 100, // Capped to avoid chunk timeouts
       logLevel: "info" as const,
       privacy: "no-acl" as const,
       outName: {
