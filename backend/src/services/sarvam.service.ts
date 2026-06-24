@@ -59,8 +59,7 @@ export class SarvamTranscriptionService {
     // If Sarvam's API takes a specific parameter for script/model
     // We assume model 'saaras:v3' handles transliteration when passed a parameter, 
     // or we might need to rely on the transliteration endpoint if it exists.
-    // For now, we will pass model="saaras:v1" as it is the recommended state-of-the-art model.
-    formData.append("model", "saaras:v1"); // using saaras:v1 or saaras:v3 based on availability
+    formData.append("model", "saaras:v3"); // using saaras:v3 based on API requirements
 
     try {
       console.log(`[SarvamService] Sending audio to Sarvam AI (${endpoint}) for lang: ${mappedLang}, script: ${script}`);
