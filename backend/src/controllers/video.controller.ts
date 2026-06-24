@@ -9,6 +9,7 @@ import { sendUploadNotification, isSqsConfigured } from "../lib/sqs";
 import { ValidationError, NotFoundError, AppError } from "../utils/errors";
 import { processHinglishCaptions, containsDevanagari } from "../utils/transliterate";
 import { TranslationService } from "../services/translation.service";
+import { SarvamTranscriptionService } from "../services/sarvam.service";
 import path from "path";
 import { prisma } from "../lib/prisma";
 import fs from "fs";
@@ -20,6 +21,7 @@ const remotionService = new RemotionRenderService();
 const s3Service = new S3Service();
 const subjectIsolationService = new SubjectIsolationService();
 const translationService = new TranslationService();
+const sarvamService = new SarvamTranscriptionService();
 
 // ─── Default style fallback ───────────────────────────────────────────────────
 const DEFAULT_STYLE: CaptionStyleProps = {
@@ -153,23 +155,36 @@ export class VideoController {
       }
 
       const language = (req.body.language || req.query.language || "auto") as string;
-      console.log(`[VideoController] Transcribing with language: ${language}`);
+      const script = (req.body.script || req.query.script || "native") as string;
+      console.log(`[VideoController] Transcribing with language: ${language}, script: ${script}`);
       const languageName = LANGUAGE_NAMES[language] || "English";
       sendEvent("status", { message: `Generating captions (${languageName})...` });
 
-      let captions = await transcriptionService.transcribeAudio(
-        cleanedAudioPath,
-        (segment) => { },
-        { language }
-      );
+      let captions: any[] = [];
+      
+      if (language === "en" || language === "hi" || language === "auto" || language === "hinglish") {
+        // Use Deepgram for English, Hindi, Auto, or Hinglish explicitly
+        captions = await transcriptionService.transcribeAudio(
+          cleanedAudioPath,
+          (segment) => { },
+          { language: language === "hinglish" ? "hi" : language }
+        );
 
-      // Post-process captions based on requested language
-      if (language === "hinglish") {
-        console.log("[VideoController] Transliterating captions to Roman script (Hinglish)...");
-        captions = processHinglishCaptions(captions);
-      } else if (language === "en") {
-        console.log("[VideoController] Translating Devanagari captions to English...");
-        captions = await translationService.translateCaptions(captions);
+        // Post-process captions based on requested script or legacy language
+        if (script === "romanised" || language === "hinglish") {
+          console.log("[VideoController] Transliterating captions to Roman script...");
+          captions = processHinglishCaptions(captions);
+        } else if (script === "english") {
+          console.log("[VideoController] Translating captions to English...");
+          captions = await translationService.translateCaptions(captions);
+        }
+      } else {
+        // Use Sarvam AI for regional languages
+        captions = await sarvamService.transcribeAudio(
+          cleanedAudioPath,
+          (segment) => { },
+          { language, script }
+        );
       }
 
       // Send processed segments

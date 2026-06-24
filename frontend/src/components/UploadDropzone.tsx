@@ -2,28 +2,11 @@
 
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { UploadCloud, FileVideo, Globe, Sparkles, Zap } from "lucide-react";
+import { UploadCloud, FileVideo, Zap, Sparkles } from "lucide-react";
 import { useCaptionContext } from "../context/CaptionContext";
+import LanguageSelectionModal from "./LanguageSelectionModal";
 
-const LANGUAGES = [
-  { code: "auto",     name: "Auto Detect",  flag: "🌐", description: "Automatically detects any international language spoken in the video." },
-  { code: "en",       name: "English",       flag: "🇬🇧", description: "Transcribes English speech, or translates non-English languages to English." },
-  { code: "hinglish", name: "Hinglish",      flag: "🇮🇳", description: "Forces Romanized Hindi transliteration (e.g., \"kaise ho\")." },
-  { code: "hi",       name: "Hindi",         flag: "🇮🇳", description: "Forces Hindi transcription using Devanagari script (e.g., \"कैसे हो\")." },
-  { code: "ne",       name: "Nepali",        flag: "🇳🇵", description: "Forces Nepali transcription using Devanagari script." },
-  { code: "ur",       name: "Urdu",          flag: "🇵🇰", description: "Forces Urdu transcription using Arabic Nastaliq script." },
-  { code: "ta",       name: "Tamil",         flag: "🇮🇳", description: "Forces Tamil transcription using Tamil script." },
-  { code: "ml",       name: "Malayalam",     flag: "🇮🇳", description: "Forces Malayalam transcription using Malayalam script." },
-  { code: "gu",       name: "Gujarati",      flag: "🇮🇳", description: "Forces Gujarati transcription using Gujarati script." },
-  { code: "bn",       name: "Bengali",       flag: "🇮🇳", description: "Forces Bengali transcription using Bengali script." },
-  { code: "pa",       name: "Punjabi",       flag: "🇮🇳", description: "Forces Punjabi transcription using Gurmukhi script." },
-  { code: "te",       name: "Telugu",        flag: "🇮🇳", description: "Forces Telugu transcription using Telugu script." },
-  { code: "sd",       name: "Sindhi",        flag: "🇵🇰", description: "Forces Sindhi transcription using Arabic script." },
-  { code: "mr",       name: "Marathi",       flag: "🇮🇳", description: "Forces Marathi transcription using Devanagari script." },
-  { code: "kn",       name: "Kannada",       flag: "🇮🇳", description: "Forces Kannada transcription using Kannada script." },
-  { code: "ps",       name: "Pushto",        flag: "🇦🇫", description: "Forces Pushto transcription using Arabic script." },
-  { code: "ms",       name: "Malay",         flag: "🇲🇾", description: "Forces Malay transcription using Latin script." },
-];
+// Language list moved to LanguageSelectionModal
 
 export default function UploadDropzone({
   userId,
@@ -35,8 +18,9 @@ export default function UploadDropzone({
   audioCredits?: number;
 }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [audioEnhance, setAudioEnhance] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { setVideoUrl, setCaptions, setIsProcessing, setProcessingMessage, setOriginalWords, setS3Key } =
     useCaptionContext();
@@ -57,17 +41,21 @@ export default function UploadDropzone({
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleUpload(e.dataTransfer.files[0]);
+      setPendingFile(e.dataTransfer.files[0]);
+      setIsModalOpen(true);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      handleUpload(e.target.files[0]);
+      setPendingFile(e.target.files[0]);
+      setIsModalOpen(true);
+      // Reset input so the same file can be selected again if needed
+      e.target.value = '';
     }
   };
 
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (file: File, language: string, script: string) => {
     if (!file.type.startsWith("video/")) {
       alert("Please upload a valid video file.");
       return;
@@ -79,7 +67,8 @@ export default function UploadDropzone({
 
     const formData = new FormData();
     if (userId) formData.append("userId", userId);
-    formData.append("language", selectedLanguage);
+    formData.append("language", language);
+    formData.append("script", script);
     formData.append("audioEnhance", audioEnhance.toString());
     formData.append("video", file);
 
@@ -195,50 +184,20 @@ export default function UploadDropzone({
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       className="w-full max-w-2xl mx-auto"
     >
-      {/* Language Selector */}
-      <div className="mb-4 flex flex-col items-center gap-3">
-        <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
-          <Globe className="w-4 h-4 text-zinc-400" />
-          <span>Transcription Language</span>
-        </div>
-        <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
-          {LANGUAGES.map((lang) => (
-            <button
-              key={lang.code}
-              type="button"
-              onClick={() => setSelectedLanguage(lang.code)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-250 cursor-pointer ${
-                selectedLanguage === lang.code
-                  ? "bg-accent text-white shadow-lg shadow-accent/25 scale-[1.01]"
-                  : "bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-white"
-              }`}
-            >
-              <span className="mr-1">{lang.flag}</span>
-              {lang.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Dynamic Helper Text */}
-        <div className="min-h-10 mt-1 text-center max-w-lg px-4 flex items-center justify-center">
-          <span className="text-xs text-zinc-400 font-normal leading-relaxed">
-            {(() => {
-              const currentLang = LANGUAGES.find((l) => l.code === selectedLanguage);
-              if (!currentLang) return null;
-              return (
-                <motion.span
-                  key={currentLang.code}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="inline-block"
-                >
-                  {currentLang.flag} {currentLang.description}
-                </motion.span>
-              );
-            })()}
-          </span>
-        </div>
-      </div>
+      <LanguageSelectionModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setPendingFile(null);
+        }}
+        onSubmit={(language, script) => {
+          setIsModalOpen(false);
+          if (pendingFile) {
+            handleUpload(pendingFile, language, script);
+            setPendingFile(null);
+          }
+        }}
+      />
 
       {/* Audio Enhance Toggle */}
       <div className="mb-4 flex items-center justify-center">
