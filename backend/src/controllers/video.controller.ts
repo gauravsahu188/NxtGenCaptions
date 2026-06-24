@@ -162,24 +162,19 @@ export class VideoController {
 
       let captions: any[] = [];
       
-      if (language === "en" || language === "hi" || language === "auto" || language === "hinglish") {
-        // Use Deepgram for English, Hindi, Auto, or Hinglish explicitly
+      const useDeepgram = (language === "en" && script === "native") || 
+                          (language === "hi" && script === "native") || 
+                          (language === "auto" && script === "native");
+                          
+      if (useDeepgram) {
+        // Use Deepgram for English, Hindi, or Auto (when script is native)
         captions = await transcriptionService.transcribeAudio(
           cleanedAudioPath,
           (segment) => { },
           { language: language === "hinglish" ? "hi" : language }
         );
-
-        // Post-process captions based on requested script or legacy language
-        if (script === "romanised" || language === "hinglish") {
-          console.log("[VideoController] Transliterating captions to Roman script...");
-          captions = processHinglishCaptions(captions);
-        } else if (script === "english") {
-          console.log("[VideoController] Translating captions to English...");
-          captions = await translationService.translateCaptions(captions);
-        }
       } else {
-        // Use Sarvam AI for regional languages
+        // Use Sarvam AI for regional languages or any translated/transliterated script
         captions = await sarvamService.transcribeAudio(
           cleanedAudioPath,
           (segment) => { },

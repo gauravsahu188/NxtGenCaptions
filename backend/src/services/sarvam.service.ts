@@ -60,7 +60,6 @@ export class SarvamTranscriptionService {
 
     try {
       console.log(`[SarvamService] Sending audio to Sarvam AI (${endpoint}) for lang: ${mappedLang}, script: ${script}`);
-      const fetchModule = (await import("node-fetch")).default; // using dynamic import if node-fetch is needed, or just native fetch in Node 18+
       
       const response = await fetch(endpoint, {
         method: "POST",
