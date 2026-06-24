@@ -167,6 +167,7 @@ export class VideoController {
                           (language === "auto" && script === "native");
                           
       if (useDeepgram) {
+        console.log(`[VideoController] Routing to Deepgram API (Language: ${language}, Script: ${script})`);
         // Use Deepgram for English, Hindi, or Auto (when script is native)
         captions = await transcriptionService.transcribeAudio(
           cleanedAudioPath,
@@ -174,6 +175,7 @@ export class VideoController {
           { language: language === "hinglish" ? "hi" : language }
         );
       } else {
+        console.log(`[VideoController] Routing to Sarvam AI (Language: ${language}, Script: ${script})`);
         // Use Sarvam AI for regional languages or any translated/transliterated script
         captions = await sarvamService.transcribeAudio(
           cleanedAudioPath,

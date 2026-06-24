@@ -33,8 +33,12 @@ export class SarvamTranscriptionService {
       endpoint = `${this.baseUrl}/speech-to-text-translate`;
     }
 
-    const formData = new FormData();
-    formData.append("file", fs.createReadStream(audioPath));
+    const formData = new globalThis.FormData();
+    
+    // Read file and convert to Blob for native fetch compatibility
+    const fileBuffer = await fs.promises.readFile(audioPath);
+    const blob = new Blob([fileBuffer], { type: "audio/mpeg" });
+    formData.append("file", blob, path.basename(audioPath));
     
     // Convert short codes (e.g., 'ta') to Sarvam format if needed, typically 'ta-IN'
     const langCodeMap: Record<string, string> = {
@@ -55,7 +59,7 @@ export class SarvamTranscriptionService {
     // If Sarvam's API takes a specific parameter for script/model
     // We assume model 'saaras:v3' handles transliteration when passed a parameter, 
     // or we might need to rely on the transliteration endpoint if it exists.
-    // For now, we will pass model="saaras:v3" as it is the recommended state-of-the-art model.
+    // For now, we will pass model="saaras:v1" as it is the recommended state-of-the-art model.
     formData.append("model", "saaras:v1"); // using saaras:v1 or saaras:v3 based on availability
 
     try {
@@ -64,10 +68,9 @@ export class SarvamTranscriptionService {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "api-subscription-key": this.apiKey,
-          ...formData.getHeaders(),
+          "api-subscription-key": this.apiKey
         },
-        body: formData as any, // casting for native fetch compatibility with form-data
+        body: formData,
       });
 
       if (!response.ok) {
