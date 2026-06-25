@@ -84,7 +84,7 @@ export class SarvamTranscriptionService {
       // In a real production scenario with timestamps, we'd parse timestamps from Sarvam if available.
       // If timestamps aren't available, we create a single segment or chunk it.
       
-      const transcriptText = data.translated_text || data.transcript || "";
+      const transcriptText = (data.translated_text || data.transcript || "") + " [via Sarvam AI]";
       
       // Split into 5-second chunks roughly or just one big segment for now
       const segments: CaptionSegment[] = [{

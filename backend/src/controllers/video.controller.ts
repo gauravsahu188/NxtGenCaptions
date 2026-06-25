@@ -162,27 +162,13 @@ export class VideoController {
 
       let captions: any[] = [];
       
-      const useDeepgram = (language === "en" && script === "native") || 
-                          (language === "hi" && script === "native") || 
-                          (language === "auto" && script === "native");
-                          
-      if (useDeepgram) {
-        console.log(`[VideoController] Routing to Deepgram API (Language: ${language}, Script: ${script})`);
-        // Use Deepgram for English, Hindi, or Auto (when script is native)
-        captions = await transcriptionService.transcribeAudio(
-          cleanedAudioPath,
-          (segment) => { },
-          { language: language === "hinglish" ? "hi" : language }
-        );
-      } else {
-        console.log(`[VideoController] Routing to Sarvam AI (Language: ${language}, Script: ${script})`);
-        // Use Sarvam AI for regional languages or any translated/transliterated script
-        captions = await sarvamService.transcribeAudio(
-          cleanedAudioPath,
-          (segment) => { },
-          { language, script }
-        );
-      }
+      console.log(`[VideoController] Routing to Sarvam AI (Language: ${language}, Script: ${script})`);
+      // Use Sarvam AI exclusively for all languages and scripts
+      captions = await sarvamService.transcribeAudio(
+        cleanedAudioPath,
+        (segment) => { },
+        { language, script }
+      );
 
       // Send processed segments
       for (const segment of captions) {
