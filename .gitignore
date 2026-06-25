@@ -81,3 +81,5 @@ skills-lock.json
 
 # sst
 .sst
+backend/test-real-sarvam.ts
+backend/sample.mp3
