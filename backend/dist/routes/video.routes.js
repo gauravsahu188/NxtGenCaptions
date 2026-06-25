@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const video_controller_1 = require("../controllers/video.controller");
+const upload_middleware_1 = require("../middleware/upload.middleware");
+const guardrail_middleware_1 = require("../middleware/guardrail.middleware");
+const router = (0, express_1.Router)();
+const videoController = new video_controller_1.VideoController();
+router.post("/upload", guardrail_middleware_1.guardrailMiddleware, upload_middleware_1.uploadMiddleware.single("video"), videoController.uploadAndTranscribe.bind(videoController));
+router.post("/render", videoController.renderVideo.bind(videoController));
+router.get("/project/:id", videoController.getProject.bind(videoController));
+router.post("/enhance-audio", videoController.enhanceAudio.bind(videoController));
+router.post("/isolate-subject", videoController.isolateSubject.bind(videoController));
+exports.default = router;
