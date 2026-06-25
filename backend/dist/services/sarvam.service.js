@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SarvamTranscriptionService = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const form_data_1 = __importDefault(require("form-data"));
 class SarvamTranscriptionService {
     apiKey;
     baseUrl = "https://api.sarvam.ai";
@@ -22,9 +21,11 @@ class SarvamTranscriptionService {
         if (script === "english") {
             endpoint = `${this.baseUrl}/speech-to-text-translate`;
         }
-        const formData = new form_data_1.default();
-        // Use form-data package to properly attach file streams with filenames
-        formData.append("file", fs_1.default.createReadStream(audioPath), path_1.default.basename(audioPath));
+        const formData = new FormData();
+        // Read file and convert to native Node 20 File object
+        const fileBuffer = await fs_1.default.promises.readFile(audioPath);
+        const file = new File([fileBuffer], path_1.default.basename(audioPath), { type: "audio/mpeg" });
+        formData.append("file", file);
         // Convert short codes (e.g., 'ta') to Sarvam format if needed, typically 'ta-IN'
         const langCodeMap = {
             hi: "hi-IN",
@@ -50,8 +51,7 @@ class SarvamTranscriptionService {
             const response = await fetch(endpoint, {
                 method: "POST",
                 headers: {
-                    "api-subscription-key": this.apiKey,
-                    ...formData.getHeaders()
+                    "api-subscription-key": this.apiKey
                 },
                 body: formData,
             });

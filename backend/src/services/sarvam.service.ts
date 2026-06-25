@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import FormDataNode from "form-data";
 
 export interface CaptionSegment {
   id: number;
@@ -8,6 +7,11 @@ export interface CaptionSegment {
   end: number;
   text: string;
   words?: { word: string; start: number; end: number }[];
+}
+
+export interface SarvamResponse {
+  transcript?: string;
+  translated_text?: string;
 }
 
 export class SarvamTranscriptionService {
@@ -33,10 +37,12 @@ export class SarvamTranscriptionService {
       endpoint = `${this.baseUrl}/speech-to-text-translate`;
     }
 
-    const formData = new FormDataNode();
+    const formData = new FormData();
     
-    // Use form-data package to properly attach file streams with filenames
-    formData.append("file", fs.createReadStream(audioPath), path.basename(audioPath));
+    // Read file and convert to native Node 20 File object
+    const fileBuffer = await fs.promises.readFile(audioPath);
+    const file = new File([fileBuffer], path.basename(audioPath), { type: "audio/mpeg" });
+    formData.append("file", file);
     
     // Convert short codes (e.g., 'ta') to Sarvam format if needed, typically 'ta-IN'
     const langCodeMap: Record<string, string> = {
@@ -66,10 +72,9 @@ export class SarvamTranscriptionService {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "api-subscription-key": this.apiKey,
-          ...formData.getHeaders()
+          "api-subscription-key": this.apiKey
         },
-        body: formData as any,
+        body: formData,
       });
 
       if (!response.ok) {
