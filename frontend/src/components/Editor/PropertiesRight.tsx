@@ -41,7 +41,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
               onChange={(family) => updateStyle("fontFamily", family)}
             />
             <button
-              onClick={() => updateStyle("fontFamily", "THEBOLDFONT")}
+              onClick={() => updateStyle("fontFamily", "Inter")}
               className="w-11 h-11 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 shrink-0"
               title="Reset to default"
             >
@@ -1157,7 +1157,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                 <button type="button"
                   onClick={() => {
                     updateStyle("layout", "mogrt-shimmer-stack");
-                    updateStyle("fontFamily", "THEBOLDFONT");
+                    updateStyle("fontFamily", "Inter");
                     updateStyle("primaryColor", "#FFFFFF");
                     updateStyle("dropShadow", true);
                     updateStyle("dropShadowColor", "#000000");

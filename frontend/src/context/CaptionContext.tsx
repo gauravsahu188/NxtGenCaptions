@@ -118,7 +118,7 @@ export const CaptionProvider = ({ children }: { children: ReactNode }) => {
     primaryColor: "#FFFFFF",
     emphasisColor: "#4ADE80",
     layout: "gadzhi",
-    fontFamily: "THEBOLDFONT",
+    fontFamily: "Inter",
     fontWeight: "Light",
     fontSize: 24,
     positionX: 50.0,

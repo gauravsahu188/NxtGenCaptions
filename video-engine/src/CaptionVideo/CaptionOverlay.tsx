@@ -10,9 +10,94 @@ import jaggyFont from "../assets/jaggy-w01-regular.ttf";
 import chalkFont from "../assets/chalk-y.otf";
 import bastligaFont from "../assets/bastliga/Bastliga One.ttf";
 import droidFont from "../assets/droid-1997.otf";
-import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
 
+// ─── Remotion Google Fonts — correct way to load fonts in headless Chromium ──
+// These use @remotion/google-fonts which downloads fonts before rendering starts,
+// solving the "□□□ box" issue caused by @import in headless Chrome (no network).
+import { loadFont as loadInter } from "@remotion/google-fonts/Inter";
+import { loadFont as loadRoboto } from "@remotion/google-fonts/Roboto";
+import { loadFont as loadPoppins } from "@remotion/google-fonts/Poppins";
+import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
+import { loadFont as loadOswald } from "@remotion/google-fonts/Oswald";
+import { loadFont as loadBebasNeue } from "@remotion/google-fonts/BebasNeue";
+import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
+// ── Indian script Noto fonts — required for zero-box Hindi/Tamil/etc captions ─
+import { loadFont as loadNotoDevanagari } from "@remotion/google-fonts/NotoSansDevanagari";
+import { loadFont as loadNotoTamil } from "@remotion/google-fonts/NotoSansTamil";
+import { loadFont as loadNotoBengali } from "@remotion/google-fonts/NotoSansBengali";
+import { loadFont as loadNotoTelugu } from "@remotion/google-fonts/NotoSansTelugu";
+import { loadFont as loadNotoKannada } from "@remotion/google-fonts/NotoSansKannada";
+import { loadFont as loadNotoMalayalam } from "@remotion/google-fonts/NotoSansMalayalam";
+import { loadFont as loadNotoGujarati } from "@remotion/google-fonts/NotoSansGujarati";
+import { loadFont as loadNotoGurmukhi } from "@remotion/google-fonts/NotoSansGurmukhi";
+
+// Load all fonts eagerly so they are ready before the first frame renders
+loadInter();
+loadRoboto();
+loadPoppins();
+loadMontserrat();
+loadOswald();
+loadBebasNeue();
 loadSpaceGrotesk();
+// Load Indian script Noto fonts (prevents □□□ boxes for Sarvam AI captions)
+loadNotoDevanagari();
+loadNotoTamil();
+loadNotoBengali();
+loadNotoTelugu();
+loadNotoKannada();
+loadNotoMalayalam();
+loadNotoGujarati();
+loadNotoGurmukhi();
+
+/**
+ * buildFontFaceCSS — produces @font-face rules for local (bundled) custom fonts.
+ * These are injected as a <style> tag so they work inside Remotion's headless browser.
+ * Unlike Google Fonts, local fonts don't need network access.
+ */
+const LOCAL_FONT_CSS = `
+  @font-face {
+    font-family: 'Jaggy W01 Regular';
+    src: url('${jaggyFont}') format('truetype');
+    font-weight: normal; font-display: block;
+  }
+  @font-face {
+    font-family: 'Chalk-y';
+    src: url('${chalkFont}') format('opentype');
+    font-weight: normal; font-display: block;
+  }
+  @font-face {
+    font-family: 'Bastliga One';
+    src: url('${bastligaFont}') format('truetype');
+    font-weight: normal; font-display: block;
+  }
+  @font-face {
+    font-family: 'Droid 1997';
+    src: url('${droidFont}') format('opentype');
+    font-weight: normal; font-display: block;
+  }
+`;
+
+/**
+ * resolveRenderFont — maps user-facing font names to a safe CSS font-family stack.
+ * For any font that is loaded via @remotion/google-fonts, the name is returned as-is.
+ * For custom/unknown fonts we fall back to Inter (always loaded) to prevent boxes.
+ */
+function resolveRenderFont(fontFamily: string): string {
+  const knownGoogle = new Set([
+    "Inter", "Roboto", "Poppins", "Montserrat", "Oswald", "Bebas Neue",
+    "Space Grotesk",
+    // Indian scripts loaded above
+    "Noto Sans Devanagari", "Noto Sans Tamil", "Noto Sans Bengali",
+    "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam",
+    "Noto Sans Gujarati", "Noto Sans Gurmukhi",
+  ]);
+  const knownLocal = new Set([
+    "Jaggy W01 Regular", "JaggyW01-Regular", "Chalk-y", "Bastliga One", "Droid 1997",
+  ]);
+  if (knownGoogle.has(fontFamily) || knownLocal.has(fontFamily)) return fontFamily;
+  // THEBOLDFONT and any other unknown font → fall back to Inter
+  return "Inter";
+}
 
 function secToFrame(sec: number, fps: number) {
   return Math.round(sec * fps);
@@ -150,11 +235,14 @@ export const CaptionOverlay: React.FC<{
   const previewWidth = originalStyle.previewWidth ?? 400;
   const renderScale = videoWidth / previewWidth;
   
-  // Shadow the original style with scaled properties
+  // Shadow the original style with scaled properties.
+  // resolveRenderFont() maps unknown/invalid font names (e.g. "THEBOLDFONT") to
+  // a safe fallback (Inter) so no □□□ boxes appear in the render.
   const style = {
     ...originalStyle,
     fontSize: originalStyle.fontSize * renderScale,
     letterSpacing: originalStyle.letterSpacing * renderScale,
+    fontFamily: resolveRenderFont(originalStyle.fontFamily ?? "Inter"),
   };
 
 
@@ -1371,15 +1459,8 @@ export const CaptionOverlay: React.FC<{
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
-      {/* Dynamically load the user's selected Google Font for AWS Lambda headless browser */}
-      {style.fontFamily &&
-        style.fontFamily !== "Aston Script" &&
-        style.fontFamily !== "Chalk-y" &&
-        style.fontFamily !== "Jaggy W01 Regular" && (
-          <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=${style.fontFamily.replace(/ /g, "+")}:wght@400;700;800;900&display=swap');
-          `}</style>
-      )}
+      {/* Local custom fonts (bundled, no network) */}
+      <style>{LOCAL_FONT_CSS}</style>
 
       {/* Positioned exactly like the editor's draggable caption handle */}
       <div

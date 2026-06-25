@@ -24,6 +24,26 @@
   font-display: swap;
 }
 
+/*
+ * Caption preview font stack — ensures Indian script characters from Sarvam AI
+ * (Devanagari, Tamil, Bengali, etc.) display correctly in the editor.
+ * Noto Sans * fonts are loaded from Google Fonts in layout.tsx.
+ */
+.caption-text {
+  font-family:
+    'Inter',
+    'Noto Sans Devanagari',
+    'Noto Sans Tamil',
+    'Noto Sans Bengali',
+    'Noto Sans Telugu',
+    'Noto Sans Kannada',
+    'Noto Sans Malayalam',
+    'Noto Sans Gujarati',
+    'Noto Sans Gurmukhi',
+    sans-serif;
+}
+
+
 :root {
   --background: #050506;
   --foreground: #EDEDEF;
