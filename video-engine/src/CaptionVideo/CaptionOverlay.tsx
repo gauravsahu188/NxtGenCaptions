@@ -78,15 +78,34 @@ const LOCAL_FONT_CSS = `
 `;
 
 /**
- * resolveRenderFont — maps user-facing font names to a safe CSS font-family stack.
- * For any font that is loaded via @remotion/google-fonts, the name is returned as-is.
- * For custom/unknown fonts we fall back to Inter (always loaded) to prevent boxes.
+ * NOTO_FALLBACK_STACK — appended to every font-family in the render.
+ *
+ * CSS font matching is glyph-level: if Inter has no Devanagari glyph the
+ * browser moves to the next font in the list. By including all Noto Indian
+ * script fonts here every character Sarvam AI returns is rendered correctly.
+ * All fonts are pre-loaded via @remotion/google-fonts above.
  */
-function resolveRenderFont(fontFamily: string): string {
+const NOTO_FALLBACK_STACK = [
+  "'Noto Sans Devanagari'",
+  "'Noto Sans Tamil'",
+  "'Noto Sans Bengali'",
+  "'Noto Sans Telugu'",
+  "'Noto Sans Kannada'",
+  "'Noto Sans Malayalam'",
+  "'Noto Sans Gujarati'",
+  "'Noto Sans Gurmukhi'",
+  "sans-serif",
+].join(", ");
+
+/**
+ * buildFontStack — returns a complete CSS font-family string.
+ * Primary font + all Noto Indian-script fallbacks.
+ * Unknown fonts (e.g. THEBOLDFONT) are replaced with Inter.
+ */
+function buildFontStack(fontFamily?: string | null): string {
   const knownGoogle = new Set([
     "Inter", "Roboto", "Poppins", "Montserrat", "Oswald", "Bebas Neue",
     "Space Grotesk",
-    // Indian scripts loaded above
     "Noto Sans Devanagari", "Noto Sans Tamil", "Noto Sans Bengali",
     "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam",
     "Noto Sans Gujarati", "Noto Sans Gurmukhi",
@@ -94,9 +113,15 @@ function resolveRenderFont(fontFamily: string): string {
   const knownLocal = new Set([
     "Jaggy W01 Regular", "JaggyW01-Regular", "Chalk-y", "Bastliga One", "Droid 1997",
   ]);
-  if (knownGoogle.has(fontFamily) || knownLocal.has(fontFamily)) return fontFamily;
-  // THEBOLDFONT and any other unknown font → fall back to Inter
-  return "Inter";
+  const primary = (fontFamily && (knownGoogle.has(fontFamily) || knownLocal.has(fontFamily)))
+    ? fontFamily
+    : "Inter";
+  return `'${primary}', ${NOTO_FALLBACK_STACK}`;
+}
+
+/** Alias kept for backward-compat with the style object construction below */
+function resolveRenderFont(fontFamily: string): string {
+  return buildFontStack(fontFamily);
 }
 
 function secToFrame(sec: number, fps: number) {
@@ -145,7 +170,7 @@ const ModernCaption: React.FC<{
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: `'${style.fontFamily}', sans-serif`,
+        fontFamily: buildFontStack(style.fontFamily),
         fontWeight: style.fontWeight || 600,
         letterSpacing: `${style.letterSpacing}px`,
         lineHeight: style.lineSpacing,
@@ -494,7 +519,7 @@ export const CaptionOverlay: React.FC<{
           >
             <span aria-hidden="true" style={heroGhostBlurStyle}>{wordObj.word}</span>
             <span style={{
-              fontFamily: style.fontFamily || "Inter",
+              fontFamily: buildFontStack(style.fontFamily),
               fontSize: `${HERO_FONT_SIZE}px`,
               fontWeight: 900,
               lineHeight: 0.9,
@@ -523,7 +548,7 @@ export const CaptionOverlay: React.FC<{
           }}
         >
           <span aria-hidden="true" style={{ ...ghostBlurStyle, color: primaryColor }}>{wordObj.word}</span>
-          <span style={{ fontFamily: style.fontFamily || "Inter", fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 800, lineHeight: 0.9, filter: `drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)` }}>{wordObj.word}</span>
+          <span style={{ fontFamily: buildFontStack(style.fontFamily), fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 800, lineHeight: 0.9, filter: `drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)` }}>{wordObj.word}</span>
         </span>
       );
     };
@@ -550,7 +575,7 @@ export const CaptionOverlay: React.FC<{
         {topWords.length > 0 && (
           <div style={{ textAlign: "left", width: "100%", position: "relative" }}>
             <div style={{
-              fontFamily: style.fontFamily || "Inter",
+              fontFamily: buildFontStack(style.fontFamily),
               fontSize: `${SUB_FONT_SIZE}px`,
               lineHeight: 0.9,
               color: primaryColor,
@@ -574,7 +599,7 @@ export const CaptionOverlay: React.FC<{
         {bottomWords.length > 0 && (
           <div style={{ textAlign: "right", width: "100%", position: "relative" }}>
             <div style={{
-              fontFamily: style.fontFamily || "Inter",
+              fontFamily: buildFontStack(style.fontFamily),
               fontSize: `${SUB_FONT_SIZE}px`,
               lineHeight: 0.9,
               color: primaryColor,
@@ -691,7 +716,7 @@ export const CaptionOverlay: React.FC<{
           >
             <span aria-hidden="true" style={heroGhostBlurStyle}>{wordObj.word}</span>
             <span style={{
-              fontFamily: style.fontFamily || "Inter",
+              fontFamily: buildFontStack(style.fontFamily),
               fontSize: `${HERO_FONT_SIZE}px`,
               fontWeight: 900,
               lineHeight: 0.9,
@@ -1164,7 +1189,9 @@ export const CaptionOverlay: React.FC<{
           const isPast = currentTime > wordObj.end;
 
           const wordStyle: React.CSSProperties = {
-            fontFamily: style.fontFamily === "Cinzel Decorative" ? "'Cinzel Decorative', serif" : "'Syncopate', sans-serif",
+            fontFamily: style.fontFamily === "Cinzel Decorative"
+              ? `'Cinzel Decorative', serif, ${NOTO_FALLBACK_STACK}`
+              : `'Syncopate', ${NOTO_FALLBACK_STACK}`,
             fontWeight: 700,
             fontSize: `${style.fontSize * 1.5}px`, // match editor scaling (already scaled)
             textTransform: "uppercase",
@@ -1410,7 +1437,7 @@ export const CaptionOverlay: React.FC<{
             justifyContent: "center",
             alignItems: "center",
             textAlign: "center",
-            fontFamily: `'${style.fontFamily}', monospace`,
+            fontFamily: buildFontStack(style.fontFamily),
             fontWeight: style.fontWeight || 700,
             fontSize: `${style.fontSize}px`,
             color: style.primaryColor || "#00FF41",
@@ -1473,7 +1500,7 @@ export const CaptionOverlay: React.FC<{
           letterSpacing: `${style.letterSpacing}px`,
           lineHeight: style.lineSpacing,
           fontSize: `${style.fontSize}px`,
-          fontFamily: `'${style.fontFamily}', sans-serif`,
+          fontFamily: buildFontStack(style.fontFamily),
           width: `${style.width}%`,
           maxWidth: "100%",
           padding: "1rem",
