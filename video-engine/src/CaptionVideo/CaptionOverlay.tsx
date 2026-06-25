@@ -30,24 +30,31 @@ import { loadFont as loadNotoKannada } from "@remotion/google-fonts/NotoSansKann
 import { loadFont as loadNotoMalayalam } from "@remotion/google-fonts/NotoSansMalayalam";
 import { loadFont as loadNotoGujarati } from "@remotion/google-fonts/NotoSansGujarati";
 import { loadFont as loadNotoGurmukhi } from "@remotion/google-fonts/NotoSansGurmukhi";
+import { loadFont as loadNotoOriya } from "@remotion/google-fonts/NotoSansOriya";
+import { loadFont as loadNotoArabic } from "@remotion/google-fonts/NotoSansArabic";
 
-// Load all fonts eagerly so they are ready before the first frame renders
-loadInter();
-loadRoboto();
-loadPoppins();
-loadMontserrat();
-loadOswald();
-loadBebasNeue();
-loadSpaceGrotesk();
+// Load all fonts eagerly so they are ready before the first frame renders.
+// IMPORTANT: We explicitly define the weights we use to prevent Remotion Lambda
+// from timing out on EC2 due to hundreds of font network requests.
+loadInter({ weights: ["400", "600", "700", "800", "900"] });
+loadRoboto({ weights: ["400", "500", "700", "900"] });
+loadPoppins({ weights: ["400", "600", "700", "800", "900"] });
+loadMontserrat({ weights: ["400", "600", "700", "800", "900"] });
+loadOswald({ weights: ["400", "600", "700"] });
+loadBebasNeue({ weights: ["400"] });
+loadSpaceGrotesk({ weights: ["400", "600", "700"] });
 // Load Indian script Noto fonts (prevents □□□ boxes for Sarvam AI captions)
-loadNotoDevanagari();
-loadNotoTamil();
-loadNotoBengali();
-loadNotoTelugu();
-loadNotoKannada();
-loadNotoMalayalam();
-loadNotoGujarati();
-loadNotoGurmukhi();
+// We only load 400 and 700 to save EC2 bandwidth & prevent Lambda timeouts.
+loadNotoDevanagari({ weights: ["400", "700"] });
+loadNotoTamil({ weights: ["400", "700"] });
+loadNotoBengali({ weights: ["400", "700"] });
+loadNotoTelugu({ weights: ["400", "700"] });
+loadNotoKannada({ weights: ["400", "700"] });
+loadNotoMalayalam({ weights: ["400", "700"] });
+loadNotoGujarati({ weights: ["400", "700"] });
+loadNotoGurmukhi({ weights: ["400", "700"] });
+loadNotoOriya({ weights: ["400", "700"] });
+loadNotoArabic({ weights: ["400", "700"] });
 
 /**
  * buildFontFaceCSS — produces @font-face rules for local (bundled) custom fonts.
@@ -94,7 +101,13 @@ const NOTO_FALLBACK_STACK = [
   "'Noto Sans Malayalam'",
   "'Noto Sans Gujarati'",
   "'Noto Sans Gurmukhi'",
+  "'Noto Sans Oriya'",
+  "'Noto Sans Arabic'",
   "sans-serif",
+  '"Apple Color Emoji"',
+  '"Segoe UI Emoji"',
+  '"Segoe UI Symbol"',
+  '"Noto Color Emoji"',
 ].join(", ");
 
 /**
@@ -108,7 +121,8 @@ function buildFontStack(fontFamily?: string | null): string {
     "Space Grotesk",
     "Noto Sans Devanagari", "Noto Sans Tamil", "Noto Sans Bengali",
     "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam",
-    "Noto Sans Gujarati", "Noto Sans Gurmukhi",
+    "Noto Sans Gujarati", "Noto Sans Gurmukhi", "Noto Sans Oriya",
+    "Noto Sans Arabic",
   ]);
   const knownLocal = new Set([
     "Jaggy W01 Regular", "JaggyW01-Regular", "Chalk-y", "Bastliga One", "Droid 1997",
