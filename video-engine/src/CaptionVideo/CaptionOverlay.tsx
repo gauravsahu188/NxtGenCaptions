@@ -36,25 +36,25 @@ import { loadFont as loadNotoArabic } from "@remotion/google-fonts/NotoSansArabi
 // Load all fonts eagerly so they are ready before the first frame renders.
 // IMPORTANT: We explicitly define the weights we use to prevent Remotion Lambda
 // from timing out on EC2 due to hundreds of font network requests.
-loadInter({ weights: ["400", "600", "700", "800", "900"] });
-loadRoboto({ weights: ["400", "500", "700", "900"] });
-loadPoppins({ weights: ["400", "600", "700", "800", "900"] });
-loadMontserrat({ weights: ["400", "600", "700", "800", "900"] });
-loadOswald({ weights: ["400", "600", "700"] });
-loadBebasNeue({ weights: ["400"] });
-loadSpaceGrotesk({ weights: ["400", "600", "700"] });
+loadInter("normal", { weights: ["400", "600", "700", "800", "900"] });
+loadRoboto("normal", { weights: ["400", "500", "700", "900"] });
+loadPoppins("normal", { weights: ["400", "600", "700", "800", "900"] });
+loadMontserrat("normal", { weights: ["400", "600", "700", "800", "900"] });
+loadOswald("normal", { weights: ["400", "600", "700"] });
+loadBebasNeue("normal", { weights: ["400"] });
+loadSpaceGrotesk("normal", { weights: ["400", "600", "700"] });
 // Load Indian script Noto fonts (prevents □□□ boxes for Sarvam AI captions)
 // We only load 400 and 700 to save EC2 bandwidth & prevent Lambda timeouts.
-loadNotoDevanagari({ weights: ["400", "700"] });
-loadNotoTamil({ weights: ["400", "700"] });
-loadNotoBengali({ weights: ["400", "700"] });
-loadNotoTelugu({ weights: ["400", "700"] });
-loadNotoKannada({ weights: ["400", "700"] });
-loadNotoMalayalam({ weights: ["400", "700"] });
-loadNotoGujarati({ weights: ["400", "700"] });
-loadNotoGurmukhi({ weights: ["400", "700"] });
-loadNotoOriya({ weights: ["400", "700"] });
-loadNotoArabic({ weights: ["400", "700"] });
+loadNotoDevanagari("normal", { weights: ["400", "700"] });
+loadNotoTamil("normal", { weights: ["400", "700"] });
+loadNotoBengali("normal", { weights: ["400", "700"] });
+loadNotoTelugu("normal", { weights: ["400", "700"] });
+loadNotoKannada("normal", { weights: ["400", "700"] });
+loadNotoMalayalam("normal", { weights: ["400", "700"] });
+loadNotoGujarati("normal", { weights: ["400", "700"] });
+loadNotoGurmukhi("normal", { weights: ["400", "700"] });
+loadNotoOriya("normal", { weights: ["400", "700"] });
+loadNotoArabic("normal", { weights: ["400", "700"] });
 
 /**
  * buildFontFaceCSS — produces @font-face rules for local (bundled) custom fonts.
