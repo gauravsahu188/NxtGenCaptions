@@ -133,7 +133,7 @@ export default function CaptionsList() {
     setCaptions(
       captions.map((c) => {
         if (c.id !== id) return c;
-        const rawWords = newText.split(" ");
+        const rawWords = newText.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
         const timePerWord = (c.end - c.start) / Math.max(rawWords.length, 1);
         const newWords = rawWords.map((word, wi) => ({
           word,
@@ -155,7 +155,7 @@ export default function CaptionsList() {
       setCaptions(
         captions.map((c) => {
           const clean = c.text.replace(/[^\w\s*]/g, "").replace(/\s+/g, " ").trim();
-          const rawWords = clean.split(" ");
+          const rawWords = clean.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
           const timePerWord = (c.end - c.start) / Math.max(rawWords.length, 1);
           return {
             ...c,
@@ -184,7 +184,7 @@ export default function CaptionsList() {
             .replace(/_([^_]+)_/g, "$1")
             .replace(/\b[A-Z]{2,}\b/g, (w) => w.charAt(0) + w.slice(1).toLowerCase())
             .trim();
-          const rawWords = clean.split(" ");
+          const rawWords = clean.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
           const timePerWord = (c.end - c.start) / Math.max(rawWords.length, 1);
           return {
             ...c,
@@ -635,7 +635,7 @@ export default function CaptionsList() {
                     <div className="flex items-center gap-1.5">
                       <TypeIcon className="w-2.5 h-2.5 text-zinc-700" />
                       <span className="text-[9px] text-zinc-700 font-mono">
-                        {caption.words?.length ?? caption.text.split(" ").length} words
+                        {caption.words?.length ?? caption.text.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean).length} words
                       </span>
                     </div>
                   </div>

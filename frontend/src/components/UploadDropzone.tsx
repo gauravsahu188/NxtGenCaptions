@@ -130,16 +130,15 @@ export default function UploadDropzone({
                   (data.captions as any[]).flatMap((seg: any) =>
                     seg.words && seg.words.length > 0
                       ? seg.words
-                      : seg.text.split(" ").map((w: string, wi: number) => ({
-                          word: w,
-                          start:
-                            seg.start +
-                            wi * ((seg.end - seg.start) / seg.text.split(" ").length),
-                          end:
-                            seg.start +
-                            (wi + 1) *
-                              ((seg.end - seg.start) / seg.text.split(" ").length),
-                        }))
+                      : (() => {
+                          const wordsList = seg.text.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
+                          const total = wordsList.length || 1;
+                          return wordsList.map((w: string, wi: number) => ({
+                            word: w,
+                            start: seg.start + wi * ((seg.end - seg.start) / total),
+                            end: seg.start + (wi + 1) * ((seg.end - seg.start) / total),
+                          }));
+                        })()
                   )
                 );
                 setIsProcessing(false);

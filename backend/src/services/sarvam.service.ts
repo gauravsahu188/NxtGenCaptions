@@ -258,7 +258,7 @@ export class SarvamTranscriptionService {
         })).filter((w) => w.word.length > 0);
 
         initialTimings.forEach((timing) => {
-          const subWords = timing.word.split(/\s+/).filter(Boolean);
+          const subWords = timing.word.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
           if (subWords.length > 1) {
              const duration = timing.end - timing.start;
              const subDuration = duration / subWords.length;
@@ -279,7 +279,7 @@ export class SarvamTranscriptionService {
       // ── Case 2: Fallback — interpolate from raw transcript ────────────────
       else {
         console.warn("[SarvamService] No timestamps in response — interpolating timings");
-        const rawWords = rawTranscript.trim().split(/\s+/).filter(Boolean);
+        const rawWords = rawTranscript.trim().split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
 
         // Try to get audio duration from file size as a rough estimate
         // (default to 30s if we can't determine it)

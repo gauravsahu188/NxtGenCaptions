@@ -23,7 +23,16 @@ import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
 import { loadFont as loadOswald } from "@remotion/google-fonts/Oswald";
 import { loadFont as loadBebasNeue } from "@remotion/google-fonts/BebasNeue";
 import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
-
+import { loadFont as loadNotoSansDevanagari } from "@remotion/google-fonts/NotoSansDevanagari";
+import { loadFont as loadNotoSansTamil } from "@remotion/google-fonts/NotoSansTamil";
+import { loadFont as loadNotoSansBengali } from "@remotion/google-fonts/NotoSansBengali";
+import { loadFont as loadNotoSansTelugu } from "@remotion/google-fonts/NotoSansTelugu";
+import { loadFont as loadNotoSansKannada } from "@remotion/google-fonts/NotoSansKannada";
+import { loadFont as loadNotoSansMalayalam } from "@remotion/google-fonts/NotoSansMalayalam";
+import { loadFont as loadNotoSansGujarati } from "@remotion/google-fonts/NotoSansGujarati";
+import { loadFont as loadNotoSansGurmukhi } from "@remotion/google-fonts/NotoSansGurmukhi";
+import { loadFont as loadNotoSansOriya } from "@remotion/google-fonts/NotoSansOriya";
+import { loadFont as loadNotoSansArabic } from "@remotion/google-fonts/NotoSansArabic";
 
 // Load all fonts eagerly so they are ready before the first frame renders.
 // IMPORTANT: We explicitly define the weights AND subsets we use to prevent Remotion Lambda
@@ -35,6 +44,18 @@ loadMontserrat("normal", { weights: ["400", "600", "700", "800", "900"], subsets
 loadOswald("normal", { weights: ["400", "600", "700"], subsets: ["latin"] });
 loadBebasNeue("normal", { weights: ["400"], subsets: ["latin"] });
 loadSpaceGrotesk("normal", { weights: ["400", "600", "700"], subsets: ["latin"] });
+
+// Eagerly load Noto Sans regional fonts to prevent tofu boxes in headless browser rendering
+loadNotoSansDevanagari("normal", { weights: ["400", "700"] });
+loadNotoSansTamil("normal", { weights: ["400", "700"] });
+loadNotoSansBengali("normal", { weights: ["400", "700"] });
+loadNotoSansTelugu("normal", { weights: ["400", "700"] });
+loadNotoSansKannada("normal", { weights: ["400", "700"] });
+loadNotoSansMalayalam("normal", { weights: ["400", "700"] });
+loadNotoSansGujarati("normal", { weights: ["400", "700"] });
+loadNotoSansGurmukhi("normal", { weights: ["400", "700"] });
+loadNotoSansOriya("normal", { weights: ["400", "700"] });
+loadNotoSansArabic("normal", { weights: ["400", "700"] });
 
 
 /**

@@ -37,7 +37,7 @@ export default function ModernCaption() {
 
   const words = useMemo(() => {
     if (!activeCaption) return [];
-    return activeCaption.text.split(" ").map((word, index) => {
+    return activeCaption.text.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean).map((word, index) => {
       const cleanWord = word.toLowerCase().replace(/[^a-z]/g, "");
       const isStopWord = stopWords.has(cleanWord);
       const isLongWord = word.length >= 4;

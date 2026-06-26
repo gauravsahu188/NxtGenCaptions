@@ -9,7 +9,7 @@ export default function HoloCaption() {
   // Split text into words, then into characters for typewriter effect
   const words = useMemo(() => {
     if (!activeCaption) return [];
-    return activeCaption.text.split(" ").map((word, wordIndex) => {
+    return activeCaption.text.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean).map((word, wordIndex) => {
       // Every 4th word triggers the glitch
       const isGlitch = (wordIndex + 1) % 4 === 0;
       return {
