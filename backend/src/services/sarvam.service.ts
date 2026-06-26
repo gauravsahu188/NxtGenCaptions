@@ -21,8 +21,7 @@ export interface SarvamResponse {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-/** Maximum words per caption chunk (Kallakar/Captik style: 1–6 words) */
-const MAX_WORDS_PER_CHUNK = 6;
+
 
 /** Maximum characters per caption chunk */
 const MAX_CHARS_PER_CHUNK = 28;
@@ -72,8 +71,8 @@ function buildChunkText(
 
 /**
  * Segment a flat list of word timings into caption chunks.
- * Logic mirrors popular tools (Kallakar, Captik, Captions.ai):
- *  - Break after MAX_WORDS_PER_CHUNK words
+ * Logic mirrors intelligent auto mode:
+ *  - Break dynamically based on speech speed (Fast: 3 words, Slow: 1-2 words)
  *  - Break when adding the next word would exceed MAX_CHARS_PER_CHUNK
  *  - Always break after sentence-ending punctuation
  */
@@ -102,8 +101,28 @@ function segmentWords(
     const prospective = [...chunk, w];
     const prospectiveText = prospective.map((x) => normaliseWord(x.word)).join(" ");
 
+    // Intelligent auto mode based on speech speed
+    // Calculate average duration per word in the prospective chunk
+    const chunkDuration = prospective[prospective.length - 1].end - prospective[0].start;
+    // Fallback to individual word duration if chunk duration is 0
+    let avgWordDuration = chunkDuration > 0 
+      ? chunkDuration / prospective.length 
+      : (w.end - w.start);
+      
+    // Default fallback if we still don't have a valid duration
+    if (avgWordDuration <= 0) avgWordDuration = 0.3;
+
+    // Fast speaking -> 3 words per line
+    // Slow speaking -> 1 or 2 words per line
+    let dynamicMaxWords = 3;
+    if (avgWordDuration >= 0.5) {
+      dynamicMaxWords = 1;
+    } else if (avgWordDuration >= 0.35) {
+      dynamicMaxWords = 2;
+    }
+
     // Flush if adding this word exceeds limits (only if chunk already has words)
-    const hitWords = chunk.length >= MAX_WORDS_PER_CHUNK;
+    const hitWords = chunk.length >= dynamicMaxWords;
     const hitChars = prospectiveText.length > MAX_CHARS_PER_CHUNK && chunk.length > 0;
 
     if (hitWords || hitChars) {

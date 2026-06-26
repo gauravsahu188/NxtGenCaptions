@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   AbsoluteFill,
   useCurrentFrame,
   useVideoConfig,
   interpolate,
+  delayRender,
+  continueRender,
 } from "remotion";
 import { CaptionSegment, CaptionStyleProps, WordTiming } from "../types";
 import jaggyFont from "../assets/jaggy-w01-regular.ttf";
@@ -21,40 +23,19 @@ import { loadFont as loadMontserrat } from "@remotion/google-fonts/Montserrat";
 import { loadFont as loadOswald } from "@remotion/google-fonts/Oswald";
 import { loadFont as loadBebasNeue } from "@remotion/google-fonts/BebasNeue";
 import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
-// ── Indian script Noto fonts — required for zero-box Hindi/Tamil/etc captions ─
-import { loadFont as loadNotoDevanagari } from "@remotion/google-fonts/NotoSansDevanagari";
-import { loadFont as loadNotoTamil } from "@remotion/google-fonts/NotoSansTamil";
-import { loadFont as loadNotoBengali } from "@remotion/google-fonts/NotoSansBengali";
-import { loadFont as loadNotoTelugu } from "@remotion/google-fonts/NotoSansTelugu";
-import { loadFont as loadNotoKannada } from "@remotion/google-fonts/NotoSansKannada";
-import { loadFont as loadNotoMalayalam } from "@remotion/google-fonts/NotoSansMalayalam";
-import { loadFont as loadNotoGujarati } from "@remotion/google-fonts/NotoSansGujarati";
-import { loadFont as loadNotoGurmukhi } from "@remotion/google-fonts/NotoSansGurmukhi";
-import { loadFont as loadNotoOriya } from "@remotion/google-fonts/NotoSansOriya";
-import { loadFont as loadNotoArabic } from "@remotion/google-fonts/NotoSansArabic";
+
 
 // Load all fonts eagerly so they are ready before the first frame renders.
-// IMPORTANT: We explicitly define the weights we use to prevent Remotion Lambda
+// IMPORTANT: We explicitly define the weights AND subsets we use to prevent Remotion Lambda
 // from timing out on EC2 due to hundreds of font network requests.
-loadInter("normal", { weights: ["400", "600", "700", "800", "900"] });
-loadRoboto("normal", { weights: ["400", "500", "700", "900"] });
-loadPoppins("normal", { weights: ["400", "600", "700", "800", "900"] });
-loadMontserrat("normal", { weights: ["400", "600", "700", "800", "900"] });
-loadOswald("normal", { weights: ["400", "600", "700"] });
-loadBebasNeue("normal", { weights: ["400"] });
-loadSpaceGrotesk("normal", { weights: ["400", "600", "700"] });
-// Load Indian script Noto fonts (prevents □□□ boxes for Sarvam AI captions)
-// We only load 400 and 700 to save EC2 bandwidth & prevent Lambda timeouts.
-loadNotoDevanagari("normal", { weights: ["400", "700"] });
-loadNotoTamil("normal", { weights: ["400", "700"] });
-loadNotoBengali("normal", { weights: ["400", "700"] });
-loadNotoTelugu("normal", { weights: ["400", "700"] });
-loadNotoKannada("normal", { weights: ["400", "700"] });
-loadNotoMalayalam("normal", { weights: ["400", "700"] });
-loadNotoGujarati("normal", { weights: ["400", "700"] });
-loadNotoGurmukhi("normal", { weights: ["400", "700"] });
-loadNotoOriya("normal", { weights: ["400", "700"] });
-loadNotoArabic("normal", { weights: ["400", "700"] });
+loadInter("normal", { weights: ["400", "600", "700", "800", "900"], subsets: ["latin"] });
+loadRoboto("normal", { weights: ["400", "500", "700", "900"], subsets: ["latin"] });
+loadPoppins("normal", { weights: ["400", "600", "700", "800", "900"], subsets: ["latin"] });
+loadMontserrat("normal", { weights: ["400", "600", "700", "800", "900"], subsets: ["latin"] });
+loadOswald("normal", { weights: ["400", "600", "700"], subsets: ["latin"] });
+loadBebasNeue("normal", { weights: ["400"], subsets: ["latin"] });
+loadSpaceGrotesk("normal", { weights: ["400", "600", "700"], subsets: ["latin"] });
+
 
 /**
  * buildFontFaceCSS — produces @font-face rules for local (bundled) custom fonts.
@@ -247,6 +228,17 @@ export const CaptionOverlay: React.FC<{
 }> = ({ captions, style: originalStyle, isBackgroundLayer }) => {
   const frame = useCurrentFrame();
   const { fps, width: videoWidth } = useVideoConfig();
+
+  // --- Wait for Google Fonts CSS to load before capturing frames ---
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [handle] = useState(() => delayRender("Loading Indian Noto Fonts"));
+
+  useEffect(() => {
+    document.fonts.ready.then(() => {
+      setFontsLoaded(true);
+      continueRender(handle);
+    });
+  }, [handle]);
 
 
   // seconds equivalent of current frame — used just like `currentTime` in the editor
@@ -1500,6 +1492,12 @@ export const CaptionOverlay: React.FC<{
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
+      {/* ── Native Google Fonts Injection for Indian Scripts (Solves EC2 Rendering Boxes) ── */}
+      <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;800;900&family=Noto+Sans+Tamil:wght@400;700;800;900&family=Noto+Sans+Bengali:wght@400;700;800;900&family=Noto+Sans+Telugu:wght@400;700;800;900&family=Noto+Sans+Kannada:wght@400;700;800;900&family=Noto+Sans+Malayalam:wght@400;700;800;900&family=Noto+Sans+Gujarati:wght@400;700;800;900&family=Noto+Sans+Gurmukhi:wght@400;700;800;900&family=Noto+Sans+Oriya:wght@400;700;800;900&family=Noto+Sans+Arabic:wght@400;700;800;900&display=swap" 
+      />
+
       {/* Local custom fonts (bundled, no network) */}
       <style>{LOCAL_FONT_CSS}</style>
 
