@@ -46,16 +46,16 @@ loadBebasNeue("normal", { weights: ["400"], subsets: ["latin"] });
 loadSpaceGrotesk("normal", { weights: ["400", "600", "700"], subsets: ["latin"] });
 
 // Eagerly load Noto Sans regional fonts to prevent tofu boxes in headless browser rendering
-loadNotoSansDevanagari("normal", { weights: ["400", "700"] });
-loadNotoSansTamil("normal", { weights: ["400", "700"] });
-loadNotoSansBengali("normal", { weights: ["400", "700"] });
-loadNotoSansTelugu("normal", { weights: ["400", "700"] });
-loadNotoSansKannada("normal", { weights: ["400", "700"] });
-loadNotoSansMalayalam("normal", { weights: ["400", "700"] });
-loadNotoSansGujarati("normal", { weights: ["400", "700"] });
-loadNotoSansGurmukhi("normal", { weights: ["400", "700"] });
-loadNotoSansOriya("normal", { weights: ["400", "700"] });
-loadNotoSansArabic("normal", { weights: ["400", "700"] });
+loadNotoSansDevanagari("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansTamil("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansBengali("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansTelugu("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansKannada("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansMalayalam("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansGujarati("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansGurmukhi("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansOriya("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+loadNotoSansArabic("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
 
 
 /**
@@ -771,8 +771,8 @@ export const CaptionOverlay: React.FC<{
             opacity: opacityVal
           }}
         >
-          <span aria-hidden="true" style={{ ...ghostBlurStyle, fontFamily: "'Aston Script', cursive", fontWeight: 400, color: primaryColor }}>{wordObj.word}</span>
-          <span style={{ fontFamily: "'Aston Script', cursive", fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 400, lineHeight: 1.1, filter: `drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)` }}>{wordObj.word}</span>
+          <span aria-hidden="true" style={{ ...ghostBlurStyle, fontFamily: `'Aston Script', cursive, ${NOTO_FALLBACK_STACK}`, fontWeight: 400, color: primaryColor }}>{wordObj.word}</span>
+          <span style={{ fontFamily: `'Aston Script', cursive, ${NOTO_FALLBACK_STACK}`, fontSize: `${SUB_FONT_SIZE}px`, color: primaryColor, fontWeight: 400, lineHeight: 1.1, filter: `drop-shadow(rgba(0, 0, 0, 0.35) ${5 * renderScale}px ${5 * renderScale}px ${15 * renderScale}px)` }}>{wordObj.word}</span>
         </span>
       );
     };
@@ -804,7 +804,7 @@ export const CaptionOverlay: React.FC<{
         {topWords.length > 0 && (
           <div style={{ textAlign: "left", width: "100%", position: "relative" }}>
             <div style={{
-              fontFamily: "'Aston Script', cursive",
+              fontFamily: `'Aston Script', cursive, ${NOTO_FALLBACK_STACK}`,
               fontSize: `${SUB_FONT_SIZE}px`,
               lineHeight: 1.1,
               color: primaryColor,
@@ -828,7 +828,7 @@ export const CaptionOverlay: React.FC<{
         {bottomWords.length > 0 && (
           <div style={{ textAlign: "right", width: "100%", position: "relative" }}>
             <div style={{
-              fontFamily: "'Aston Script', cursive",
+              fontFamily: `'Aston Script', cursive, ${NOTO_FALLBACK_STACK}`,
               fontSize: `${SUB_FONT_SIZE}px`,
               lineHeight: 1.1,
               color: primaryColor,
@@ -896,7 +896,7 @@ export const CaptionOverlay: React.FC<{
           <span
             key={`top-${wordObj.start}`}
             style={{
-              fontFamily: "'JaggyW01-Regular', sans-serif",
+              fontFamily: `'JaggyW01-Regular', ${NOTO_FALLBACK_STACK}`,
               color: primaryColor,
               whiteSpace: "pre",
               transform: `translateY(${yOffset}px)`,
@@ -916,7 +916,7 @@ export const CaptionOverlay: React.FC<{
           <span
             key={`bottom-${wordObj.start}`}
             style={{
-              fontFamily: "'JaggyW01-Regular', sans-serif",
+              fontFamily: `'JaggyW01-Regular', ${NOTO_FALLBACK_STACK}`,
               color: primaryColor,
               whiteSpace: "pre",
               transform: `translateY(${yOffset}px)`,
@@ -941,7 +941,7 @@ export const CaptionOverlay: React.FC<{
             key={`hero-${wordObj.start}`}
             style={{
               display: "inline-block",
-              fontFamily: "'Chalk-y', sans-serif",
+              fontFamily: `'Chalk-y', ${NOTO_FALLBACK_STACK}`,
               fontSize: `${HERO_FONT_SIZE}px`,
               color: "#ffffff",
               textShadow: `0 0 ${15 * renderScale}px rgba(255,255,255,0.8), ${2 * renderScale}px ${2 * renderScale}px ${5 * renderScale}px rgba(0,0,0,0.5)`,
@@ -1085,7 +1085,7 @@ export const CaptionOverlay: React.FC<{
         {topWords.length > 0 && (
           <div style={{ textAlign: "left", width: "100%", position: "relative" }}>
             <div style={{
-              fontFamily: "'Bastliga One', cursive, sans-serif",
+              fontFamily: `'Bastliga One', cursive, ${NOTO_FALLBACK_STACK}`,
               fontSize: `${SUB_FONT_SIZE}px`,
               lineHeight: 0.9,
               color: primaryColor,
@@ -1122,7 +1122,7 @@ export const CaptionOverlay: React.FC<{
         {heroWordObj && (
           <div style={{ textAlign: "center", width: "100%", position: "relative", margin: "10px 0" }}>
             <div style={{
-              fontFamily: "'Droid 1997', 'Syncopate', sans-serif",
+              fontFamily: `'Droid 1997', 'Syncopate', ${NOTO_FALLBACK_STACK}`,
               fontSize: `${HERO_FONT_SIZE}px`,
               fontWeight: 900,
               lineHeight: 0.9,
@@ -1158,7 +1158,7 @@ export const CaptionOverlay: React.FC<{
         {bottomWords.length > 0 && (
           <div style={{ textAlign: "right", width: "100%", position: "relative" }}>
             <div style={{
-              fontFamily: "'Space Grotesk', sans-serif",
+              fontFamily: `'Space Grotesk', ${NOTO_FALLBACK_STACK}`,
               fontSize: `${SUB_FONT_SIZE}px`,
               lineHeight: 0.9,
               color: primaryColor,
