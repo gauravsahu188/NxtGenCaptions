@@ -149,11 +149,14 @@ class VideoController {
             let captions = [];
             console.log(`[VideoController] Routing to Sarvam AI (Language: ${language}, Script: ${script})`);
             // Use Sarvam AI exclusively for all languages and scripts
-            captions = await sarvamService.transcribeAudio(cleanedAudioPath, (segment) => { }, { language, script });
-            // Send processed segments
-            for (const segment of captions) {
-                sendEvent("segment", { segment });
-            }
+            // Stream each segment to the client as soon as it is ready
+            captions = await sarvamService.transcribeAudio(cleanedAudioPath, (segment) => {
+                // Normalise id to string for frontend CaptionSegment compatibility
+                const normalised = { ...segment, id: String(segment.id) };
+                sendEvent("segment", { segment: normalised });
+            }, { language, script });
+            // Normalise all segment IDs to strings before sending the complete event
+            captions = captions.map((seg) => ({ ...seg, id: String(seg.id) }));
             const srtFilename = `${path_1.default.basename(videoPath, path_1.default.extname(videoPath))}.srt`;
             ffmpegService.generateSrt(captions, srtFilename);
             try {

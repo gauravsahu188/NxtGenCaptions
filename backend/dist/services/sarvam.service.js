@@ -6,27 +6,147 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SarvamTranscriptionService = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+// ─── Constants ────────────────────────────────────────────────────────────────
+/** Maximum characters per caption chunk */
+const MAX_CHARS_PER_CHUNK = 28;
+/** Sentence-ending punctuation — always force a new chunk after these */
+const SENTENCE_END_RE = /[.!?।]$/;
+/**
+ * Detect if a word should be treated as "emphasised".
+ * Rules:
+ *  1. ALL-CAPS word with 2+ letters (e.g. NOW, STOP, NEVER)
+ *  2. Word already wrapped in asterisks: *word*
+ *  3. Elongated words: "soooo", "yayyy" (3+ of same letter in a row)
+ */
+function isEmphasisWord(word) {
+    const clean = word.replace(/[^a-zA-Z]/g, "");
+    if (clean.length < 2)
+        return false;
+    if (clean === clean.toUpperCase() && /[A-Z]/.test(clean))
+        return true;
+    if (/\*[^*]+\*/.test(word))
+        return true;
+    if (/(.)\1{2,}/.test(clean))
+        return true;
+    return false;
+}
+/**
+ * Normalise a word token:
+ *  - Strip surrounding asterisks
+ *  - Preserve the word's actual casing (don't forcibly lower-case)
+ */
+function normaliseWord(word) {
+    return word.replace(/^\*+/, "").replace(/\*+$/, "").trim();
+}
+/**
+ * Build the display text for a chunk.
+ * Emphasis words get wrapped in `*...*` so the frontend can colour them.
+ */
+function buildChunkText(chunk) {
+    return chunk
+        .map((w) => {
+        const clean = normaliseWord(w.word);
+        return isEmphasisWord(w.word) ? `*${clean}*` : clean;
+    })
+        .join(" ");
+}
+/**
+ * Segment a flat list of word timings into caption chunks.
+ * Logic mirrors intelligent auto mode:
+ *  - Break dynamically based on speech speed (Fast: 3 words, Slow: 1-2 words)
+ *  - Break when adding the next word would exceed MAX_CHARS_PER_CHUNK
+ *  - Always break after sentence-ending punctuation
+ */
+function segmentWords(words) {
+    if (words.length === 0)
+        return [];
+    const segments = [];
+    let chunk = [];
+    let segId = 1;
+    const flush = () => {
+        if (chunk.length === 0)
+            return;
+        segments.push({
+            id: segId++,
+            start: chunk[0].start,
+            end: chunk[chunk.length - 1].end,
+            text: buildChunkText(chunk),
+            words: chunk.map((w) => ({ word: normaliseWord(w.word), start: w.start, end: w.end })),
+        });
+        chunk = [];
+    };
+    for (const w of words) {
+        const prospective = [...chunk, w];
+        const prospectiveText = prospective.map((x) => normaliseWord(x.word)).join(" ");
+        // Intelligent auto mode based on speech speed
+        // Calculate average duration per word in the prospective chunk
+        const chunkDuration = prospective[prospective.length - 1].end - prospective[0].start;
+        // Fallback to individual word duration if chunk duration is 0
+        let avgWordDuration = chunkDuration > 0
+            ? chunkDuration / prospective.length
+            : (w.end - w.start);
+        // Default fallback if we still don't have a valid duration
+        if (avgWordDuration <= 0)
+            avgWordDuration = 0.3;
+        // Fast speaking -> 3 words per line
+        // Slow speaking -> 1 or 2 words per line
+        let dynamicMaxWords = 3;
+        if (avgWordDuration >= 0.5) {
+            dynamicMaxWords = 1;
+        }
+        else if (avgWordDuration >= 0.35) {
+            dynamicMaxWords = 2;
+        }
+        // Flush if adding this word exceeds limits (only if chunk already has words)
+        const hitWords = chunk.length >= dynamicMaxWords;
+        const hitChars = prospectiveText.length > MAX_CHARS_PER_CHUNK && chunk.length > 0;
+        if (hitWords || hitChars) {
+            flush();
+        }
+        chunk.push(w);
+        // Flush after sentence-ending punctuation
+        if (SENTENCE_END_RE.test(normaliseWord(w.word))) {
+            flush();
+        }
+    }
+    flush(); // remaining words
+    return segments;
+}
+/**
+ * When Sarvam returns no timestamps, interpolate evenly across the word list.
+ * This is a graceful fallback — not ideal, but avoids the single-tile problem.
+ */
+function interpolateTimings(words, totalDuration) {
+    const durationPerWord = totalDuration / Math.max(words.length, 1);
+    return words.map((word, i) => ({
+        word,
+        start: parseFloat((i * durationPerWord).toFixed(3)),
+        end: parseFloat(((i + 1) * durationPerWord).toFixed(3)),
+    }));
+}
+// ─── Service ──────────────────────────────────────────────────────────────────
 class SarvamTranscriptionService {
     apiKey;
     baseUrl = "https://api.sarvam.ai";
     constructor() {
         this.apiKey = process.env.SARVAM_API_KEY || "";
         if (!this.apiKey) {
-            console.warn("SARVAM_API_KEY is not set in environment variables");
+            console.warn("[SarvamService] SARVAM_API_KEY is not set");
         }
     }
     async transcribeAudio(audioPath, onProgress, options) {
         const { language = "hi", script = "native" } = options || {};
+        // Choose endpoint based on script
         let endpoint = `${this.baseUrl}/speech-to-text`;
         if (script === "english") {
             endpoint = `${this.baseUrl}/speech-to-text-translate`;
         }
         const formData = new FormData();
-        // Read file and convert to native Node 20 File object
+        // Attach audio file
         const fileBuffer = await fs_1.default.promises.readFile(audioPath);
         const file = new File([fileBuffer], path_1.default.basename(audioPath), { type: "audio/mpeg" });
         formData.append("file", file);
-        // Convert short codes (e.g., 'ta') to Sarvam format if needed, typically 'ta-IN'
+        // Language code mapping
         const langCodeMap = {
             hi: "hi-IN",
             en: "en-IN",
@@ -38,47 +158,108 @@ class SarvamTranscriptionService {
             mr: "mr-IN",
             pa: "pa-IN",
             ur: "ur-IN",
-            kn: "kn-IN"
+            kn: "kn-IN",
         };
         const mappedLang = langCodeMap[language] || language;
         formData.append("language_code", mappedLang);
-        // If Sarvam's API takes a specific parameter for script/model
-        // We assume model 'saaras:v3' handles transliteration when passed a parameter, 
-        // or we might need to rely on the transliteration endpoint if it exists.
-        formData.append("model", "saaras:v3"); // using saaras:v3 based on API requirements
+        formData.append("model", "saaras:v3");
+        // ✅ Request word-level timestamps from Sarvam AI
+        formData.append("with_timestamps", "true");
         try {
-            console.log(`[SarvamService] Sending audio to Sarvam AI (${endpoint}) for lang: ${mappedLang}, script: ${script}`);
+            console.log(`[SarvamService] Calling ${endpoint} | lang=${mappedLang} script=${script} | timestamps=true`);
             const response = await fetch(endpoint, {
                 method: "POST",
                 headers: {
-                    "api-subscription-key": this.apiKey
+                    "api-subscription-key": this.apiKey,
                 },
                 body: formData,
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Sarvam AI API error: ${response.status} ${response.statusText} - ${errorText}`);
+                throw new Error(`Sarvam API error: ${response.status} ${response.statusText} — ${errorText}`);
             }
             const data = await response.json();
-            console.log(`[SarvamService] Sarvam AI response received`);
-            // Mocking segment creation from bulk response since Sarvam returns full transcript
-            // In a real production scenario with timestamps, we'd parse timestamps from Sarvam if available.
-            // If timestamps aren't available, we create a single segment or chunk it.
-            const transcriptText = (data.translated_text || data.transcript || "") + " [via Sarvam AI]";
-            // Split into 5-second chunks roughly or just one big segment for now
-            const segments = [{
-                    id: 1,
-                    start: 0,
-                    end: 10, // dummy duration
-                    text: transcriptText,
-                    words: transcriptText.split(" ").map((w, i) => ({
-                        word: w,
-                        start: i * 0.5,
-                        end: (i + 1) * 0.5
-                    }))
-                }];
-            if (onProgress && segments.length > 0) {
-                onProgress(segments[0]);
+            console.log(`[SarvamService] Response received. Has timestamps: ${!!data.timestamps}`);
+            // Prefer translated_text for speech-to-text-translate endpoint
+            const rawTranscript = data.translated_text || data.transcript || "";
+            if (!rawTranscript.trim()) {
+                console.warn("[SarvamService] Empty transcript received");
+                return [];
+            }
+            let wordTimings = [];
+            // ── Case 1: Real word-level timestamps from Sarvam ────────────────────
+            if (data.timestamps &&
+                Array.isArray(data.timestamps.words) &&
+                data.timestamps.words.length > 0 &&
+                Array.isArray(data.timestamps.start_time_seconds) &&
+                Array.isArray(data.timestamps.end_time_seconds)) {
+                wordTimings = data.timestamps.words.map((word, i) => ({
+                    word: word.trim(),
+                    start: parseFloat((data.timestamps.start_time_seconds[i] ?? 0).toFixed(3)),
+                    end: parseFloat((data.timestamps.end_time_seconds[i] ?? 0).toFixed(3)),
+                })).filter((w) => w.word.length > 0);
+                console.log(`[SarvamService] Using real timestamps for ${wordTimings.length} words`);
+            }
+            // ── Case 2: Fallback — interpolate from raw transcript ────────────────
+            else {
+                console.warn("[SarvamService] No timestamps in response — interpolating timings");
+                const rawWords = rawTranscript.trim().split(/\s+/).filter(Boolean);
+                // Try to get audio duration from file size as a rough estimate
+                // (default to 30s if we can't determine it)
+                let estimatedDuration = 30;
+                try {
+                    const stat = await fs_1.default.promises.stat(audioPath);
+                    // Rough estimate: 128kbps MP3 = ~16000 bytes/second
+                    estimatedDuration = Math.max(5, stat.size / 16000);
+                }
+                catch {
+                    // ignore
+                }
+                wordTimings = interpolateTimings(rawWords, estimatedDuration);
+                console.log(`[SarvamService] Interpolated ${wordTimings.length} words over ~${estimatedDuration.toFixed(1)}s`);
+            }
+            // ── Clean up common hallucinations from the end ──────────────────────
+            const cleanWord = (w) => w.toLowerCase().replace(/[^a-z0-9]/g, "");
+            let cleanedWordTimings = [...wordTimings];
+            let removed = true;
+            while (removed && cleanedWordTimings.length > 0) {
+                removed = false;
+                const len = cleanedWordTimings.length;
+                // Helper to get cleaned word from the end
+                const getEnd = (offset) => len - offset >= 0 ? cleanWord(cleanedWordTimings[len - offset].word) : "";
+                const w1 = getEnd(1); // last word
+                const w2 = getEnd(2);
+                const w3 = getEnd(3);
+                const w4 = getEnd(4);
+                if (w4 === "subtitles" && (w3 === "by" || w3 === "via") && w2 === "sarvam" && w1 === "ai") {
+                    cleanedWordTimings.splice(-4);
+                    removed = true;
+                }
+                else if (w4 === "subtitle" && (w3 === "by" || w3 === "via") && w2 === "sarvam" && w1 === "ai") {
+                    cleanedWordTimings.splice(-4);
+                    removed = true;
+                }
+                else if ((w3 === "by" || w3 === "via") && w2 === "sarvam" && w1 === "ai") {
+                    cleanedWordTimings.splice(-3);
+                    removed = true;
+                }
+                else if (w2 === "sarvam" && w1 === "ai") {
+                    cleanedWordTimings.splice(-2);
+                    removed = true;
+                }
+                else if (w1 === "sarvamai" || w1 === "bysarvamai" || w1 === "viasarvamai") {
+                    cleanedWordTimings.splice(-1);
+                    removed = true;
+                }
+            }
+            // ── Segment into natural caption chunks ───────────────────────────────
+            const segments = segmentWords(cleanedWordTimings);
+            console.log(`[SarvamService] Created ${segments.length} caption segments`);
+            // Stream segments progressively
+            if (onProgress) {
+                for (const seg of segments) {
+                    onProgress(seg);
+                }
             }
             return segments;
         }
