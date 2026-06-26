@@ -167,9 +167,26 @@ export const CaptionProvider = ({ children }: { children: ReactNode }) => {
           while (i < pool.length) {
             const prospective = [...chunk, pool[i]];
             const txt = prospective.map((w) => w.word).join(" ");
+            
+            // Intelligent auto mode based on speech speed
+            const chunkDuration = prospective[prospective.length - 1].end - prospective[0].start;
+            let avgWordDuration = chunkDuration > 0 
+              ? chunkDuration / prospective.length 
+              : (pool[i].end - pool[i].start);
+              
+            if (avgWordDuration <= 0) avgWordDuration = 0.3;
+
+            let dynamicMaxWords = 3;
+            if (avgWordDuration >= 0.5) {
+              dynamicMaxWords = 1;
+            } else if (avgWordDuration >= 0.35) {
+              dynamicMaxWords = 2;
+            }
+            
             const hitChar = txt.length > chars && chunk.length > 0;
             const hitPunct = chunk.length > 0 && /[.!?]$/.test(pool[i - 1]?.word ?? "");
-            const hitMax = chunk.length >= 6;
+            const hitMax = chunk.length >= dynamicMaxWords;
+            
             if (hitChar || hitPunct || hitMax) break;
             chunk.push(pool[i++]);
           }

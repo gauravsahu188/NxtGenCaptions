@@ -251,11 +251,28 @@ export class SarvamTranscriptionService {
         Array.isArray(data.timestamps.start_time_seconds) &&
         Array.isArray(data.timestamps.end_time_seconds)
       ) {
-        wordTimings = data.timestamps.words.map((word, i) => ({
+        const initialTimings = data.timestamps.words.map((word, i) => ({
           word: word.trim(),
           start: parseFloat((data.timestamps!.start_time_seconds[i] ?? 0).toFixed(3)),
           end: parseFloat((data.timestamps!.end_time_seconds[i] ?? 0).toFixed(3)),
         })).filter((w) => w.word.length > 0);
+
+        initialTimings.forEach((timing) => {
+          const subWords = timing.word.split(/\s+/).filter(Boolean);
+          if (subWords.length > 1) {
+             const duration = timing.end - timing.start;
+             const subDuration = duration / subWords.length;
+             subWords.forEach((sub, idx) => {
+               wordTimings.push({
+                 word: sub,
+                 start: parseFloat((timing.start + idx * subDuration).toFixed(3)),
+                 end: parseFloat((timing.start + (idx + 1) * subDuration).toFixed(3))
+               });
+             });
+          } else {
+             wordTimings.push(timing);
+          }
+        });
 
         console.log(`[SarvamService] Using real timestamps for ${wordTimings.length} words`);
       }
