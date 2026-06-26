@@ -60,6 +60,7 @@ export interface CaptionStyleProps {
    * Measured from the video element's clientWidth at render time.
    */
   previewWidth?: number;
+  animationEnabled?: boolean;
 }
 
 // ─── Root Composition Props ───────────────────────────────────────────────────

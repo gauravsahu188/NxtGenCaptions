@@ -193,17 +193,34 @@ class SarvamTranscriptionService {
                 data.timestamps.words.length > 0 &&
                 Array.isArray(data.timestamps.start_time_seconds) &&
                 Array.isArray(data.timestamps.end_time_seconds)) {
-                wordTimings = data.timestamps.words.map((word, i) => ({
+                const initialTimings = data.timestamps.words.map((word, i) => ({
                     word: word.trim(),
                     start: parseFloat((data.timestamps.start_time_seconds[i] ?? 0).toFixed(3)),
                     end: parseFloat((data.timestamps.end_time_seconds[i] ?? 0).toFixed(3)),
                 })).filter((w) => w.word.length > 0);
+                initialTimings.forEach((timing) => {
+                    const subWords = timing.word.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
+                    if (subWords.length > 1) {
+                        const duration = timing.end - timing.start;
+                        const subDuration = duration / subWords.length;
+                        subWords.forEach((sub, idx) => {
+                            wordTimings.push({
+                                word: sub,
+                                start: parseFloat((timing.start + idx * subDuration).toFixed(3)),
+                                end: parseFloat((timing.start + (idx + 1) * subDuration).toFixed(3))
+                            });
+                        });
+                    }
+                    else {
+                        wordTimings.push(timing);
+                    }
+                });
                 console.log(`[SarvamService] Using real timestamps for ${wordTimings.length} words`);
             }
             // ── Case 2: Fallback — interpolate from raw transcript ────────────────
             else {
                 console.warn("[SarvamService] No timestamps in response — interpolating timings");
-                const rawWords = rawTranscript.trim().split(/\s+/).filter(Boolean);
+                const rawWords = rawTranscript.trim().split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
                 // Try to get audio duration from file size as a rough estimate
                 // (default to 30s if we can't determine it)
                 let estimatedDuration = 30;
@@ -218,42 +235,8 @@ class SarvamTranscriptionService {
                 wordTimings = interpolateTimings(rawWords, estimatedDuration);
                 console.log(`[SarvamService] Interpolated ${wordTimings.length} words over ~${estimatedDuration.toFixed(1)}s`);
             }
-            // ── Clean up common hallucinations from the end ──────────────────────
-            const cleanWord = (w) => w.toLowerCase().replace(/[^a-z0-9]/g, "");
-            let cleanedWordTimings = [...wordTimings];
-            let removed = true;
-            while (removed && cleanedWordTimings.length > 0) {
-                removed = false;
-                const len = cleanedWordTimings.length;
-                // Helper to get cleaned word from the end
-                const getEnd = (offset) => len - offset >= 0 ? cleanWord(cleanedWordTimings[len - offset].word) : "";
-                const w1 = getEnd(1); // last word
-                const w2 = getEnd(2);
-                const w3 = getEnd(3);
-                const w4 = getEnd(4);
-                if (w4 === "subtitles" && (w3 === "by" || w3 === "via") && w2 === "sarvam" && w1 === "ai") {
-                    cleanedWordTimings.splice(-4);
-                    removed = true;
-                }
-                else if (w4 === "subtitle" && (w3 === "by" || w3 === "via") && w2 === "sarvam" && w1 === "ai") {
-                    cleanedWordTimings.splice(-4);
-                    removed = true;
-                }
-                else if ((w3 === "by" || w3 === "via") && w2 === "sarvam" && w1 === "ai") {
-                    cleanedWordTimings.splice(-3);
-                    removed = true;
-                }
-                else if (w2 === "sarvam" && w1 === "ai") {
-                    cleanedWordTimings.splice(-2);
-                    removed = true;
-                }
-                else if (w1 === "sarvamai" || w1 === "bysarvamai" || w1 === "viasarvamai") {
-                    cleanedWordTimings.splice(-1);
-                    removed = true;
-                }
-            }
             // ── Segment into natural caption chunks ───────────────────────────────
-            const segments = segmentWords(cleanedWordTimings);
+            const segments = segmentWords(wordTimings);
             console.log(`[SarvamService] Created ${segments.length} caption segments`);
             // Stream segments progressively
             if (onProgress) {
