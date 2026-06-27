@@ -81,12 +81,39 @@ export default function TemplateShowcase() {
   const [currentIndex, setCurrentIndex] = useState(2); // Start at middle (Harmozi Bold)
   const [isMuted, setIsMuted] = useState(true);
 
+  // Mobile Touch Swipe Handling
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
+
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % templates.length);
   };
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev - 1 + templates.length) % templates.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNext();
+    } else if (isRightSwipe) {
+      handlePrev();
+    }
   };
 
   const currentTemplate = templates[currentIndex];
@@ -124,7 +151,12 @@ export default function TemplateShowcase() {
       </motion.div>
 
       {/* Main 3D Card Display */}
-      <div className="relative w-full max-w-7xl h-[540px] flex items-center justify-center perspective-2000 select-none">
+      <div 
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="relative w-full max-w-7xl h-[540px] flex items-center justify-center perspective-2000 select-none"
+      >
         {templates.map((template, index) => {
           let offset = index - currentIndex;
           if (offset > 2) offset -= templates.length;
@@ -167,15 +199,17 @@ export default function TemplateShowcase() {
                 {/* Metallic screen glare edge */}
                 <div className="absolute inset-0 bg-linear-to-tr from-white/4 to-transparent pointer-events-none z-20" />
                 
-                {/* Looping video element */}
-                <video
-                  src={template.video}
-                  autoPlay
-                  loop
-                  muted={isActive ? isMuted : true}
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover z-0"
-                />
+                {/* Looping video element (only rendered for the active template) */}
+                {isActive && (
+                  <video
+                    src={template.video}
+                    autoPlay
+                    loop
+                    muted={isMuted}
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                  />
+                )}
 
                 {/* Dark gradient mapping overlay */}
                 <div className="absolute inset-0 shadow-[inset_0_0_80px_rgba(0,0,0,0.9)] pointer-events-none z-10" />

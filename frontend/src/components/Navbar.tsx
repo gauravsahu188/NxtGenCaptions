@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -86,9 +87,11 @@ export default function Navbar({ initialSession }: NavbarProps) {
         <nav className={innerStyles}>
           {/* Logo */}
           <Link href={logoHref} className="flex items-center gap-2 group">
-            <img 
+            <Image 
               src="/logo.png" 
               alt="NxtGen Logo" 
+              width={pathname.startsWith("/editor") ? 28 : 32}
+              height={pathname.startsWith("/editor") ? 28 : 32}
               className={`rounded-md group-hover:scale-105 transition-transform duration-300 ${
                 pathname.startsWith("/editor") ? "w-7 h-7" : "w-8 h-8"
               }`} 

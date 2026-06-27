@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Mail, Loader2, Lock, User as UserIcon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 // Google Icon SVG
@@ -145,7 +146,7 @@ export default function SignInPage() {
         <div className="bg-white/3 border border-white/8 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
           {/* Logo */}
           <div className="text-center mb-8 flex flex-col items-center">
-            <img src="/logo.png" alt="NxtGen Logo" className="w-12 h-12 rounded-xl mb-3" />
+            <Image src="/logo.png" alt="NxtGen Logo" width={48} height={48} className="w-12 h-12 rounded-xl mb-3" />
             <span className="text-3xl font-bold tracking-tighter text-white">
               NxtGen<span className="text-accent">.</span>
             </span>

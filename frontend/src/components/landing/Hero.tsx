@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, Star } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Custom SVG Icons with Micro-Animations for Steps
 const UploadIcon = ({ active, completed }: { active: boolean; completed: boolean }) => (
@@ -248,9 +249,13 @@ export default function Hero() {
                <div className="absolute inset-0 z-20 pointer-events-none bg-[linear-gradient(105deg,transparent_30%,rgba(255,255,255,0.04)_40%,rgba(255,255,255,0.08)_45%,rgba(255,255,255,0.04)_50%,transparent_60%)] bg-size-[200%_100%] bg-left transition-all duration-1000 group-hover/card:bg-right opacity-0 group-hover/card:opacity-100 mix-blend-overlay" />
 
               {/* Workspace Screenshot Asset */}
-              <img 
+              <Image 
                 src="/nxtgen-workspace.png" 
                 alt="NxtGen Captions AI Workspace Screenshot" 
+                width={1024}
+                height={581}
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="w-full h-auto rounded-xl border border-white/5 select-none pointer-events-none relative z-10 shadow-[0_10px_25px_rgba(0,0,0,0.4)]"
               />
             </motion.div>

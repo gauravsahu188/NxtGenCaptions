@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, ArrowUpRight } from 'lucide-react';
 
 export default function Footer() {
@@ -43,7 +44,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-2 mb-4">
-              <img src="/logo.png" alt="NxtGen Logo" className="w-10 h-10 rounded-xl" />
+              <Image src="/logo.png" alt="NxtGen Logo" width={40} height={40} className="w-10 h-10 rounded-xl" />
               <span className="text-xl font-semibold text-white">NxtGen Captions</span>
             </Link>
             <p className="text-(--color-fg-muted) mb-6 max-w-sm leading-relaxed">

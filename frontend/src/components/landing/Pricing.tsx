@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -146,6 +146,31 @@ export default function Pricing() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
 
+  // Mobile Snap Carousel State & Scroll Handlers
+  const [activeMobileIndex, setActiveMobileIndex] = useState(2); // Creator as default (index 2)
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const scrollLeft = container.scrollLeft;
+    const width = container.offsetWidth;
+    const index = Math.round(scrollLeft / (width * 0.82)); // Align with 84vw width card
+    const finalIndex = Math.max(0, Math.min(activePlans.length - 1, index));
+    setActiveMobileIndex(finalIndex);
+  };
+
+  const handleDotClick = (index: number) => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const cardWidth = container.scrollWidth / activePlans.length;
+      container.scrollTo({
+        left: cardWidth * index,
+        behavior: 'smooth'
+      });
+      setActiveMobileIndex(index);
+    }
+  };
+
   useEffect(() => {
     const savedCurrency = localStorage.getItem('currency_preference') as 'INR' | 'USD';
     if (savedCurrency === 'INR' || savedCurrency === 'USD') {
@@ -209,6 +234,88 @@ export default function Pricing() {
     }
   };
 
+  const renderCard = (plan: any, i: number, isCurrentMobile: boolean, isMobileView: boolean) => {
+    const isHighlighted = isMobileView ? (isCurrentMobile || plan.highlight) : plan.highlight;
+    return (
+      <motion.div
+        initial={isMobileView ? undefined : { opacity: 0, y: 30, rotateX: 10 }}
+        whileInView={isMobileView ? undefined : { opacity: 1, y: 0, rotateX: 0 }}
+        whileHover={isMobileView ? undefined : { 
+          scale: 1.02, 
+          rotateX: 2, 
+          rotateY: -2,
+          z: 20
+        }}
+        animate={isMobileView ? {
+          scale: isCurrentMobile ? 1.02 : 0.96,
+          opacity: isCurrentMobile ? 1 : 0.75,
+        } : undefined}
+        viewport={isMobileView ? undefined : { once: true, margin: "-50px" }}
+        transition={isMobileView ? { duration: 0.3 } : { 
+          duration: 0.6, 
+          delay: i * 0.1, 
+          ease: [0.16, 1, 0.3, 1] 
+        }}
+        style={{ transformStyle: 'preserve-3d' }}
+        className={`relative rounded-3xl p-8 flex flex-col cursor-pointer transition-colors duration-500 h-full ${
+          isHighlighted
+            ? 'bg-[#0b0b12] border border-accent/40 shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_80px_rgba(94,106,210,0.15)] z-20'
+            : 'bg-black/40 border border-white/5 hover:bg-white/2 hover:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] z-10'
+        } ${isMobileView ? 'min-h-[520px]' : ''}`}
+      >
+        {plan.highlight && (
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(94,106,210,0.1),transparent_70%)] rounded-3xl pointer-events-none" />
+        )}
+
+        <div className="flex justify-between items-start mb-6 relative z-10" style={{ transform: 'translateZ(10px)' }}>
+          <h3 className="text-xl font-display font-bold text-white tracking-tight">{plan.name}</h3>
+          {plan.badge && (
+            <span className="bg-accent/20 border border-accent/40 text-(--color-accent-bright) text-[10px] font-mono tracking-widest px-3 py-1 rounded-full uppercase shadow-[0_0_10px_rgba(94,106,210,0.2)]">
+              {plan.badge}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-baseline gap-2 mb-2 flex-wrap relative z-10" style={{ transform: 'translateZ(20px)' }}>
+          <span className="text-5xl font-display font-bold tracking-[-0.03em] text-white">{currencySymbol}{plan.price}</span>
+          {plan.originalPrice && (
+            <span className="text-white/40 font-medium line-through text-sm decoration-white/20">{currencySymbol}{plan.originalPrice}</span>
+          )}
+        </div>
+        <div className="w-full mb-8 relative z-10" style={{ transform: 'translateZ(10px)' }}>
+          <span className="text-(--color-fg-muted) font-medium text-sm">/ month</span>
+        </div>
+
+        <Link href="/editor" onClick={(e) => handlePlanClick(e, plan.name)} className="w-full relative z-20" style={{ transform: 'translateZ(30px)' }}>
+          <button className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-[0.98] ${isHighlighted
+              ? 'bg-(--color-accent) hover:bg-(--color-accent-bright) text-white shadow-[0_0_20px_rgba(94,106,210,0.3)]'
+              : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+            }`}>
+            {plan.name === "Free" ? "Get Started" : "Upgrade Plan"}
+          </button>
+        </Link>
+
+        <div className="mt-8 space-y-4 flex-1 relative z-10" style={{ transform: 'translateZ(10px)' }}>
+          {plan.features.map((feature: string, idx: number) => {
+            const isHeading = feature.includes('EVERYTHING IN');
+            return (
+              <div key={idx} className={`flex items-start gap-3 ${isHeading ? 'mb-6 mt-6' : ''}`}>
+                {!isHeading && (
+                  <div className={`mt-0.5 rounded-full p-1 ${isHighlighted ? 'text-(--color-accent-bright) bg-accent/10' : 'text-white/50 bg-white/5'}`}>
+                    <Check className="w-3 h-3" />
+                  </div>
+                )}
+                <span className={`text-sm font-medium text-left ${isHeading ? 'font-mono text-(--color-accent-bright) text-xs uppercase tracking-widest' : 'text-(--color-fg-muted)'}`}>
+                  {feature}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
+    );
+  };
+
   return (
     <section id="pricing" className="w-full max-w-[1400px] mx-auto py-32 px-6 relative z-10 border-t border-white/3">
 
@@ -248,82 +355,47 @@ export default function Pricing() {
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start perspective-1000">
+      {/* Desktop Grid */}
+      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start perspective-1000">
         {activePlans.map((plan, i) => (
-          <motion.div
-            initial={{ opacity: 0, y: 30, rotateX: 10 }}
-            whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-            whileHover={{ 
-              scale: 1.02, 
-              rotateX: 2, 
-              rotateY: -2,
-              z: 20
-            }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ 
-              duration: 0.6, 
-              delay: i * 0.1, 
-              ease: [0.16, 1, 0.3, 1] 
-            }}
-            key={i}
-            style={{ transformStyle: 'preserve-3d' }}
-            className={`relative rounded-3xl p-8 flex flex-col cursor-pointer transition-colors duration-500 ${plan.highlight
-                ? 'bg-bg-elevated border border-accent/40 shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_80px_rgba(94,106,210,0.15)] md:scale-105 z-20'
-                : 'bg-black/40 border border-white/5 hover:bg-white/2 hover:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] z-10'
-              }`}
-          >
-            {plan.highlight && (
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(94,106,210,0.1),transparent_70%)] rounded-3xl pointer-events-none" />
-            )}
-
-            <div className="flex justify-between items-start mb-6 relative z-10" style={{ transform: 'translateZ(10px)' }}>
-              <h3 className="text-xl font-display font-bold text-white tracking-tight">{plan.name}</h3>
-              {plan.badge && (
-                <span className="bg-accent/20 border border-accent/40 text-(--color-accent-bright) text-[10px] font-mono tracking-widest px-3 py-1 rounded-full uppercase shadow-[0_0_10px_rgba(94,106,210,0.2)]">
-                  {plan.badge}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-baseline gap-2 mb-2 flex-wrap relative z-10" style={{ transform: 'translateZ(20px)' }}>
-              <span className="text-5xl font-display font-bold tracking-[-0.03em] text-white">{currencySymbol}{plan.price}</span>
-              {plan.originalPrice && (
-                <span className="text-white/40 font-medium line-through text-sm decoration-white/20">{currencySymbol}{plan.originalPrice}</span>
-              )}
-            </div>
-            <div className="w-full mb-8 relative z-10" style={{ transform: 'translateZ(10px)' }}>
-              <span className="text-(--color-fg-muted) font-medium text-sm">/ month</span>
-            </div>
-
-            <Link href="/editor" onClick={(e) => handlePlanClick(e, plan.name)} className="w-full relative z-20" style={{ transform: 'translateZ(30px)' }}>
-              <button className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-[0.98] ${plan.highlight
-                  ? 'bg-(--color-accent) hover:bg-(--color-accent-bright) text-white shadow-[0_0_20px_rgba(94,106,210,0.3)]'
-                  : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
-                }`}>
-                {plan.name === "Free" ? "Get Started" : "Upgrade Plan"}
-              </button>
-            </Link>
-
-            <div className="mt-8 space-y-4 flex-1 relative z-10" style={{ transform: 'translateZ(10px)' }}>
-              {plan.features.map((feature, idx) => {
-                const isHeading = feature.includes('EVERYTHING IN');
-                return (
-                  <div key={idx} className={`flex items-start gap-3 ${isHeading ? 'mb-6 mt-6' : ''}`}>
-                    {!isHeading && (
-                      <div className={`mt-0.5 rounded-full p-1 ${plan.highlight ? 'text-(--color-accent-bright) bg-accent/10' : 'text-white/50 bg-white/5'}`}>
-                        <Check className="w-3 h-3" />
-                      </div>
-                    )}
-                    <span className={`text-sm font-medium ${isHeading ? 'font-mono text-(--color-accent-bright) text-xs uppercase tracking-widest' : 'text-(--color-fg-muted)'}`}>
-                      {feature}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
+          <div key={i} className="h-full">
+            {renderCard(plan, i, false, false)}
+          </div>
         ))}
+      </div>
+
+      {/* Mobile Touch Swipable Carousel */}
+      <div className="md:hidden flex flex-col items-center w-full">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex w-full gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-none px-[8vw] pb-8"
+        >
+          {activePlans.map((plan, i) => (
+            <div 
+              key={i} 
+              className="w-[84vw] max-w-[320px] shrink-0 snap-center"
+            >
+              {renderCard(plan, i, i === activeMobileIndex, true)}
+            </div>
+          ))}
+        </div>
+
+        {/* Carousel Dot Indicators */}
+        <div className="flex gap-2.5 mt-2 justify-center">
+          {activePlans.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => handleDotClick(i)}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                i === activeMobileIndex 
+                  ? 'bg-(--color-accent) w-6 shadow-[0_0_8px_rgba(94,106,210,0.5)]' 
+                  : 'bg-white/20'
+              }`}
+              aria-label={`Go to plan ${i + 1}`}
+            />
+          ))}
+        </div>
       </div>
 
       <PaymentModal
