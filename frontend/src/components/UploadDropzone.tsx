@@ -5,17 +5,30 @@ import { motion } from "framer-motion";
 import { UploadCloud, FileVideo, Zap, Sparkles } from "lucide-react";
 import { useCaptionContext } from "../context/CaptionContext";
 import LanguageSelectionModal from "./LanguageSelectionModal";
+import { useToast } from "../context/ToastContext";
 
-// Language list moved to LanguageSelectionModal
+const PLAN_MAX_DURATIONS: Record<string, number> = {
+  FREE: 30,         // 30 seconds
+  EDITOR: 300,      // 5 minutes
+  CREATOR: 600,     // 10 minutes
+  BUSINESS: 1800,   // 30 minutes
+};
+
+const formatDurationLimit = (seconds: number): string => {
+  if (seconds < 60) return `${seconds} seconds`;
+  return `${seconds / 60} minutes`;
+};
 
 export default function UploadDropzone({
   userId,
   transcriptionBalance,
   audioCredits,
+  planType = "FREE",
 }: {
   userId?: string;
   transcriptionBalance?: number;
   audioCredits?: number;
+  planType?: "FREE" | "EDITOR" | "CREATOR" | "BUSINESS";
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [audioEnhance, setAudioEnhance] = useState(false);
@@ -24,6 +37,7 @@ export default function UploadDropzone({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { setVideoUrl, setCaptions, setIsProcessing, setProcessingMessage, setOriginalWords, setS3Key } =
     useCaptionContext();
+  const { error: showError } = useToast();
 
   const remainingMinutes = transcriptionBalance ?? 0;
 
@@ -37,19 +51,68 @@ export default function UploadDropzone({
     setIsDragging(false);
   };
 
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        URL.revokeObjectURL(video.src);
+        resolve(video.duration);
+      };
+      video.onerror = () => {
+        resolve(0);
+      };
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  const processSelectedFile = async (file: File) => {
+    if (!file.type.startsWith("video/")) {
+      showError("Please upload a valid video file.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setProcessingMessage("Checking video duration...");
+    const duration = await getVideoDuration(file);
+    setIsProcessing(false);
+    setProcessingMessage("");
+
+    const maxDuration = PLAN_MAX_DURATIONS[planType] || 30;
+    if (duration > maxDuration) {
+      showError(
+        `Video duration exceeds limits. Your ${planType.toLowerCase()} plan allows maximum ${formatDurationLimit(
+          maxDuration
+        )}. Your video is ${Math.round(duration)} seconds.`,
+        {
+          duration: 7000,
+          action: {
+            label: "Upgrade Plan",
+            onClick: () => {
+              window.location.href = "/dashboard?upgrade=true";
+            },
+          },
+        }
+      );
+      return;
+    }
+
+    setPendingFile(file);
+    setIsModalOpen(true);
+  };
+
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setPendingFile(e.dataTransfer.files[0]);
-      setIsModalOpen(true);
+      await processSelectedFile(e.dataTransfer.files[0]);
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setPendingFile(e.target.files[0]);
-      setIsModalOpen(true);
+      const file = e.target.files[0];
+      await processSelectedFile(file);
       // Reset input so the same file can be selected again if needed
       e.target.value = '';
     }
@@ -57,7 +120,7 @@ export default function UploadDropzone({
 
   const handleUpload = async (file: File, language: string, script: string) => {
     if (!file.type.startsWith("video/")) {
-      alert("Please upload a valid video file.");
+      showError("Please upload a valid video file.");
       return;
     }
 
@@ -147,17 +210,20 @@ export default function UploadDropzone({
                 if (
                   data.message?.includes("FREE_LIMIT_EXCEEDED") ||
                   data.message?.includes("NO_CREDITS") ||
-                  data.message?.includes("CREDIT_LIMIT_EXCEEDED")
+                  data.message?.includes("CREDIT_LIMIT_EXCEEDED") ||
+                  data.message?.includes("DURATION_LIMIT_EXCEEDED")
                 ) {
-                  const upgrade = confirm(
-                    data.message +
-                      "\n\nClick OK to upgrade your plan, or Cancel to stay on this page."
-                  );
-                  if (upgrade) {
-                    window.location.href = "/dashboard?upgrade=true";
-                  }
+                  showError(data.message, {
+                    duration: 8000,
+                    action: {
+                      label: "Upgrade Plan",
+                      onClick: () => {
+                        window.location.href = "/dashboard?upgrade=true";
+                      },
+                    },
+                  });
                 } else {
-                  alert(data.message);
+                  showError(data.message || "An error occurred during processing.");
                 }
                 setIsProcessing(false);
                 break;
@@ -171,7 +237,7 @@ export default function UploadDropzone({
       }
     } catch (error) {
       console.error(error);
-      alert("Failed to connect to the server.");
+      showError("Failed to connect to the server.");
       setIsProcessing(false);
     }
   };

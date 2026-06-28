@@ -5,7 +5,10 @@ import { CheckCircle2, RotateCcw, AlignLeft, AlignCenter, AlignRight, ChevronDow
 import { motion, AnimatePresence } from "framer-motion";
 import FontPicker from "./FontPicker";
 import ColorPicker from "./ColorPicker";
+import { useToast } from "../../context/ToastContext";
+
 export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOverride, hideTabs }: { user?: any; onOpenUpgradeModal: () => void; activeTabOverride?: string | null; hideTabs?: boolean }) {
+  const { error: showError, success: showSuccess } = useToast();
   const {
     captionStyle,
     setCaptionStyle,
@@ -343,11 +346,19 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
 
   const handleEnhanceAudio = async () => {
     if (!user) {
-      alert("Please sign in to use audio enhancement.");
+      showError("Please sign in to use audio enhancement.");
       return;
     }
     if ((user.audioCredits ?? 0) < 1) {
-      alert("You do not have enough audio credits. Please upgrade your plan.");
+      showError("You do not have enough audio credits. Please upgrade your plan.", {
+        duration: 7000,
+        action: {
+          label: "Upgrade Plan",
+          onClick: () => {
+            window.location.href = "/dashboard?upgrade=true";
+          }
+        }
+      });
       return;
     }
 
@@ -364,17 +375,17 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
 
       const json = await res.json();
       if (res.ok && json.status === "success") {
-        alert("Audio enhanced successfully!");
+        showSuccess("Audio enhanced successfully!");
         // Update the user's credits locally if possible, or just rely on a refresh
         if (user) {
           user.audioCredits = json.data.audioCredits;
         }
       } else {
-        alert(json.message || "Failed to enhance audio.");
+        showError(json.message || "Failed to enhance audio.");
       }
     } catch (error) {
       console.error(error);
-      alert("An error occurred while enhancing audio.");
+      showError("An error occurred while enhancing audio.");
     } finally {
       setIsEnhancing(false);
     }

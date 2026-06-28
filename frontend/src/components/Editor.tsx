@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Loader from "./Loader";
 import PaymentModal from "@/components/PaymentModal";
+import { useToast } from "../context/ToastContext";
 
 type Resolution = {
   id: string;
@@ -37,6 +38,7 @@ export default function EditorLayout({ user }: { user?: any }) {
   const [isRendering, setIsRendering] = useState(false);
   const [showResModal, setShowResModal] = useState(false);
   const [exportComplete, setExportComplete] = useState(false);
+  const { error: showError } = useToast();
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [removeWatermark, setRemoveWatermark] = useState(false);
   const [renderProgress, setRenderProgress] = useState("");
@@ -51,7 +53,7 @@ export default function EditorLayout({ user }: { user?: any }) {
 
   const handleExportClick = () => {
     if (!videoUrl) {
-      alert("Please upload and process a video before exporting.");
+      showError("Please upload and process a video before exporting.");
       return;
     }
     try {
@@ -89,7 +91,7 @@ export default function EditorLayout({ user }: { user?: any }) {
     // Use s3Key if available, otherwise extract filename from local URL
     const videoId = s3Key || (videoUrl ? videoUrl.split("/").pop()?.split("?")[0] : null);
     if (!videoId) {
-      alert("No video source found. Please re-upload your video.");
+      showError("No video source found. Please re-upload your video.");
       setIsRendering(false);
       return;
     }
@@ -151,13 +153,13 @@ export default function EditorLayout({ user }: { user?: any }) {
         link.click();
         document.body.removeChild(link);
       } else {
-        alert("Render failed: " + (json.message ?? JSON.stringify(json)));
+        showError("Render failed: " + (json.message ?? JSON.stringify(json)));
       }
     } catch (e: any) {
       if (e?.name === "AbortError") {
-        alert("Render timed out (over 5 minutes). Try a shorter video or lower resolution.");
+        showError("Render timed out (over 5 minutes). Try a shorter video or lower resolution.");
       } else {
-        alert("Export error: " + (e?.message ?? "Unknown error"));
+        showError("Export error: " + (e?.message ?? "Unknown error"));
       }
       console.error("[Export] error:", e);
     } finally {

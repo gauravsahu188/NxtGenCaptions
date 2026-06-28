@@ -6,6 +6,7 @@ import UploadDropzone from "@/components/UploadDropzone";
 import Editor from "@/components/Editor";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
+import { useToast } from "@/context/ToastContext";
 
 type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS";
 
@@ -20,6 +21,7 @@ interface EditorUser {
 }
 
 function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: string }) {
+  const { error } = useToast();
   const {
     videoUrl,
     setVideoUrl,
@@ -87,7 +89,7 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
         }
       } catch (err) {
         console.error("[EditorApp] Failed to load project:", err);
-        alert("Failed to load project. Please try again.");
+        error("Failed to load project. Please try again.");
       } finally {
         setIsProcessing(false);
       }
@@ -123,7 +125,12 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
               </p>
             </motion.div>
 
-            <UploadDropzone userId={user?.id} transcriptionBalance={user?.transcriptionBalance} audioCredits={user?.audioCredits} />
+            <UploadDropzone
+              userId={user?.id}
+              transcriptionBalance={user?.transcriptionBalance}
+              audioCredits={user?.audioCredits}
+              planType={user?.planType || "FREE"}
+            />
           </div>
         ) : (
           <Editor user={user} />
