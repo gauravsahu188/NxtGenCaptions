@@ -174,17 +174,21 @@ export class SarvamTranscriptionService {
   async transcribeAudio(
     audioPath: string,
     onProgress?: (segment: CaptionSegment) => void,
-    options?: { language?: string; script?: string }
+    options?: { language?: string; script?: string; duration?: number }
   ): Promise<CaptionSegment[]> {
+    const { language = "hi", script = "native", duration: passedDuration } = options || {};
+
     const ffmpegService = new FFmpegService();
-    let duration = 0;
-    try {
-      duration = await ffmpegService.getVideoDuration(audioPath);
-    } catch (e) {
-      console.warn("[SarvamService] Failed to get audio duration, transcribing as single:", e);
+    let duration = passedDuration ?? 0;
+    if (!duration) {
+      try {
+        duration = await ffmpegService.getVideoDuration(audioPath);
+      } catch (e) {
+        console.warn("[SarvamService] Failed to get audio duration, transcribing as single:", e);
+      }
     }
 
-    if (duration <= 30) {
+    if (duration <= 28) {
       const words = await this.transcribeSingleAudio(audioPath, options, 0);
       const segments = segmentWords(words);
       if (onProgress) {
@@ -195,8 +199,8 @@ export class SarvamTranscriptionService {
       return segments;
     }
 
-    console.log(`[SarvamService] Audio duration (${duration.toFixed(1)}s) > 30s. Chunking audio file...`);
-    const chunks = await ffmpegService.splitAudio(audioPath, 30);
+    console.log(`[SarvamService] Audio duration (${duration.toFixed(1)}s) > 28s. Chunking audio file...`);
+    const chunks = await ffmpegService.splitAudio(audioPath, 25);
     console.log(`[SarvamService] Split into ${chunks.length} chunks.`);
 
     let allWords: { word: string; start: number; end: number }[] = [];

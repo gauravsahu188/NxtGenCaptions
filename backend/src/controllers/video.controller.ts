@@ -199,7 +199,7 @@ export class VideoController {
           const normalised = { ...segment, id: String(segment.id) };
           sendEvent("segment", { segment: normalised });
         },
-        { language, script }
+        { language, script, duration: durationSeconds }
       );
 
       // Normalise all segment IDs to strings before sending the complete event
