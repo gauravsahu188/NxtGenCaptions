@@ -89,9 +89,12 @@ export class FFmpegService {
     });
   }
 
-  async splitAudio(audioPath: string, chunkDuration: number = 30): Promise<{ path: string; offset: number }[]> {
+  async splitAudio(
+    audioPath: string,
+    chunkDuration: number = 30
+  ): Promise<{ path: string; offset: number; duration: number }[]> {
     const duration = await this.getVideoDuration(audioPath);
-    const chunks: { path: string; offset: number }[] = [];
+    const chunks: { path: string; offset: number; duration: number }[] = [];
     const numChunks = Math.ceil(duration / chunkDuration);
     const audioDir = path.dirname(audioPath);
     const audioExt = path.extname(audioPath);
@@ -107,7 +110,7 @@ export class FFmpegService {
         command.setFfprobePath(ffprobeInstaller.path);
         
         command
-          .seekInput(offset)
+          .seek(offset)
           .duration(chunkDuration)
           .audioCodec("libmp3lame")
           .save(outputPath)
@@ -117,7 +120,8 @@ export class FFmpegService {
             reject(err);
           });
       });
-      chunks.push({ path: outputPath, offset });
+      const actualDuration = await this.getVideoDuration(outputPath);
+      chunks.push({ path: outputPath, offset, duration: actualDuration });
     }
     return chunks;
   }
