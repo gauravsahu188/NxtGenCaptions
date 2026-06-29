@@ -77,10 +77,13 @@ class VideoController {
             const user = req.user;
             const userId = req.userId || user?.id || req.headers["x-user-id"];
             let dbUser = null;
+            let subscription = null;
             if (userId && typeof userId === "string") {
                 dbUser = await prisma_1.prisma.user.findUnique({
                     where: { id: userId },
+                    include: { subscription: true }
                 });
+                subscription = dbUser?.subscription;
             }
             const isAdmin = dbUser?.email === "nxtgencaptions@gmail.com";
             // Always get duration (needed for project record & quota checks)
@@ -91,18 +94,36 @@ class VideoController {
             catch (e) {
                 console.warn("[VideoController] Could not get video duration:", e);
             }
+            // Enforce subscription plan video duration limits
+            if (!isAdmin) {
+                let maxSeconds = 30; // default for guest or FREE plan
+                const plan = dbUser?.planType || "FREE";
+                if (plan !== "FREE") {
+                    if (subscription) {
+                        maxSeconds = subscription.maxVideoLengthMinutes * 60;
+                    }
+                    else {
+                        // Fallback hardcoded plan limits if subscription record is missing
+                        const limits = {
+                            EDITOR: 300, // 5 mins
+                            CREATOR: 600, // 10 mins
+                            BUSINESS: 1800, // 30 mins
+                        };
+                        maxSeconds = limits[plan] || 30;
+                    }
+                }
+                if (durationSeconds > maxSeconds) {
+                    const limitDesc = maxSeconds < 60 ? `${maxSeconds} seconds` : `${maxSeconds / 60} minutes`;
+                    throw new errors_1.AppError(`DURATION_LIMIT_EXCEEDED: Your ${plan} plan allows maximum ${limitDesc} video. Your video is ${Math.round(durationSeconds)} seconds. Please upgrade to process longer videos.`, 403);
+                }
+            }
             if (user && !isAdmin) {
                 // Charge based on actual duration - fair usage
                 // Charge based on actual duration exactly in minutes (as a float)
                 const chargeAmount = durationSeconds / 60;
                 console.log(`[VideoController] Video duration: ${durationSeconds}s (${chargeAmount.toFixed(2)} min), charging: ${chargeAmount} credit(s)`);
-                // Free plan: max 5 minutes
-                const freePlanMinutes = 5;
-                if (user.planType === "FREE" && chargeAmount > freePlanMinutes) {
-                    throw new errors_1.AppError("FREE_LIMIT_EXCEEDED: Free plan allows max 5 minutes. Your video is " + chargeAmount.toFixed(1) + " minutes. Upgrade to continue.", 403);
-                }
                 if (typeof user.transcriptionBalance === "number" && user.transcriptionBalance < chargeAmount) {
-                    throw new errors_1.AppError("NO_CREDITS: You have " + user.transcriptionBalance + " minutes left but need " + chargeAmount + ". Upgrade to get more minutes.", 403);
+                    throw new errors_1.AppError("NO_CREDITS: You have " + user.transcriptionBalance.toFixed(1) + " minutes left but need " + chargeAmount.toFixed(1) + ". Upgrade to get more minutes.", 403);
                 }
                 try {
                     await prisma_1.prisma.user.update({
@@ -154,7 +175,7 @@ class VideoController {
                 // Normalise id to string for frontend CaptionSegment compatibility
                 const normalised = { ...segment, id: String(segment.id) };
                 sendEvent("segment", { segment: normalised });
-            }, { language, script });
+            }, { language, script, duration: durationSeconds });
             // Normalise all segment IDs to strings before sending the complete event
             captions = captions.map((seg) => ({ ...seg, id: String(seg.id) }));
             const srtFilename = `${path_1.default.basename(videoPath, path_1.default.extname(videoPath))}.srt`;

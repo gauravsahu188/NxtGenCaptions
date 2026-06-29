@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SarvamTranscriptionService = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const ffmpeg_service_1 = require("./ffmpeg.service");
 // ─── Constants ────────────────────────────────────────────────────────────────
 /** Maximum characters per caption chunk */
 const MAX_CHARS_PER_CHUNK = 28;
@@ -135,8 +136,63 @@ class SarvamTranscriptionService {
         }
     }
     async transcribeAudio(audioPath, onProgress, options) {
+        const { language = "hi", script = "native", duration: passedDuration } = options || {};
+        const ffmpegService = new ffmpeg_service_1.FFmpegService();
+        let duration = passedDuration ?? 0;
+        if (!duration) {
+            try {
+                duration = await ffmpegService.getVideoDuration(audioPath);
+            }
+            catch (e) {
+                console.warn("[SarvamService] Failed to get audio duration, transcribing as single:", e);
+            }
+        }
+        if (duration <= 28) {
+            const words = await this.transcribeSingleAudio(audioPath, options, 0);
+            const segments = segmentWords(words);
+            if (onProgress) {
+                for (const seg of segments) {
+                    onProgress(seg);
+                }
+            }
+            return segments;
+        }
+        console.log(`[SarvamService] Audio duration (${duration.toFixed(1)}s) > 28s. Chunking audio file...`);
+        const chunks = await ffmpegService.splitAudio(audioPath, 25);
+        console.log(`[SarvamService] Split into ${chunks.length} chunks.`);
+        let allWords = [];
+        try {
+            for (const chunk of chunks) {
+                console.log(`[SarvamService] Transcribing chunk offset: ${chunk.offset}s`);
+                const chunkWords = await this.transcribeSingleAudio(chunk.path, options, chunk.offset);
+                allWords = allWords.concat(chunkWords);
+            }
+        }
+        finally {
+            // Clean up chunk files
+            for (const chunk of chunks) {
+                try {
+                    if (fs_1.default.existsSync(chunk.path)) {
+                        fs_1.default.unlinkSync(chunk.path);
+                    }
+                }
+                catch (e) {
+                    console.warn(`[SarvamService] Failed to delete chunk file ${chunk.path}:`, e);
+                }
+            }
+        }
+        // Segment the merged words into caption segments
+        const segments = segmentWords(allWords);
+        // Progressive streaming of segments to client
+        if (onProgress) {
+            for (const seg of segments) {
+                onProgress(seg);
+            }
+        }
+        return segments;
+    }
+    async transcribeSingleAudio(audioPath, options, offsetSeconds = 0) {
         const { language = "hi", script = "native" } = options || {};
-        // Choose endpoint based on script
         let endpoint = `${this.baseUrl}/speech-to-text`;
         if (script === "english") {
             endpoint = `${this.baseUrl}/speech-to-text-translate`;
@@ -180,7 +236,6 @@ class SarvamTranscriptionService {
             }
             const data = await response.json();
             console.log(`[SarvamService] Response received. Has timestamps: ${!!data.timestamps}`);
-            // Prefer translated_text for speech-to-text-translate endpoint
             const rawTranscript = data.translated_text || data.transcript || "";
             if (!rawTranscript.trim()) {
                 console.warn("[SarvamService] Empty transcript received");
@@ -221,12 +276,9 @@ class SarvamTranscriptionService {
             else {
                 console.warn("[SarvamService] No timestamps in response — interpolating timings");
                 const rawWords = rawTranscript.trim().split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
-                // Try to get audio duration from file size as a rough estimate
-                // (default to 30s if we can't determine it)
                 let estimatedDuration = 30;
                 try {
                     const stat = await fs_1.default.promises.stat(audioPath);
-                    // Rough estimate: 128kbps MP3 = ~16000 bytes/second
                     estimatedDuration = Math.max(5, stat.size / 16000);
                 }
                 catch {
@@ -235,19 +287,16 @@ class SarvamTranscriptionService {
                 wordTimings = interpolateTimings(rawWords, estimatedDuration);
                 console.log(`[SarvamService] Interpolated ${wordTimings.length} words over ~${estimatedDuration.toFixed(1)}s`);
             }
-            // ── Segment into natural caption chunks ───────────────────────────────
-            const segments = segmentWords(wordTimings);
-            console.log(`[SarvamService] Created ${segments.length} caption segments`);
-            // Stream segments progressively
-            if (onProgress) {
-                for (const seg of segments) {
-                    onProgress(seg);
-                }
-            }
-            return segments;
+            // Add offset to all word timings
+            const adjustedWords = wordTimings.map((w) => ({
+                ...w,
+                start: parseFloat((w.start + offsetSeconds).toFixed(3)),
+                end: parseFloat((w.end + offsetSeconds).toFixed(3)),
+            }));
+            return adjustedWords;
         }
         catch (error) {
-            console.error("[SarvamService] Transcription failed:", error);
+            console.error("[SarvamService] Transcription chunk failed:", error);
             throw error;
         }
     }

@@ -82,5 +82,34 @@ class FFmpegService {
                 .on("error", (err) => reject(err));
         });
     }
+    async splitAudio(audioPath, chunkDuration = 30) {
+        const duration = await this.getVideoDuration(audioPath);
+        const chunks = [];
+        const numChunks = Math.ceil(duration / chunkDuration);
+        const audioDir = path_1.default.dirname(audioPath);
+        const audioExt = path_1.default.extname(audioPath);
+        const audioBase = path_1.default.basename(audioPath, audioExt);
+        for (let i = 0; i < numChunks; i++) {
+            const offset = i * chunkDuration;
+            const outputPath = path_1.default.join(audioDir, `${audioBase}_chunk_${i}${audioExt}`);
+            await new Promise((resolve, reject) => {
+                const command = (0, fluent_ffmpeg_1.default)(audioPath);
+                command.setFfmpegPath(ffmpegInstaller.path);
+                command.setFfprobePath(ffprobeInstaller.path);
+                command
+                    .seekInput(offset)
+                    .duration(chunkDuration)
+                    .audioCodec("libmp3lame")
+                    .save(outputPath)
+                    .on("end", () => resolve())
+                    .on("error", (err) => {
+                    console.error(`[FFmpeg] Chunking error for chunk ${i}:`, err);
+                    reject(err);
+                });
+            });
+            chunks.push({ path: outputPath, offset });
+        }
+        return chunks;
+    }
 }
 exports.FFmpegService = FFmpegService;
