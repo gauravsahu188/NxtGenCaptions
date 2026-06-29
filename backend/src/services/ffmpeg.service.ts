@@ -26,6 +26,62 @@ export class FFmpegService {
     });
   }
 
+  async getSpeechBounds(audioPath: string, duration?: number): Promise<{start: number, end: number}> {
+    if (!duration) {
+      duration = await this.getVideoDuration(audioPath);
+    }
+    
+    return new Promise((resolve, reject) => {
+      let silenceBlocks: {start: number, end: number}[] = [];
+      let currentStart = 0;
+
+      const command = ffmpeg(audioPath);
+      command.setFfmpegPath(ffmpegInstaller.path);
+      command.setFfprobePath(ffprobeInstaller.path);
+      
+      command
+        .audioFilters('silencedetect=noise=-30dB:d=0.5')
+        .format('null')
+        .on('stderr', (stderrLine) => {
+          const startMatch = stderrLine.match(/silence_start:\s+([\d.]+)/);
+          if (startMatch) {
+            currentStart = parseFloat(startMatch[1]);
+          }
+          const endMatch = stderrLine.match(/silence_end:\s+([\d.]+)/);
+          if (endMatch) {
+            silenceBlocks.push({
+              start: currentStart,
+              end: parseFloat(endMatch[1])
+            });
+          }
+        })
+        .on('end', () => {
+          let speechStart = 0;
+          let speechEnd = duration!; // Non-null assertion is safe here
+
+          if (silenceBlocks.length > 0 && silenceBlocks[0].start <= 0.1) {
+              speechStart = silenceBlocks[0].end;
+          }
+
+          const lastBlock = silenceBlocks[silenceBlocks.length - 1];
+          if (lastBlock && lastBlock.end >= duration! - 0.1) {
+              speechEnd = lastBlock.start;
+          }
+          
+          // Prevent overlap if everything is silent
+          if (speechEnd < speechStart) {
+             speechEnd = speechStart;
+          }
+
+          resolve({ start: speechStart, end: speechEnd });
+        })
+        .on('error', (err) => {
+          reject(err);
+        })
+        .save('pipe:1');
+    });
+  }
+
   async extractAudio(videoPath: string, outputFilename: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const outputPath = path.join(tempDir, outputFilename);

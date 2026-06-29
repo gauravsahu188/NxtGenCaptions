@@ -148,13 +148,15 @@ function segmentWords(
  */
 function interpolateTimings(
   words: string[],
-  totalDuration: number
+  speechStart: number,
+  speechEnd: number
 ): { word: string; start: number; end: number }[] {
-  const durationPerWord = totalDuration / Math.max(words.length, 1);
+  const duration = Math.max(speechEnd - speechStart, 0.1);
+  const durationPerWord = duration / Math.max(words.length, 1);
   return words.map((word, i) => ({
     word,
-    start: parseFloat((i * durationPerWord).toFixed(3)),
-    end: parseFloat(((i + 1) * durationPerWord).toFixed(3)),
+    start: parseFloat((speechStart + i * durationPerWord).toFixed(3)),
+    end: parseFloat((speechStart + (i + 1) * durationPerWord).toFixed(3)),
   }));
 }
 
@@ -318,6 +320,21 @@ export class SarvamTranscriptionService {
 
       let wordTimings: { word: string; start: number; end: number }[] = [];
 
+      // ── Get true speech bounds for this chunk ──────────────────────────────
+      const ffmpegSvc = new FFmpegService();
+      let estimatedDuration = chunkDuration ?? 30;
+      if (!chunkDuration) {
+        try {
+          const stat = await fs.promises.stat(audioPath);
+          estimatedDuration = Math.max(5, stat.size / 16000);
+        } catch { /* ignore */ }
+      }
+      const bounds = await ffmpegSvc.getSpeechBounds(audioPath, estimatedDuration);
+      const speechStart = bounds.start;
+      const speechEnd = bounds.end;
+      
+      console.log(`[SarvamService] Chunk Speech Bounds - start: ${speechStart.toFixed(2)}s, end: ${speechEnd.toFixed(2)}s`);
+
       // ── Case 1: Real word-level timestamps from Sarvam ────────────────────
       if (
         data.timestamps &&
@@ -336,7 +353,20 @@ export class SarvamTranscriptionService {
           return { word: word.trim(), start, end };
         }).filter((w) => w.word.length > 0);
 
+        // Check if Sarvam trimmed the leading silence
+        let needsShift = false;
+        if (speechStart > 0.5 && initialTimings.length > 0) {
+            if (initialTimings[0].start < 0.5) {
+                needsShift = true;
+                console.log(`[SarvamService] Detected missing leading silence in timestamps. Shifting by ${speechStart.toFixed(2)}s`);
+            }
+        }
+
         initialTimings.forEach((timing) => {
+          if (needsShift) {
+             timing.start = parseFloat((timing.start + speechStart).toFixed(3));
+             timing.end = parseFloat((timing.end + speechStart).toFixed(3));
+          }
           const subWords = timing.word.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
           if (subWords.length > 1) {
              const duration = timing.end - timing.start;
@@ -360,19 +390,9 @@ export class SarvamTranscriptionService {
         console.warn("[SarvamService] No timestamps in response — interpolating timings");
         const rawWords = rawTranscript.trim().split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
 
-        let estimatedDuration = chunkDuration ?? 30;
-        if (!chunkDuration) {
-          try {
-            const stat = await fs.promises.stat(audioPath);
-            estimatedDuration = Math.max(5, stat.size / 16000);
-          } catch {
-            // ignore
-          }
-        }
-
-        wordTimings = interpolateTimings(rawWords, estimatedDuration);
+        wordTimings = interpolateTimings(rawWords, speechStart, speechEnd);
         console.log(
-          `[SarvamService] Interpolated ${wordTimings.length} words over ~${estimatedDuration.toFixed(1)}s`
+          `[SarvamService] Interpolated ${wordTimings.length} words over ~${speechStart.toFixed(1)}s to ${speechEnd.toFixed(1)}s`
         );
       }
 
