@@ -114,17 +114,46 @@ function segmentWords(words) {
     return segments;
 }
 /**
- * When Sarvam returns no timestamps, interpolate evenly across the word list.
- * This is a graceful fallback — not ideal, but avoids the single-tile problem.
+ * Count the number of syllable-like units in a word.
+ * For Hindi/Devanagari: each vowel/consonant cluster is a syllable.
+ * For Latin: rough approximation using character count.
+ * This gives a better proxy for speaking duration than character count alone.
+ */
+function estimateSyllables(word) {
+    // Devanagari block: each character is roughly one unit of sound
+    const devanagari = word.match(/[\u0900-\u097F]/g);
+    if (devanagari && devanagari.length > 0) {
+        return Math.max(1, devanagari.length);
+    }
+    // Latin: vowel groups = syllables (min 1)
+    const vowelGroups = word.toLowerCase().match(/[aeiou]+/g);
+    return Math.max(1, vowelGroups ? vowelGroups.length : Math.ceil(word.length / 3));
+}
+/**
+ * Split a multi-word timing entry into individual words, distributing the
+ * duration proportionally by syllable count so that longer/heavier words
+ * get more time — matching how speech actually flows.
+ */
+function splitByWeight(words, blockStart, blockEnd) {
+    const syllables = words.map(estimateSyllables);
+    const totalSyllables = syllables.reduce((a, b) => a + b, 0);
+    const blockDuration = Math.max(blockEnd - blockStart, 0.05);
+    let cursor = blockStart;
+    return words.map((word, i) => {
+        const weight = syllables[i] / totalSyllables;
+        const wordDuration = blockDuration * weight;
+        const start = parseFloat(cursor.toFixed(3));
+        cursor += wordDuration;
+        const end = parseFloat(cursor.toFixed(3));
+        return { word, start, end };
+    });
+}
+/**
+ * When Sarvam returns no timestamps at all, interpolate across the speech
+ * window using syllable-weighted distribution.
  */
 function interpolateTimings(words, speechStart, speechEnd) {
-    const duration = Math.max(speechEnd - speechStart, 0.1);
-    const durationPerWord = duration / Math.max(words.length, 1);
-    return words.map((word, i) => ({
-        word,
-        start: parseFloat((speechStart + i * durationPerWord).toFixed(3)),
-        end: parseFloat((speechStart + (i + 1) * durationPerWord).toFixed(3)),
-    }));
+    return splitByWeight(words, speechStart, speechEnd);
 }
 // ─── Service ──────────────────────────────────────────────────────────────────
 class SarvamTranscriptionService {
@@ -296,15 +325,11 @@ class SarvamTranscriptionService {
                     }
                     const subWords = timing.word.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
                     if (subWords.length > 1) {
-                        const duration = timing.end - timing.start;
-                        const subDuration = duration / subWords.length;
-                        subWords.forEach((sub, idx) => {
-                            wordTimings.push({
-                                word: sub,
-                                start: parseFloat((timing.start + idx * subDuration).toFixed(3)),
-                                end: parseFloat((timing.start + (idx + 1) * subDuration).toFixed(3))
-                            });
-                        });
+                        // Use syllable-weighted split instead of equal-time slices
+                        const weightedSubs = splitByWeight(subWords, timing.start, timing.end);
+                        for (const sub of weightedSubs) {
+                            wordTimings.push(sub);
+                        }
                     }
                     else {
                         wordTimings.push(timing);
