@@ -193,8 +193,15 @@ class SarvamTranscriptionService {
         let allWords = [];
         try {
             // Transcribe all chunks in parallel using Promise.all
+            // First check each chunk for speech content to avoid hallucinations on silent segments
+            const ffmpegSvc = new ffmpeg_service_1.FFmpegService();
             const transcribePromises = chunks.map(async (chunk) => {
-                console.log(`[SarvamService] Transcribing chunk offset: ${chunk.offset}s`);
+                const hasSpeech = await ffmpegSvc.hasSpeechContent(chunk.path);
+                if (!hasSpeech) {
+                    console.log(`[SarvamService] Skipping silent chunk at offset ${chunk.offset.toFixed(2)}s (no speech detected)`);
+                    return [];
+                }
+                console.log(`[SarvamService] Transcribing chunk offset: ${chunk.offset.toFixed(2)}s (${chunk.duration.toFixed(2)}s)`);
                 return this.transcribeSingleAudio(chunk.path, options, chunk.offset, chunk.duration);
             });
             const results = await Promise.all(transcribePromises);

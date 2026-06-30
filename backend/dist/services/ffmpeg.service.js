@@ -17,6 +17,13 @@ const tempDir = path_1.default.join(process.cwd(), "temp");
 if (!fs_1.default.existsSync(tempDir)) {
     fs_1.default.mkdirSync(tempDir, { recursive: true });
 }
+/**
+ * Bandpass filter that isolates human vocal frequencies (300 Hz – 3400 Hz).
+ * Applied ONLY during audio analysis (silence detection, volume checks).
+ * Background music, bass, and hi-hats are outside this range and get filtered out.
+ * The original full-spectrum audio is always sent to Sarvam unchanged.
+ */
+const VOCAL_BAND_FILTER = 'highpass=f=300,lowpass=f=3400';
 class FFmpegService {
     async getVideoDuration(videoPath) {
         return new Promise((resolve, reject) => {
@@ -39,7 +46,8 @@ class FFmpegService {
             command.setFfmpegPath(ffmpegInstaller.path);
             command.setFfprobePath(ffprobeInstaller.path);
             command
-                .audioFilters('silencedetect=noise=-20dB:d=0.5')
+                // Apply vocal bandpass before silencedetect so background music doesn't interfere
+                .audioFilters(`${VOCAL_BAND_FILTER},silencedetect=noise=-20dB:d=0.5`)
                 .format('null')
                 .on('stderr', (stderrLine) => {
                 const startMatch = stderrLine.match(/silence_start:\s+([\d.]+)/);
@@ -72,6 +80,47 @@ class FFmpegService {
             })
                 .on('error', (err) => {
                 reject(err);
+            })
+                .save('pipe:1');
+        });
+    }
+    /**
+     * Returns true if the audio chunk has enough energy to contain real speech.
+     * Uses FFmpeg volumedetect to measure mean_volume. Anything below -45 dB
+     * is considered silence/noise — Sarvam would hallucinate words on these.
+     * Threshold: -45 dB (adjustable — louder = more strict filtering)
+     */
+    async hasSpeechContent(audioPath, thresholdDb = -45) {
+        return new Promise((resolve) => {
+            let meanVolume = null;
+            const command = (0, fluent_ffmpeg_1.default)(audioPath);
+            command.setFfmpegPath(ffmpegInstaller.path);
+            command.setFfprobePath(ffprobeInstaller.path);
+            command
+                // Apply vocal bandpass so background music volume doesn't mask silent speech gaps
+                .audioFilters(`${VOCAL_BAND_FILTER},volumedetect`)
+                .format('null')
+                .on('stderr', (line) => {
+                // volumedetect outputs: [Parsed_volumedetect_0 @ ...] mean_volume: -38.5 dB
+                const match = line.match(/mean_volume:\s*([-\d.]+)\s*dB/);
+                if (match) {
+                    meanVolume = parseFloat(match[1]);
+                }
+            })
+                .on('end', () => {
+                if (meanVolume === null) {
+                    // Could not detect — assume it has speech to avoid skipping
+                    console.warn(`[FFmpegService] volumedetect failed for ${audioPath}, assuming has speech`);
+                    resolve(true);
+                    return;
+                }
+                const hasSpeech = meanVolume > thresholdDb;
+                console.log(`[FFmpegService] ${audioPath} mean_volume=${meanVolume}dB → ${hasSpeech ? 'HAS SPEECH' : 'SILENT – skipping'}`);
+                resolve(hasSpeech);
+            })
+                .on('error', () => {
+                // On error, assume it has speech to be safe
+                resolve(true);
             })
                 .save('pipe:1');
         });
@@ -181,8 +230,8 @@ class FFmpegService {
             command.setFfmpegPath(ffmpegInstaller.path);
             command.setFfprobePath(ffprobeInstaller.path);
             command
-                // d=0.2 → detect pauses as short as 200ms (natural breath pauses)
-                .audioFilters('silencedetect=noise=-20dB:d=0.2')
+                // d=0.2 → detect pauses as short as 200ms; bandpass filters out background music
+                .audioFilters(`${VOCAL_BAND_FILTER},silencedetect=noise=-20dB:d=0.2`)
                 .format('null')
                 .on('stderr', (line) => {
                 const startMatch = line.match(/silence_start:\s+([\d.]+)/);
