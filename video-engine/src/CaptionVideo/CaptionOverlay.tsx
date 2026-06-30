@@ -518,17 +518,15 @@ export const CaptionOverlay: React.FC<{
     };
 
     const renderWord = (wordObj: typeof words[0], index: number, isHero: boolean = false) => {
-      // Staggered animation matching frontend: delay = index * 0.1
-      const delayFrames = Math.round(index * 0.1 * fps);
-      // Segment starts when the first word in the caption block starts
-      const segmentStartFrame = secToFrame(words[0].start, fps);
-      const revealFrame = segmentStartFrame + delayFrames;
+      // Each word reveals exactly when it is spoken (no stagger delay)
+      const revealFrame = secToFrame(wordObj.start, fps);
+      const animFrames = Math.round(fps * 0.12);
 
-      const yOffset = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [-20, 0], {
+      const yOffset = interpolate(frame, [revealFrame, revealFrame + animFrames], [-20, 0], {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
       });
-      const opacityVal = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [0, 1], {
+      const opacityVal = interpolate(frame, [revealFrame, revealFrame + animFrames], [0, 1], {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
       });
@@ -580,15 +578,6 @@ export const CaptionOverlay: React.FC<{
       );
     };
 
-    // Main wrapper opacity
-    const activeWord = words.find(w => currentTime >= w.start && currentTime <= w.end);
-    const isHeroActive = activeWord && words.indexOf(activeWord) === heroIndex;
-    const wrapperOpacityBase = isHeroActive ? 1 : (words.some(w => currentTime >= w.start) ? 0.8 : 0.3);
-    
-    // Animate wrapper entrance
-    const segmentStartFrameForWrapper = secToFrame(words[0].start, fps);
-    const wrapperEntranceOpacity = interpolate(frame, [segmentStartFrameForWrapper, segmentStartFrameForWrapper + Math.round(fps * 0.3)], [0, wrapperOpacityBase], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-
     return (
       <div style={{
         display: "flex",
@@ -596,7 +585,6 @@ export const CaptionOverlay: React.FC<{
         width: "fit-content",
         margin: "0 auto",
         filter: wrapperFilter,
-        opacity: wrapperEntranceOpacity
       }}>
         {/* Top Line */}
         {topWords.length > 0 && (
@@ -715,17 +703,15 @@ export const CaptionOverlay: React.FC<{
     };
 
     const renderWord = (wordObj: typeof words[0], index: number, isHero: boolean = false) => {
-      // Staggered animation matching frontend: delay = index * 0.1
-      const delayFrames = Math.round(index * 0.1 * fps);
-      // Segment starts when the first word in the caption block starts
-      const segmentStartFrame = secToFrame(words[0].start, fps);
-      const revealFrame = segmentStartFrame + delayFrames;
+      // Each word reveals exactly when it is spoken (no stagger delay)
+      const revealFrame = secToFrame(wordObj.start, fps);
+      const animFrames = Math.round(fps * 0.12);
 
-      const yOffset = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [-20, 0], {
+      const yOffset = interpolate(frame, [revealFrame, revealFrame + animFrames], [-20, 0], {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
       });
-      const opacityVal = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [0, 1], {
+      const opacityVal = interpolate(frame, [revealFrame, revealFrame + animFrames], [0, 1], {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
       });
@@ -777,15 +763,6 @@ export const CaptionOverlay: React.FC<{
       );
     };
 
-    // Main wrapper opacity
-    const activeWord = words.find(w => currentTime >= w.start && currentTime <= w.end);
-    const isHeroActive = activeWord && words.indexOf(activeWord) === heroIndex;
-    const wrapperOpacityBase = isHeroActive ? 1 : (words.some(w => currentTime >= w.start) ? 0.8 : 0.3);
-    
-    // Animate wrapper entrance
-    const segmentStartFrameForWrapper = secToFrame(words[0].start, fps);
-    const wrapperEntranceOpacity = interpolate(frame, [segmentStartFrameForWrapper, segmentStartFrameForWrapper + Math.round(fps * 0.3)], [0, wrapperOpacityBase], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-
     return (
       <div style={{
         display: "flex",
@@ -793,7 +770,6 @@ export const CaptionOverlay: React.FC<{
         width: "fit-content",
         margin: "0 auto",
         filter: wrapperFilter,
-        opacity: wrapperEntranceOpacity
       }}>
         {/* Inject the Aston Script stylesheet */}
         <style>{`
@@ -878,17 +854,17 @@ export const CaptionOverlay: React.FC<{
     const wrapperEntranceOpacity = interpolate(frame, [segmentStartFrameForWrapper, segmentStartFrameForWrapper + Math.round(fps * 0.3)], [0, wrapperOpacityBase], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
     const renderWord = (wordObj: typeof words[0], index: number, pos: "top" | "bottom" | "hero") => {
-      const delayFrames = Math.round(index * 0.1 * fps);
-      const segmentStartFrame = secToFrame(words[0].start, fps);
-      const revealFrame = segmentStartFrame + delayFrames;
+      // Each word reveals exactly when it is spoken (no stagger delay)
+      const revealFrame = secToFrame(wordObj.start, fps);
+      const animFrames = Math.round(fps * 0.12);
 
-      const opacityVal = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [0, 1], {
+      const opacityVal = interpolate(frame, [revealFrame, revealFrame + animFrames], [0, 1], {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
       });
 
       if (pos === "top") {
-        const yOffset = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [-50, 0], {
+        const yOffset = interpolate(frame, [revealFrame, revealFrame + animFrames], [-50, 0], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         });
@@ -908,7 +884,7 @@ export const CaptionOverlay: React.FC<{
           </span>
         );
       } else if (pos === "bottom") {
-        const yOffset = interpolate(frame, [revealFrame, revealFrame + Math.round(fps * 0.3)], [50, 0], {
+        const yOffset = interpolate(frame, [revealFrame, revealFrame + animFrames], [50, 0], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         });
@@ -928,8 +904,8 @@ export const CaptionOverlay: React.FC<{
           </span>
         );
       } else {
-        // Hero word — Remotion frame-based chalk stroke animation (mirrors CSS chalkStrokeIn)
-        const animDurationFrames = Math.round(fps * 0.25);
+        // Hero word — reveal on word start, chalk stroke in ~0.2s
+        const animDurationFrames = Math.round(fps * 0.2);
         const opacity = interpolate(frame, [revealFrame, revealFrame + Math.round(animDurationFrames * 0.15), revealFrame + animDurationFrames], [0, 0.8, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
         const scale = interpolate(frame, [revealFrame, revealFrame + animDurationFrames], [0.95, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
         const skewX = interpolate(frame, [revealFrame, revealFrame + animDurationFrames], [-5, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
@@ -966,7 +942,6 @@ export const CaptionOverlay: React.FC<{
           width: "100%",
           maxWidth: `${800 * renderScale}px`,
           margin: "0 auto",
-          opacity: wrapperEntranceOpacity,
         }}
       >
         <style>{`
@@ -1250,17 +1225,13 @@ export const CaptionOverlay: React.FC<{
               </span>
             );
           } else if (isPast) {
-            const wordEndFrame = secToFrame(wordObj.end, fps);
-            const opacityOut = interpolate(frame, [wordEndFrame, wordEndFrame + fps * 0.3], [1, 0.2], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-
             return (
               <span
                 key={index}
                 style={{
                   ...wordStyle,
                   color: "#FFFFFF",
-                  opacity: opacityOut,
-                  filter: `blur(${4 * renderScale}px)`,
+                  opacity: 1,
                   letterSpacing: `${15 * renderScale}px`,
                 }}
               >
