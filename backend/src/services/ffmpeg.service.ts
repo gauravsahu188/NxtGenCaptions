@@ -40,7 +40,7 @@ export class FFmpegService {
       command.setFfprobePath(ffprobeInstaller.path);
       
       command
-        .audioFilters('silencedetect=noise=-30dB:d=0.5')
+        .audioFilters('silencedetect=noise=-20dB:d=0.5')
         .format('null')
         .on('stderr', (stderrLine) => {
           const startMatch = stderrLine.match(/silence_start:\s+([\d.]+)/);
