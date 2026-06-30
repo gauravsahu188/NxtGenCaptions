@@ -603,15 +603,14 @@ export default function VideoPlayer() {
     const wrapperOpacity = isHeroActive ? 1 : (words.some(w => currentTime >= w.start) ? 0.8 : 0.3);
 
     const renderWord = (wordObj: typeof words[0], index: number, isHero: boolean = false) => {
-      const delay = index * 0.1;
+      const isSpoken = currentTime >= wordObj.start;
 
       if (isHero) {
         return (
           <motion.span
             key={`${caption.id}-${index}`}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay }}
+            animate={{ opacity: isSpoken ? 1 : 0, y: isSpoken ? 0 : -20 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             style={{ ...wordStyle, textAlign: "center" }}
           >
             <span aria-hidden="true" style={heroGhostBlurStyle}>{wordObj.word}</span>
@@ -636,9 +635,8 @@ export default function VideoPlayer() {
       return (
         <motion.span
           key={`${caption.id}-${index}`}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay }}
+          animate={{ opacity: isSpoken ? 1 : 0, y: isSpoken ? 0 : -20 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
           style={{ ...wordStyle, textAlign: "left" }}
         >
           <span aria-hidden="true" style={{ ...ghostBlurStyle, color: primaryColor }}>{wordObj.word}</span>
@@ -648,10 +646,7 @@ export default function VideoPlayer() {
     };
 
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: wrapperOpacity }}
-        transition={{ duration: 0.3 }}
+      <div
         style={{
           display: "flex",
           flexDirection: "column",
@@ -699,7 +694,7 @@ export default function VideoPlayer() {
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
     );
   };
 
@@ -923,15 +918,14 @@ export default function VideoPlayer() {
     const wrapperOpacity = isHeroActive ? 1 : (words.some(w => currentTime >= w.start) ? 0.8 : 0.3);
 
     const renderWord = (wordObj: typeof words[0], index: number, isHero: boolean = false) => {
-      const delay = index * 0.1;
+      const isSpoken = currentTime >= wordObj.start;
 
       if (isHero) {
         return (
           <motion.span
             key={`${caption.id}-${index}`}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay }}
+            animate={{ opacity: isSpoken ? 1 : 0, y: isSpoken ? 0 : -20 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             style={{ ...wordStyle, textAlign: "center" }}
           >
             <span aria-hidden="true" style={heroGhostBlurStyle}>{wordObj.word}</span>
@@ -956,9 +950,8 @@ export default function VideoPlayer() {
       return (
         <motion.span
           key={`${caption.id}-${index}`}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay }}
+          animate={{ opacity: isSpoken ? 1 : 0, y: isSpoken ? 0 : -20 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
           style={{ ...wordStyle, textAlign: "left" }}
         >
           <span aria-hidden="true" style={{ ...ghostBlurStyle, fontFamily: "'Aston Script', cursive", fontWeight: 400, color: primaryColor }}>{wordObj.word}</span>
@@ -968,10 +961,7 @@ export default function VideoPlayer() {
     };
 
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: wrapperOpacity }}
-        transition={{ duration: 0.3 }}
+      <div
         style={{
           display: "flex",
           flexDirection: "column",
@@ -1024,7 +1014,7 @@ export default function VideoPlayer() {
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
     );
   };
 
@@ -1058,15 +1048,14 @@ export default function VideoPlayer() {
     const wrapperOpacity = words.some(w => currentTime >= w.start) ? 1 : 0.3;
 
     const renderWord = (wordObj: typeof words[0], index: number, pos: "top" | "bottom" | "hero") => {
-      const delay = index * 0.1;
-      
+      const isSpoken = currentTime >= wordObj.start;
+
       if (pos === "top") {
         return (
           <motion.span
             key={`${caption.id}-${index}`}
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay }}
+            animate={{ opacity: isSpoken ? 1 : 0, y: isSpoken ? 0 : -50 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             style={{
               fontFamily: "'JaggyW01-Regular', sans-serif",
               color: primaryColor,
@@ -1080,9 +1069,8 @@ export default function VideoPlayer() {
         return (
           <motion.span
             key={`${caption.id}-${index}`}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay }}
+            animate={{ opacity: isSpoken ? 1 : 0, y: isSpoken ? 0 : 50 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             style={{
               fontFamily: "'JaggyW01-Regular', sans-serif",
               color: primaryColor,
@@ -1093,20 +1081,21 @@ export default function VideoPlayer() {
           </motion.span>
         );
       } else {
-        const isHeroActive = activeWord && words.indexOf(activeWord) === heroIndex;
+        // Hero: trigger chalkStrokeIn animation when the hero word is spoken
         return (
           <motion.span
             key={`${caption.id}-${index}`}
+            animate={{ opacity: isSpoken ? 1 : 0 }}
+            transition={{ duration: 0 }}
             style={{
               display: "inline-block",
               fontFamily: "'Chalk-y', sans-serif",
               fontSize: `${HERO_FONT_SIZE}px`,
               color: "#ffffff",
               textShadow: "0 0 15px rgba(255,255,255,0.8), 2px 2px 5px rgba(0,0,0,0.5)",
-              animation: "chalkStrokeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-              animationDelay: `${delay}s`,
+              animation: isSpoken ? "chalkStrokeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards" : "none",
               whiteSpace: "pre",
-              opacity: 0,
+              opacity: isSpoken ? 1 : 0,
             }}
           >
             {wordObj.word}
@@ -1116,10 +1105,7 @@ export default function VideoPlayer() {
     };
 
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: wrapperOpacity }}
-        transition={{ duration: 0.3 }}
+      <div
         style={{
           display: "flex",
           flexDirection: "column",
@@ -1182,7 +1168,7 @@ export default function VideoPlayer() {
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
     );
   };
 
@@ -1248,8 +1234,7 @@ export default function VideoPlayer() {
                 style={{
                   ...wordStyle,
                   color: "#FFFFFF",
-                  opacity: 0.2,
-                  filter: "blur(4px)",
+                  opacity: 1,
                   letterSpacing: "15px", // stays at fully expanded tracking
                 }}
               >
