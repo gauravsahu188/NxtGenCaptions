@@ -226,7 +226,7 @@ export class SarvamTranscriptionService {
       }
     }
 
-    if (duration <= 12) {
+    if (duration <= 5) {
       const words = await this.transcribeSingleAudio(audioPath, options, 0, duration);
       const segments = segmentWords(words);
       if (onProgress) {
@@ -237,9 +237,9 @@ export class SarvamTranscriptionService {
       return segments;
     }
 
-    console.log(`[SarvamService] Audio duration (${duration.toFixed(1)}s) > 12s. Chunking audio file...`);
-    const chunks = await ffmpegService.splitAudio(audioPath, 12);
-    console.log(`[SarvamService] Split into ${chunks.length} chunks.`);
+    console.log(`[SarvamService] Audio duration (${duration.toFixed(1)}s) > 5s. Splitting by silence/phrase boundaries...`);
+    const chunks = await ffmpegService.splitAudioBySilence(audioPath);
+    console.log(`[SarvamService] Split into ${chunks.length} phrase chunks.`);
 
     let allWords: { word: string; start: number; end: number }[] = [];
     
@@ -356,20 +356,13 @@ export class SarvamTranscriptionService {
 
       let wordTimings: { word: string; start: number; end: number }[] = [];
 
-      // ── Get true speech bounds for this chunk ──────────────────────────────
-      const ffmpegSvc = new FFmpegService();
-      let estimatedDuration = chunkDuration ?? 30;
-      if (!chunkDuration) {
-        try {
-          const stat = await fs.promises.stat(audioPath);
-          estimatedDuration = Math.max(5, stat.size / 16000);
-        } catch { /* ignore */ }
-      }
-      const bounds = await ffmpegSvc.getSpeechBounds(audioPath, estimatedDuration);
-      const speechStart = bounds.start;
-      const speechEnd = bounds.end;
+      // ── Speech bounds: for phrase chunks, the whole chunk is speech ───────────
+      // We use speechStart=0 and speechEnd=chunkDuration since each phrase chunk
+      // was cut at natural silence boundaries — no leading silence to skip.
+      const speechStart = 0;
+      const speechEnd = chunkDuration ?? 30;
       
-      console.log(`[SarvamService] Chunk Speech Bounds - start: ${speechStart.toFixed(2)}s, end: ${speechEnd.toFixed(2)}s`);
+      console.log(`[SarvamService] Interpolating over chunk: 0 → ${speechEnd.toFixed(2)}s (offset: ${offsetSeconds.toFixed(2)}s)`);
 
       // ── Case 1: Real word-level timestamps from Sarvam ────────────────────
       if (

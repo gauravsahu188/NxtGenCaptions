@@ -57,7 +57,7 @@ export class FFmpegService {
         })
         .on('end', () => {
           let speechStart = 0;
-          let speechEnd = duration!; // Non-null assertion is safe here
+          let speechEnd = duration!;
 
           if (silenceBlocks.length > 0 && silenceBlocks[0].start <= 0.1) {
               speechStart = silenceBlocks[0].end;
@@ -145,13 +145,14 @@ export class FFmpegService {
     });
   }
 
+  /** Fixed-time splitting — kept as fallback. */
   async splitAudio(
     audioPath: string,
     chunkDuration: number = 30
   ): Promise<{ path: string; offset: number; duration: number }[]> {
-    const duration = await this.getVideoDuration(audioPath);
+    const totalDuration = await this.getVideoDuration(audioPath);
     const chunks: { path: string; offset: number; duration: number }[] = [];
-    const numChunks = Math.ceil(duration / chunkDuration);
+    const numChunks = Math.ceil(totalDuration / chunkDuration);
     const audioDir = path.dirname(audioPath);
     const audioExt = path.extname(audioPath);
     const audioBase = path.basename(audioPath, audioExt);
@@ -179,6 +180,131 @@ export class FFmpegService {
       const actualDuration = await this.getVideoDuration(outputPath);
       chunks.push({ path: outputPath, offset, duration: actualDuration });
     }
+    return chunks;
+  }
+
+  /**
+   * Split audio at natural silence boundaries so each chunk covers ONE phrase/sentence.
+   * This gives Sarvam a tight time window, making syllable-weighted interpolation far
+   * more accurate than fixed-time chunking.
+   *
+   * @param maxDuration  Cap (seconds) on any single chunk — default 25 to stay within Sarvam's 30s limit.
+   */
+  async splitAudioBySilence(
+    audioPath: string,
+    maxDuration: number = 25
+  ): Promise<{ path: string; offset: number; duration: number }[]> {
+    const totalDuration = await this.getVideoDuration(audioPath);
+    const audioDir = path.dirname(audioPath);
+    const audioExt = path.extname(audioPath);
+    const audioBase = path.basename(audioPath, audioExt);
+
+    // ── Step 1: Detect all silence blocks ──────────────────────────────────────
+    const silenceBlocks = await new Promise<{ start: number; end: number }[]>((resolve, reject) => {
+      const blocks: { start: number; end: number }[] = [];
+      let currentStart = 0;
+
+      const command = ffmpeg(audioPath);
+      command.setFfmpegPath(ffmpegInstaller.path);
+      command.setFfprobePath(ffprobeInstaller.path);
+
+      command
+        // d=0.2 → detect pauses as short as 200ms (natural breath pauses)
+        .audioFilters('silencedetect=noise=-20dB:d=0.2')
+        .format('null')
+        .on('stderr', (line) => {
+          const startMatch = line.match(/silence_start:\s+([\d.]+)/);
+          if (startMatch) currentStart = parseFloat(startMatch[1]);
+
+          const endMatch = line.match(/silence_end:\s+([\d.]+)/);
+          if (endMatch) blocks.push({ start: currentStart, end: parseFloat(endMatch[1]) });
+        })
+        .on('end', () => resolve(blocks))
+        .on('error', reject)
+        .save('pipe:1');
+    });
+
+    console.log(`[FFmpegService] Detected ${silenceBlocks.length} silence blocks`);
+
+    // ── Step 2: Build cut points from midpoints of silence gaps ────────────────
+    const cutPoints: number[] = [0];
+    for (const block of silenceBlocks) {
+      const mid = parseFloat(((block.start + block.end) / 2).toFixed(3));
+      // Only use meaningful pauses that aren't right at the start/end
+      if (block.end - block.start >= 0.2 && mid > 0.3 && mid < totalDuration - 0.3) {
+        cutPoints.push(mid);
+      }
+    }
+    cutPoints.push(totalDuration);
+
+    // ── Step 3: Build segments, merging tiny ones, splitting huge ones ──────────
+    const segments: { start: number; end: number }[] = [];
+    let segStart = cutPoints[0];
+
+    for (let i = 1; i < cutPoints.length; i++) {
+      const segEnd = cutPoints[i];
+      const segDur = segEnd - segStart;
+
+      if (segDur <= 0.1) {
+        // Skip near-empty gaps
+        continue;
+      }
+
+      if (segDur > maxDuration) {
+        // Too long — hard-split at maxDuration boundaries
+        let sub = segStart;
+        while (sub < segEnd) {
+          const end = Math.min(sub + maxDuration, segEnd);
+          if (end - sub > 0.1) {
+            segments.push({ start: sub, end });
+          }
+          sub = end;
+        }
+      } else {
+        segments.push({ start: segStart, end: segEnd });
+      }
+      segStart = segEnd;
+    }
+
+    // Fallback: if silence detection found nothing, treat as single chunk
+    if (segments.length === 0) {
+      segments.push({ start: 0, end: totalDuration });
+    }
+
+    console.log(`[FFmpegService] Silence-split produced ${segments.length} phrase chunks from ${totalDuration.toFixed(1)}s audio`);
+    segments.forEach((s, i) =>
+      console.log(`  Chunk ${i}: ${s.start.toFixed(2)}s → ${s.end.toFixed(2)}s (${(s.end - s.start).toFixed(2)}s)`)
+    );
+
+    // ── Step 4: Extract each phrase as an audio file ───────────────────────────
+    const chunks: { path: string; offset: number; duration: number }[] = [];
+
+    for (let i = 0; i < segments.length; i++) {
+      const { start, end } = segments[i];
+      const segDur = end - start;
+      const outputPath = path.join(audioDir, `${audioBase}_phrase_${i}${audioExt}`);
+
+      await new Promise<void>((resolve, reject) => {
+        const command = ffmpeg(audioPath);
+        command.setFfmpegPath(ffmpegInstaller.path);
+        command.setFfprobePath(ffprobeInstaller.path);
+
+        command
+          .seek(start)
+          .duration(segDur)
+          .audioCodec("libmp3lame")
+          .save(outputPath)
+          .on("end", () => resolve())
+          .on("error", (err) => {
+            console.error(`[FFmpeg] Phrase chunk error for chunk ${i}:`, err);
+            reject(err);
+          });
+      });
+
+      const actualDuration = await this.getVideoDuration(outputPath);
+      chunks.push({ path: outputPath, offset: start, duration: actualDuration });
+    }
+
     return chunks;
   }
 }
