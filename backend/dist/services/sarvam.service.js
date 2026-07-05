@@ -182,7 +182,7 @@ class SarvamTranscriptionService {
             const segments = segmentWords(words);
             if (onProgress) {
                 for (const seg of segments) {
-                    onProgress(seg);
+                    await onProgress(seg);
                 }
             }
             return segments;
@@ -227,7 +227,7 @@ class SarvamTranscriptionService {
         // Progressive streaming of segments to client
         if (onProgress) {
             for (const seg of segments) {
-                onProgress(seg);
+                await onProgress(seg);
             }
         }
         return segments;

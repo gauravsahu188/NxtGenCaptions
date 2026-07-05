@@ -12,6 +12,7 @@ const s3_service_1 = require("../services/s3.service");
 const subject_isolation_service_1 = require("../services/subject-isolation.service");
 const sqs_1 = require("../lib/sqs");
 const errors_1 = require("../utils/errors");
+const transliterate_1 = require("../utils/transliterate");
 const translation_service_1 = require("../services/translation.service");
 const sarvam_service_1 = require("../services/sarvam.service");
 const path_1 = __importDefault(require("path"));
@@ -171,11 +172,25 @@ class VideoController {
             console.log(`[VideoController] Routing to Sarvam AI (Language: ${language}, Script: ${script})`);
             // Use Sarvam AI exclusively for all languages and scripts
             // Stream each segment to the client as soon as it is ready
-            captions = await sarvamService.transcribeAudio(cleanedAudioPath, (segment) => {
+            captions = await sarvamService.transcribeAudio(cleanedAudioPath, async (segment) => {
+                let processedSegment = segment;
+                if (script === "romanised") {
+                    processedSegment = (0, transliterate_1.processHinglishCaptions)([segment])[0];
+                }
+                else if (script === "english") {
+                    const translatedArr = await translationService.translateCaptions([segment]);
+                    processedSegment = translatedArr[0];
+                }
                 // Normalise id to string for frontend CaptionSegment compatibility
-                const normalised = { ...segment, id: String(segment.id) };
+                const normalised = { ...processedSegment, id: String(processedSegment.id) };
                 sendEvent("segment", { segment: normalised });
-            }, { language, script, duration: durationSeconds });
+            }, { language, script: "native", duration: durationSeconds });
+            if (script === "romanised") {
+                captions = (0, transliterate_1.processHinglishCaptions)(captions);
+            }
+            else if (script === "english") {
+                captions = await translationService.translateCaptions(captions);
+            }
             // Normalise all segment IDs to strings before sending the complete event
             captions = captions.map((seg) => ({ ...seg, id: String(seg.id) }));
             const srtFilename = `${path_1.default.basename(videoPath, path_1.default.extname(videoPath))}.srt`;

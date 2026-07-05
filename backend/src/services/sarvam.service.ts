@@ -211,7 +211,7 @@ export class SarvamTranscriptionService {
 
   async transcribeAudio(
     audioPath: string,
-    onProgress?: (segment: CaptionSegment) => void,
+    onProgress?: (segment: CaptionSegment) => void | Promise<void>,
     options?: { language?: string; script?: string; duration?: number }
   ): Promise<CaptionSegment[]> {
     const { language = "hi", script = "native", duration: passedDuration } = options || {};
@@ -231,7 +231,7 @@ export class SarvamTranscriptionService {
       const segments = segmentWords(words);
       if (onProgress) {
         for (const seg of segments) {
-          onProgress(seg);
+          await onProgress(seg);
         }
       }
       return segments;
@@ -279,7 +279,7 @@ export class SarvamTranscriptionService {
     // Progressive streaming of segments to client
     if (onProgress) {
       for (const seg of segments) {
-        onProgress(seg);
+        await onProgress(seg);
       }
     }
 
