@@ -445,4 +445,96 @@ export class SarvamTranscriptionService {
       throw error;
     }
   }
+
+  async transliterateText(text: string, sourceLang: string): Promise<string> {
+    if (!text || text.trim() === "") return text;
+    
+    const langCodeMap: Record<string, string> = {
+      hi: "hi-IN",
+      en: "en-IN",
+      ta: "ta-IN",
+      ml: "ml-IN",
+      te: "te-IN",
+      bn: "bn-IN",
+      gu: "gu-IN",
+      mr: "mr-IN",
+      pa: "pa-IN",
+      ur: "ur-IN",
+      kn: "kn-IN",
+    };
+    const mappedSource = langCodeMap[sourceLang] || "hi-IN";
+
+    try {
+      console.log(`[SarvamService] Transliterating "${text}" from ${mappedSource} to en-IN`);
+      const response = await fetch(`${this.baseUrl}/transliterate`, {
+        method: "POST",
+        headers: {
+          "api-subscription-key": this.apiKey,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          input: text,
+          source_language_code: mappedSource,
+          target_language_code: "en-IN"
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.transliterated_text) {
+          return data.transliterated_text;
+        }
+      } else {
+        const errText = await response.text();
+        console.warn(`[SarvamService] Transliteration API error: ${response.status} ${errText}`);
+      }
+    } catch (e) {
+      console.warn(`[SarvamService] Transliterate failed: ${e}`);
+    }
+    return text; 
+  }
+
+  async transliterateCaptions(captions: any[], sourceLang: string): Promise<any[]> {
+    const result = [];
+    for (const segment of captions) {
+      const text = segment.text || "";
+      const containsIndic = /[^\x00-\x7F]/.test(text); 
+      
+      if (containsIndic) {
+        const transliteratedText = await this.transliterateText(text, sourceLang);
+        
+        const words = transliteratedText.split(/\s+/).filter((w: string) => w.length > 0);
+        const originalWords = segment.words || [];
+        let newWords = [];
+        
+        if (words.length === originalWords.length) {
+          newWords = words.map((w: string, i: number) => ({
+            ...originalWords[i],
+            word: w
+          }));
+        } else {
+          // Fallback to equal distribution
+          const start = segment.start;
+          const end = segment.end;
+          const duration = end - start;
+          const wordDuration = duration / Math.max(words.length, 1);
+
+          newWords = words.map((w: string, index: number) => ({
+            word: w,
+            start: start + index * wordDuration,
+            end: start + (index + 1) * wordDuration,
+          }));
+        }
+
+        result.push({
+          ...segment,
+          text: transliteratedText,
+          words: newWords
+        });
+      } else {
+        result.push(segment);
+      }
+    }
+    return result;
+  }
 }

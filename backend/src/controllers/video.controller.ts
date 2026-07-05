@@ -7,7 +7,7 @@ import { S3Service } from "../services/s3.service";
 import { SubjectIsolationService } from "../services/subject-isolation.service";
 import { sendUploadNotification, isSqsConfigured } from "../lib/sqs";
 import { ValidationError, NotFoundError, AppError } from "../utils/errors";
-import { processHinglishCaptions, containsDevanagari } from "../utils/transliterate";
+
 import { TranslationService } from "../services/translation.service";
 import { SarvamTranscriptionService } from "../services/sarvam.service";
 import path from "path";
@@ -198,7 +198,8 @@ export class VideoController {
           let processedSegment = segment;
           
           if (script === "romanised") {
-            processedSegment = processHinglishCaptions([segment])[0];
+            const transliteratedArr = await sarvamService.transliterateCaptions([segment], language);
+            processedSegment = transliteratedArr[0];
           } else if (script === "english") {
             const translatedArr = await translationService.translateCaptions([segment]);
             processedSegment = translatedArr[0];
@@ -212,7 +213,7 @@ export class VideoController {
       );
 
       if (script === "romanised") {
-        captions = processHinglishCaptions(captions);
+        captions = await sarvamService.transliterateCaptions(captions, language);
       } else if (script === "english") {
         captions = await translationService.translateCaptions(captions);
       }
