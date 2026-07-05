@@ -165,7 +165,7 @@ class SarvamTranscriptionService {
             console.warn("[SarvamService] SARVAM_API_KEY is not set");
         }
     }
-    async transcribeAudio(audioPath, onProgress, options) {
+    async transcribeAudio(audioPath, onProgress, options, transformSegments) {
         const { language = "hi", script = "native", duration: passedDuration } = options || {};
         const ffmpegService = new ffmpeg_service_1.FFmpegService();
         let duration = passedDuration ?? 0;
@@ -179,7 +179,10 @@ class SarvamTranscriptionService {
         }
         if (duration <= 5) {
             const words = await this.transcribeSingleAudio(audioPath, options, 0, duration);
-            const segments = segmentWords(words);
+            let segments = segmentWords(words);
+            if (transformSegments) {
+                segments = await transformSegments(segments);
+            }
             if (onProgress) {
                 for (const seg of segments) {
                     await onProgress(seg);
@@ -223,7 +226,10 @@ class SarvamTranscriptionService {
             }
         }
         // Segment the merged words into caption segments
-        const segments = segmentWords(allWords);
+        let segments = segmentWords(allWords);
+        if (transformSegments) {
+            segments = await transformSegments(segments);
+        }
         // Progressive streaming of segments to client
         if (onProgress) {
             for (const seg of segments) {
@@ -404,18 +410,30 @@ class SarvamTranscriptionService {
         return text;
     }
     async transliterateCaptions(captions, sourceLang) {
+        // Extract all text and join with a unique delimiter to batch into a single API call
+        const fullText = captions.map(seg => seg.text || "").join(" ||| ");
+        if (!/[^\x00-\x7F]/.test(fullText)) {
+            return captions;
+        }
+        const transliteratedFull = await this.transliterateText(fullText, sourceLang);
+        const transliteratedLines = transliteratedFull.split(/\s*\|\|\|\s*/);
         const result = [];
-        for (const segment of captions) {
+        for (let i = 0; i < captions.length; i++) {
+            const segment = captions[i];
             const text = segment.text || "";
             const containsIndic = /[^\x00-\x7F]/.test(text);
             if (containsIndic) {
-                const transliteratedText = await this.transliterateText(text, sourceLang);
+                const transliteratedText = (transliteratedLines[i] || "").trim();
+                if (!transliteratedText) {
+                    result.push(segment); // Fallback if splitting mismatch
+                    continue;
+                }
                 const words = transliteratedText.split(/\s+/).filter((w) => w.length > 0);
                 const originalWords = segment.words || [];
                 let newWords = [];
                 if (words.length === originalWords.length) {
-                    newWords = words.map((w, i) => ({
-                        ...originalWords[i],
+                    newWords = words.map((w, idx) => ({
+                        ...originalWords[idx],
                         word: w
                     }));
                 }

@@ -194,29 +194,21 @@ export class VideoController {
       // Stream each segment to the client as soon as it is ready
       captions = await sarvamService.transcribeAudio(
         cleanedAudioPath,
-        async (segment) => {
-          let processedSegment = segment;
-          
-          if (script === "romanised") {
-            const transliteratedArr = await sarvamService.transliterateCaptions([segment], language);
-            processedSegment = transliteratedArr[0];
-          } else if (script === "english") {
-            const translatedArr = await translationService.translateCaptions([segment]);
-            processedSegment = translatedArr[0];
-          }
-
+        (segment) => {
           // Normalise id to string for frontend CaptionSegment compatibility
-          const normalised = { ...processedSegment, id: String(processedSegment.id) };
+          const normalised = { ...segment, id: String(segment.id) };
           sendEvent("segment", { segment: normalised });
         },
-        { language, script: "native", duration: durationSeconds }
+        { language, script: "native", duration: durationSeconds },
+        async (segments) => {
+          if (script === "romanised") {
+            return await sarvamService.transliterateCaptions(segments, language);
+          } else if (script === "english") {
+            return await translationService.translateCaptions(segments);
+          }
+          return segments;
+        }
       );
-
-      if (script === "romanised") {
-        captions = await sarvamService.transliterateCaptions(captions, language);
-      } else if (script === "english") {
-        captions = await translationService.translateCaptions(captions);
-      }
 
       // Normalise all segment IDs to strings before sending the complete event
       captions = captions.map((seg) => ({ ...seg, id: String(seg.id) }));
