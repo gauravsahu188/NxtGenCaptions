@@ -360,46 +360,60 @@ export default function VideoPlayer() {
   // Apple Style
   const renderAppleText = (caption: typeof activeCaption) => {
     if (!caption || !caption.words) return null;
-    return caption.words.map((wordObj, i) => {
-      const isSpoken = currentTime >= wordObj.start;
+    return (
+      <div style={{
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "0.3em",
+      }}>
+        <style>{`
+          @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+        `}</style>
+        {caption.words.map((wordObj, i) => {
+          const isSpoken = currentTime >= wordObj.start;
 
-      // Blur in as it is spoken, and stay fully visible (no out animation)
-      let blurAmount = "0px";
-      let opacity = 1;
-      let color = captionStyle.primaryColor;
-      let scale = 1;
+          // Blur in as it is spoken, and stay fully visible (no out animation)
+          let blurAmount = "0px";
+          let opacity = 1;
+          let color = captionStyle.emphasisColor;
+          let scale = 1;
 
-      if (isSpoken) {
-        blurAmount = "0px";
-        opacity = 1;
-        color = captionStyle.emphasisColor; // bright
-        scale = 1.05;
-      } else {
-        blurAmount = "4px"; // blur future words
-        opacity = 0.5;
-        color = captionStyle.primaryColor; // inactive (dimmed)
-      }
+          if (isSpoken) {
+            blurAmount = "0px";
+            opacity = 1;
+            color = captionStyle.emphasisColor; // bright
+            scale = 1.05;
+          } else {
+            blurAmount = "4px"; // blur future words
+            opacity = 0.5;
+            color = captionStyle.primaryColor; // inactive (dimmed)
+          }
 
-      return (
-        <motion.span
-          key={`${caption.id}-apple-${i}`}
-          animate={{
-            color,
-            opacity,
-            filter: `blur(${blurAmount})`,
-            scale,
-          }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="font-bold"
-          style={{
-            display: 'inline-block',
-            marginRight: '0.25em',
-          }}
-        >
-          {wordObj.word}
-        </motion.span>
-      );
-    });
+          return (
+            <motion.span
+              key={`${caption.id}-apple-${i}`}
+              animate={{
+                color,
+                opacity,
+                filter: `blur(${blurAmount})`,
+                scale,
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="font-bold"
+              style={{
+                fontFamily: "'Satoshi', sans-serif",
+                display: 'inline-block',
+              }}
+            >
+              {wordObj.word}
+            </motion.span>
+          );
+        })}
+      </div>
+    );
   };
 
   // MogrtShimmerStack Style — 3-tier vertical stack with silver metallic shimmer
@@ -1172,91 +1186,78 @@ export default function VideoPlayer() {
     );
   };
 
-  // NxtgenFicticVisual Style
-  const renderNxtgenFicticVisual = (caption: typeof activeCaption) => {
+  // NxtgenCinemaLine Style
+  const renderNxtgenCinemaLine = (caption: typeof activeCaption) => {
     if (!caption || !caption.words) return null;
-
+    
     const words = caption.words;
+    if (words.length === 0) return null;
+
+    let longestIndex = 0;
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        longestIndex = i;
+      }
+    }
 
     return (
       <div style={{
         display: "flex",
         flexDirection: "row",
-        flexWrap: "nowrap",
+        flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        gap: "0.4em",
+        gap: "0.3em",
       }}>
-        {/* Inject Google Fonts for Syncopate and Cinzel Decorative */}
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Cinzel+Decorative:wght@700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+          @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
         `}</style>
-        {words.map((wordObj, index) => {
-          const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
-          const isPast = currentTime > wordObj.end;
+        {words.map((wordObj, i) => {
+          const isTarget = i === longestIndex;
+          const isSpoken = currentTime >= wordObj.start;
 
-          // Standard flex container styles
-          const wordStyle: React.CSSProperties = {
-            fontFamily: captionStyle.fontFamily === "Cinzel Decorative" ? "'Cinzel Decorative', serif" : "'Syncopate', sans-serif",
-            fontWeight: 700,
-            fontSize: `${captionStyle.fontSize * 1.5}px`, // slightly scaled for cinematic feel
-            textTransform: "uppercase",
-            whiteSpace: "nowrap",
-            transition: "opacity 0.3s ease, filter 0.3s ease, letter-spacing 0.05s linear",
-          };
+          const fontFamily = isTarget ? "'Great Vibes', cursive" : "'Satoshi', sans-serif";
+          const color = isTarget ? (captionStyle.emphasisColor || "#EF4444") : (captionStyle.primaryColor || "#FFFFFF");
+          const fontSize = isTarget ? "1.5em" : "1em";
+          const fontWeight = isTarget ? 400 : 700;
+          
+          let opacity = 0;
+          let blur = "10px";
+          let scale = 0.8;
 
-          if (isActive) {
-            // Linear interpolation of tracking (letter spacing) from 0px to 15px
-            const duration = wordObj.end - wordObj.start;
-            const elapsed = currentTime - wordObj.start;
-            const progress = Math.min(Math.max(elapsed / duration, 0), 1);
-            const letterSpacing = progress * 15;
-
-            return (
-              <span
-                key={`${caption.id}-${index}`}
-                style={{
-                  ...wordStyle,
-                  color: "#FFFFFF",
-                  filter: "drop-shadow(0 0 20px #00FFFF)",
-                  opacity: 1,
-                  letterSpacing: `${letterSpacing}px`,
-                }}
-              >
-                {wordObj.word}
-              </span>
-            );
-          } else if (isPast) {
-            return (
-              <span
-                key={`${caption.id}-${index}`}
-                style={{
-                  ...wordStyle,
-                  color: "#FFFFFF",
-                  opacity: 1,
-                  letterSpacing: "15px", // stays at fully expanded tracking
-                }}
-              >
-                {wordObj.word}
-              </span>
-            );
-          } else {
-            // Future word: hidden until spoken
-            return (
-              <span
-                key={`${caption.id}-${index}`}
-                style={{
-                  ...wordStyle,
-                  opacity: 0,
-                  pointerEvents: "none",
-                  letterSpacing: "0px",
-                }}
-              >
-                {wordObj.word}
-              </span>
-            );
+          if (isSpoken) {
+            opacity = 1;
+            blur = "0px";
+            scale = 1;
           }
+
+          return (
+            <motion.span
+              key={`${caption.id}-cinemaline-${i}`}
+              initial={{ opacity: 0, filter: "blur(10px)", scale: 0.8 }}
+              animate={{
+                opacity,
+                filter: `blur(${blur})`,
+                scale,
+                color
+              }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              style={{
+                fontFamily,
+                fontSize,
+                fontWeight,
+                display: "inline-block",
+                paddingRight: isTarget ? "0.1em" : "0",
+              }}
+            >
+              {wordObj.word}
+            </motion.span>
+          );
         })}
       </div>
     );
@@ -1467,7 +1468,7 @@ export default function VideoPlayer() {
                                 captionStyle.layout === "nxtgen-genz" ? renderNxtgenGenZ(activeCaption) :
                                   captionStyle.layout === "nxtgen-alpha" ? renderNxtgenAlpha(activeCaption) :
                                     captionStyle.layout === "nxtgen-horror" ? renderNxtgenHorror(activeCaption) :
-                                      captionStyle.layout === "nxtgen-ficticvisual" ? renderNxtgenFicticVisual(activeCaption) :
+                                      captionStyle.layout === "nxtgen-cinemaline" ? renderNxtgenCinemaLine(activeCaption) :
                                         <div className="tracking-tight leading-tight">{renderStyledText(activeCaption)}</div>
                     }
                   </motion.div>

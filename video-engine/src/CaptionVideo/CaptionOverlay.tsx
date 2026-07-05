@@ -423,26 +423,44 @@ export const CaptionOverlay: React.FC<{
     });
 
   // ── renderAppleText ───────────────────────────────────────────────────────
-  const renderAppleText = () =>
-    activeCaption.words.map((wordObj, i) => {
-      const isSpoken = currentTime >= wordObj.start;
-      return (
-        <span
-          key={i}
-          style={{
-            color: isSpoken ? style.emphasisColor : style.primaryColor,
-            opacity: isSpoken ? 1 : 0.5,
-            filter: isSpoken ? "blur(0px)" : "blur(4px)",
-            transform: `scale(${isSpoken ? 1.05 : 1})`,
-            fontWeight: 700,
-            display: "inline-block",
-            marginRight: "0.25em",
-          }}
-        >
-          {wordObj.word}
-        </span>
-      );
-    });
+  const renderAppleText = () => (
+    <div style={{
+      display: "flex",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "0.3em",
+    }}>
+      <style>{`
+        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+      `}</style>
+      {activeCaption.words.map((wordObj, i) => {
+        const isSpoken = currentTime >= wordObj.start;
+        const wordStartFrame = secToFrame(wordObj.start, fps);
+        const blurAnim = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.2], [4, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const scaleAnim = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.2], [1.05, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const opacityAnim = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.2], [0.5, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+        return (
+          <span
+            key={i}
+            style={{
+              fontFamily: "'Satoshi', sans-serif",
+              color: isSpoken ? style.emphasisColor : style.primaryColor,
+              opacity: isSpoken ? opacityAnim : 0.5,
+              filter: isSpoken ? `blur(${blurAnim}px)` : "blur(4px)",
+              transform: `scale(${isSpoken ? scaleAnim : 1})`,
+              fontWeight: 700,
+              display: "inline-block",
+            }}
+          >
+            {wordObj.word}
+          </span>
+        );
+      })}
+    </div>
+  );
 
 
 
@@ -1167,93 +1185,65 @@ export const CaptionOverlay: React.FC<{
     );
   };
 
-  // ── renderNxtgenFicticVisual ─────────────────────────────────────────────
-  const renderNxtgenFicticVisual = () => {
+  // ── renderNxtgenCinemaLine ─────────────────────────────────────────────
+  const renderNxtgenCinemaLine = () => {
     const words = activeCaption.words;
     if (words.length === 0) return null;
+
+    let longestIndex = 0;
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        longestIndex = i;
+      }
+    }
 
     return (
       <div style={{
         display: "flex",
         flexDirection: "row",
-        flexWrap: "nowrap",
+        flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        gap: "0.4em",
+        gap: "0.3em",
       }}>
-        {/* Inject Google Fonts stylesheet */}
+        {/* Inject Google Fonts styles */}
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Cinzel+Decorative:wght@700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+          @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
         `}</style>
         {words.map((wordObj, index) => {
-          const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
-          const isPast = currentTime > wordObj.end;
+          const isTarget = index === longestIndex;
+          
+          // Cinematic Remotion interpolation
+          const wordStartFrame = secToFrame(wordObj.start, fps);
+          const isSpoken = currentTime >= wordObj.start;
+          
+          const opacityIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+          const blurIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [10, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+          const scaleIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0.8, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-          const wordStyle: React.CSSProperties = {
-            fontFamily: style.fontFamily === "Cinzel Decorative"
-              ? `'Cinzel Decorative', serif, ${NOTO_FALLBACK_STACK}`
-              : `'Syncopate', ${NOTO_FALLBACK_STACK}`,
-            fontWeight: 700,
-            fontSize: `${style.fontSize * 1.5}px`, // match editor scaling (already scaled)
-            textTransform: "uppercase",
-            whiteSpace: "nowrap",
-          };
-
-          if (isActive) {
-            // Remotion linear interpolation using frame count for absolute precision!
-            const wordStartFrame = secToFrame(wordObj.start, fps);
-            const wordEndFrame = secToFrame(wordObj.end, fps);
-            const tracking = interpolate(frame, [wordStartFrame, wordEndFrame], [0, 15 * renderScale], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            });
-            const opacityIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.3], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-
-            return (
-              <span
-                key={index}
-                style={{
-                  ...wordStyle,
-                  color: "#FFFFFF",
-                  filter: `drop-shadow(0px 0px ${20 * renderScale}px #00FFFF)`,
-                  opacity: opacityIn,
-                  letterSpacing: `${tracking}px`,
-                }}
-              >
-                {wordObj.word}
-              </span>
-            );
-          } else if (isPast) {
-            return (
-              <span
-                key={index}
-                style={{
-                  ...wordStyle,
-                  color: "#FFFFFF",
-                  opacity: 1,
-                  letterSpacing: `${15 * renderScale}px`,
-                }}
-              >
-                {wordObj.word}
-              </span>
-            );
-          } else {
-            // Future word: hidden until spoken
-            return (
-              <span
-                key={index}
-                style={{
-                  ...wordStyle,
-                  opacity: 0,
-                  pointerEvents: "none",
-                  letterSpacing: "0px",
-                }}
-              >
-                {wordObj.word}
-              </span>
-            );
-          }
+          return (
+            <span
+              key={index}
+              style={{
+                fontFamily: isTarget ? "'Great Vibes', cursive" : "'Satoshi', sans-serif",
+                color: isTarget ? (style.emphasisColor || "#EF4444") : (style.primaryColor || "#FFFFFF"),
+                fontSize: isTarget ? `${style.fontSize * 1.5}px` : `${style.fontSize}px`,
+                fontWeight: isTarget ? 400 : 700,
+                opacity: isSpoken ? opacityIn : 0,
+                filter: isSpoken ? `blur(${blurIn}px)` : "blur(10px)",
+                transform: isSpoken ? `scale(${scaleIn})` : "scale(0.8)",
+                display: "inline-block",
+                paddingRight: isTarget ? "0.1em" : "0",
+              }}
+            >
+              {wordObj.word}
+            </span>
+          );
         })}
       </div>
     );
@@ -1535,7 +1525,7 @@ export const CaptionOverlay: React.FC<{
              style.layout === "nxtgen-alpha"        ? renderNxtgenAlpha()        :
              style.layout === "nxtgen-horror"       ? renderNxtgenHorror()       :
              style.layout === "nxtgen-vengence"     ? renderNxtgenVengence()     :
-             style.layout === "nxtgen-ficticvisual" ? renderNxtgenFicticVisual() :
+             style.layout === "nxtgen-cinemaline"   ? renderNxtgenCinemaLine() :
              <div style={{ lineHeight: 1.25, letterSpacing: "-0.025em" }}>{renderStyledText()}</div>
             }
           </div>

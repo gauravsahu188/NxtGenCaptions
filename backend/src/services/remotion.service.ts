@@ -22,7 +22,7 @@ export interface CaptionSegment {
 export type CaptionTemplate =
   | "modern" | "bubble" | "delhi" | "classic" | "neon";
 
-export type CaptionLayout = "center" | "bottom" | "top" | "modern" | "bubble" | "hormozi" | "ali-abdaal" | "gadzhi" | "apple" | "mogrt-shimmer-stack" | "nxtgen-genz" | "nxtgen-alpha" | "nxtgen-horror" | "nxtgen-ficticvisual" | string;
+export type CaptionLayout = "center" | "bottom" | "top" | "modern" | "bubble" | "hormozi" | "ali-abdaal" | "gadzhi" | "apple" | "mogrt-shimmer-stack" | "nxtgen-genz" | "nxtgen-alpha" | "nxtgen-horror" | "nxtgen-cinemaline" | string;
 
 export interface CaptionStyleProps {
   template: CaptionTemplate;
