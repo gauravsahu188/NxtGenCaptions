@@ -1200,6 +1200,83 @@ export const CaptionOverlay: React.FC<{
       }
     }
 
+    const isCursiveFirst = longestIndex === 0 && words.length > 1;
+    const isCursiveLast = longestIndex === words.length - 1 && words.length > 1;
+
+    const renderWord = (wordObj: typeof words[0], index: number, isTarget: boolean, overrideMarginLeft: string = "0.3em") => {
+      // Cinematic Remotion interpolation
+      const wordStartFrame = secToFrame(wordObj.start, fps);
+      const isSpoken = currentTime >= wordObj.start;
+      
+      const opacityIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      const blurIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [10, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      const scaleIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0.8, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+      return (
+        <span
+          key={index}
+          style={{
+            fontFamily: isTarget ? "'Great Vibes', cursive" : "'Satoshi', sans-serif",
+            color: isTarget ? (style.emphasisColor || "#EF4444") : (style.primaryColor || "#FFFFFF"),
+            fontSize: isTarget ? `${style.fontSize * 2}px` : `${style.fontSize}px`,
+            fontWeight: isTarget ? 400 : 700,
+            opacity: isSpoken ? opacityIn : 0,
+            filter: isSpoken ? `blur(${blurIn}px)` : "blur(10px)",
+            transform: isSpoken ? `scale(${scaleIn})` : "scale(0.8)",
+            display: "inline-block",
+            paddingRight: isTarget ? "0.1em" : "0",
+            marginLeft: overrideMarginLeft,
+            position: "relative",
+          }}
+        >
+          {wordObj.word}
+        </span>
+      );
+    };
+
+    if (isCursiveFirst) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+            @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+          `}</style>
+          {/* Top Row: Cursive Word */}
+          <div style={{ zIndex: 1, position: "relative" }}>
+            {renderWord(words[0], 0, true, "0")}
+          </div>
+          {/* Bottom Row: Normal Words */}
+          <div style={{ 
+            display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "center", 
+            marginTop: "-0.8em", zIndex: 2, position: "relative" 
+          }}>
+            {words.slice(1).map((w, i) => renderWord(w, i + 1, false, i === 0 ? "0" : "0.3em"))}
+          </div>
+        </div>
+      );
+    } else if (isCursiveLast) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+            @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+          `}</style>
+          {/* Top Row: Normal Words */}
+          <div style={{ 
+            display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "center",
+            zIndex: 1, position: "relative" 
+          }}>
+            {words.slice(0, words.length - 1).map((w, i) => renderWord(w, i, false, i === 0 ? "0" : "0.3em"))}
+          </div>
+          {/* Bottom Row: Cursive Word */}
+          <div style={{ marginTop: "-0.8em", zIndex: 2, position: "relative" }}>
+            {renderWord(words[words.length - 1], words.length - 1, true, "0")}
+          </div>
+        </div>
+      );
+    }
+
+    // Default (Middle or Single Word)
     return (
       <div style={{
         display: "flex",
@@ -1208,41 +1285,251 @@ export const CaptionOverlay: React.FC<{
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        gap: "0.3em",
       }}>
-        {/* Inject Google Fonts styles */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
           @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
         `}</style>
-        {words.map((wordObj, index) => {
-          const isTarget = index === longestIndex;
-          
-          // Cinematic Remotion interpolation
-          const wordStartFrame = secToFrame(wordObj.start, fps);
-          const isSpoken = currentTime >= wordObj.start;
-          
-          const opacityIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-          const blurIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [10, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-          const scaleIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0.8, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        {words.map((w, i) => renderWord(w, i, i === longestIndex, i === 0 ? "0" : "0.3em"))}
+      </div>
+    );
+  };
 
+  // ── renderNxtgenDirectorsEdition ─────────────────────────────────────────────
+  const renderNxtgenDirectorsEdition = () => {
+    const words = activeCaption.words;
+    if (words.length === 0) return null;
+
+    let longestIndex = 0;
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        longestIndex = i;
+      }
+    }
+
+    const isCursiveFirst = longestIndex === 0 && words.length > 1;
+    const isCursiveLast = longestIndex === words.length - 1 && words.length > 1;
+
+    const renderWord = (wordObj: typeof words[0], index: number, isTarget: boolean, overrideMarginLeft: string = "0.3em") => {
+      // Cinematic Remotion interpolation
+      const wordStartFrame = secToFrame(wordObj.start, fps);
+      const isSpoken = currentTime >= wordObj.start;
+      
+      const opacityIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      const blurIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [10, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      const scaleIn = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0.8, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+      return (
+        <span
+          key={index}
+          style={{
+            fontFamily: "'Satoshi', sans-serif",
+            color: isTarget ? (style.emphasisColor || "#EF4444") : (style.primaryColor || "#FFFFFF"),
+            fontSize: isTarget ? `${style.fontSize * 2}px` : `${style.fontSize}px`,
+            fontWeight: isTarget ? 900 : 400,
+            opacity: isSpoken ? opacityIn : 0,
+            filter: isSpoken ? `blur(${blurIn}px)` : "blur(10px)",
+            transform: isSpoken ? `scale(${scaleIn})` : "scale(0.8)",
+            display: "inline-block",
+            paddingRight: isTarget ? "0.1em" : "0",
+            marginLeft: overrideMarginLeft,
+            position: "relative",
+          }}
+        >
+          {wordObj.word}
+        </span>
+      );
+    };
+
+    if (isCursiveFirst) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+          <style>{`
+            @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+          `}</style>
+          {/* Top Row: Target Word */}
+          <div style={{ zIndex: 1, position: "relative" }}>
+            {renderWord(words[0], 0, true, "0")}
+          </div>
+          {/* Bottom Row: Normal Words */}
+          <div style={{ 
+            display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "center", 
+            marginTop: "-0.8em", zIndex: 2, position: "relative" 
+          }}>
+            {words.slice(1).map((w, i) => renderWord(w, i + 1, false, i === 0 ? "0" : "0.3em"))}
+          </div>
+        </div>
+      );
+    } else if (isCursiveLast) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+          <style>{`
+            @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+          `}</style>
+          {/* Top Row: Normal Words */}
+          <div style={{ 
+            display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "center",
+            zIndex: 1, position: "relative" 
+          }}>
+            {words.slice(0, words.length - 1).map((w, i) => renderWord(w, i, false, i === 0 ? "0" : "0.3em"))}
+          </div>
+          {/* Bottom Row: Target Word */}
+          <div style={{ marginTop: "-0.8em", zIndex: 2, position: "relative" }}>
+            {renderWord(words[words.length - 1], words.length - 1, true, "0")}
+          </div>
+        </div>
+      );
+    }
+
+    // Default (Middle or Single Word)
+    return (
+      <div style={{
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+      }}>
+        <style>{`
+          @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+        `}</style>
+        {words.map((w, i) => renderWord(w, i, i === longestIndex, i === 0 ? "0" : "0.3em"))}
+      </div>
+    );
+  };
+
+  // ── renderNxtgenViralOrEnergetic ───────────────────────────────────────────
+  const renderNxtgenViralOrEnergetic = (isEnergetic: boolean) => {
+    const words = activeCaption.words;
+    if (words.length === 0) return null;
+
+    let targetIndex = 0;
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        targetIndex = i;
+      }
+    }
+
+    const lines: { words: typeof words, hasTarget: boolean }[] = [];
+    let i = 0;
+    while (i < words.length) {
+      if (i === targetIndex || i === targetIndex - 1) {
+        const chunk = [];
+        if (i === targetIndex - 1) {
+          chunk.push(words[i]);
+          i++;
+        }
+        if (i < words.length) {
+            chunk.push(words[i]); // targetIndex
+            i++;
+        }
+        while (i < words.length && chunk.length < 2) {
+            chunk.push(words[i]);
+            i++;
+        }
+        lines.push({ words: chunk, hasTarget: true });
+      } else {
+        const chunk = [];
+        chunk.push(words[i]);
+        i++;
+        if (i < words.length && i !== targetIndex && i !== targetIndex - 1) {
+          chunk.push(words[i]);
+          i++;
+        }
+        lines.push({ words: chunk, hasTarget: false });
+      }
+    }
+
+    const renderWord = (wordObj: typeof words[0], globalIndex: number, lineHasTarget: boolean, isTargetWord: boolean, isPrecedingTarget: boolean, isLastInNormalLine: boolean) => {
+      const isSpoken = currentTime >= wordObj.start;
+      const wordStartFrame = secToFrame(wordObj.start, fps);
+      
+      const opacityIn = isEnergetic
+        ? interpolate(frame, [wordStartFrame, wordStartFrame + 3], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+        : interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.1], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      const blurIn = isEnergetic
+        ? 0
+        : interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.1], [10, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      const scaleIn = isEnergetic
+        ? interpolate(frame, [wordStartFrame, wordStartFrame + 3], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+        : interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.15], [0.4, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+      let fontSize = `${style.fontSize}px`;
+      let color = style.primaryColor || "#FFFFFF";
+      let fontWeight: number | string = 700;
+      let textShadow = "none";
+      let baseOpacity = 1;
+      let alignSelf = "center";
+
+      if (isTargetWord) {
+        fontSize = `${style.fontSize * 2.5}px`;
+        color = style.emphasisColor || "#FACC15";
+        fontWeight = 900;
+        textShadow = `0 0 15px ${color}90`;
+      } else if (isPrecedingTarget) {
+        fontSize = `${style.fontSize * 0.65}px`;
+        fontWeight = 500;
+        baseOpacity = 0.8;
+        alignSelf = "flex-end"; 
+      } else if (isLastInNormalLine) {
+        fontSize = `${style.fontSize * 0.65}px`;
+        fontWeight = 500;
+        baseOpacity = 0.8;
+        alignSelf = "flex-end";
+      }
+
+      return (
+        <span
+          key={globalIndex}
+          style={{
+            fontFamily: "'Satoshi', sans-serif",
+            color,
+            fontSize,
+            fontWeight,
+            textShadow,
+            opacity: isSpoken ? opacityIn * baseOpacity : 0,
+            filter: isSpoken ? (isEnergetic ? "none" : `blur(${blurIn}px)`) : (isEnergetic ? "none" : "blur(10px)"),
+            transform: isSpoken ? `scale(${scaleIn})` : (isEnergetic ? "scale(0)" : "scale(0.4)"),
+            display: "inline-block",
+            marginLeft: "0.15em",
+            marginRight: "0.15em",
+            alignSelf,
+            lineHeight: "1",
+            paddingBottom: (isPrecedingTarget || isLastInNormalLine) ? (isTargetWord ? "0.3em" : "0.1em") : "0", 
+          }}
+        >
+          {wordObj.word}
+        </span>
+      );
+    };
+
+    let globalWordCounter = 0;
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: "0.2em" }}>
+        <style>{`
+          @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+        `}</style>
+        {lines.map((line, lineIdx) => {
           return (
-            <span
-              key={index}
-              style={{
-                fontFamily: isTarget ? "'Great Vibes', cursive" : "'Satoshi', sans-serif",
-                color: isTarget ? (style.emphasisColor || "#EF4444") : (style.primaryColor || "#FFFFFF"),
-                fontSize: isTarget ? `${style.fontSize * 1.5}px` : `${style.fontSize}px`,
-                fontWeight: isTarget ? 400 : 700,
-                opacity: isSpoken ? opacityIn : 0,
-                filter: isSpoken ? `blur(${blurIn}px)` : "blur(10px)",
-                transform: isSpoken ? `scale(${scaleIn})` : "scale(0.8)",
-                display: "inline-block",
-                paddingRight: isTarget ? "0.1em" : "0",
-              }}
-            >
-              {wordObj.word}
-            </span>
+            <div key={lineIdx} style={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "baseline" }}>
+              {line.words.map((w, wIdx) => {
+                const isTargetWord = line.hasTarget && w.word === words[targetIndex].word;
+                const isPrecedingTarget = line.hasTarget && wIdx === 0 && line.words.length > 1 && !isTargetWord;
+                const isLastInNormalLine = !line.hasTarget && wIdx === line.words.length - 1 && line.words.length > 1;
+                
+                const rendered = renderWord(w, globalWordCounter, line.hasTarget, isTargetWord, isPrecedingTarget, isLastInNormalLine);
+                globalWordCounter++;
+                return rendered;
+              })}
+            </div>
           );
         })}
       </div>
@@ -1526,6 +1813,9 @@ export const CaptionOverlay: React.FC<{
              style.layout === "nxtgen-horror"       ? renderNxtgenHorror()       :
              style.layout === "nxtgen-vengence"     ? renderNxtgenVengence()     :
              style.layout === "nxtgen-cinemaline"   ? renderNxtgenCinemaLine() :
+             style.layout === "nxtgen-directors-edition" ? renderNxtgenDirectorsEdition() :
+             style.layout === "nxtgen-viral"        ? renderNxtgenViralOrEnergetic(false) :
+             style.layout === "nxtgen-energetic"    ? renderNxtgenViralOrEnergetic(true) :
              <div style={{ lineHeight: 1.25, letterSpacing: "-0.025em" }}>{renderStyledText()}</div>
             }
           </div>

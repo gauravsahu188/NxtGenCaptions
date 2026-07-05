@@ -487,15 +487,164 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                 <span className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">Premium Templates</span>
               </div>
               <div className="grid grid-cols-1 gap-4">
+                {/* NxtGen Viral Template */}
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-viral" ? "border-yellow-500 bg-yellow-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
+                  onClick={() => {
+                    updateStyle("layout", "nxtgen-viral");
+                    updateStyle("fontFamily", "Satoshi");
+                    updateStyle("fontWeight", "700");
+                    updateStyle("primaryColor", "#FFFFFF");
+                    updateStyle("emphasisColor", "#FACC15"); // Glowing Yellow
+                    updateStyle("dropShadow", true);
+                    updateStyle("textAlignment", "center");
+                    updateStyle("fontSize", 17);
+                    setWordsPerLine(6);
+                    setLinesOption("1 Line");
+                    resegmentWithLines(6, maxChars, "1 Line");
+                  }}
+                  className="w-full p-4 text-left relative z-10"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-yellow-500/20 to-transparent rounded-bl-full" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                          <span className="text-yellow-400 text-lg font-bold" style={{ fontFamily: "Satoshi", fontWeight: 900 }}>V</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-sm">NxtGen Viral</h4>
+                          <p className="text-[10px] text-zinc-400">Cinematic stacked pop-ins</p>
+                        </div>
+                      </div>
+                      {captionStyle.layout === "nxtgen-viral" && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.9)]" />
+                          <span className="text-[10px] text-yellow-400 font-black uppercase tracking-widest">Active</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Live preview thumbnail */}
+                    <div className="bg-black/50 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden leading-tight">
+                      <style>{`
+                        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+                      `}</style>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <span className="text-white font-normal text-[11px]" style={{ fontFamily: "Satoshi" }}>this</span>
+                        <span className="text-white/70 font-normal text-[8px] self-end mb-[1px]" style={{ fontFamily: "Satoshi" }}>is</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <span className="text-white font-normal text-[11px]" style={{ fontFamily: "Satoshi" }}>how you</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end' }}>
+                        <span className="text-white/70 font-normal text-[8px] mb-[2px]" style={{ fontFamily: "Satoshi" }}>go</span>
+                        <span
+                          className="font-black text-center"
+                          style={{
+                            fontFamily: "Satoshi",
+                            fontWeight: 900,
+                            fontSize: '18px',
+                            color: '#FACC15',
+                            textShadow: '0 0 10px rgba(250,204,21,0.5)'
+                          }}
+                        >viral</span>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-viral" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#FACC15"} onChange={val => updateStyle("emphasisColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* NxtGen Energetic Template */}
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-energetic" ? "border-cyan-500 bg-cyan-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
+                  onClick={() => {
+                    updateStyle("layout", "nxtgen-energetic");
+                    updateStyle("fontFamily", "Satoshi");
+                    updateStyle("fontWeight", "700");
+                    updateStyle("primaryColor", "#FFFFFF");
+                    updateStyle("emphasisColor", "#06B6D4"); // Cyan
+                    updateStyle("dropShadow", true);
+                    updateStyle("textAlignment", "center");
+                    updateStyle("fontSize", 17);
+                    setWordsPerLine(6);
+                    setLinesOption("1 Line");
+                    resegmentWithLines(6, maxChars, "1 Line");
+                  }}
+                  className="w-full p-4 text-left relative z-10"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-cyan-500/20 to-transparent rounded-bl-full" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                          <span className="text-cyan-400 text-lg font-bold" style={{ fontFamily: "Satoshi", fontWeight: 900 }}>E</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-sm">NxtGen Energetic</h4>
+                          <p className="text-[10px] text-zinc-400">Fast cinematic stacking</p>
+                        </div>
+                      </div>
+                      {captionStyle.layout === "nxtgen-energetic" && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]" />
+                          <span className="text-[10px] text-cyan-400 font-black uppercase tracking-widest">Active</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Live preview thumbnail */}
+                    <div className="bg-black/50 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden leading-tight">
+                      <style>{`
+                        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+                      `}</style>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <span className="text-white font-normal text-[11px]" style={{ fontFamily: "Satoshi" }}>this</span>
+                        <span className="text-white/70 font-normal text-[8px] self-end mb-[1px]" style={{ fontFamily: "Satoshi" }}>is</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <span className="text-white font-normal text-[11px]" style={{ fontFamily: "Satoshi" }}>how you</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end' }}>
+                        <span className="text-white/70 font-normal text-[8px] mb-[2px]" style={{ fontFamily: "Satoshi" }}>go</span>
+                        <span
+                          className="font-black text-center"
+                          style={{
+                            fontFamily: "Satoshi",
+                            fontWeight: 900,
+                            fontSize: '18px',
+                            color: '#06B6D4',
+                            textShadow: '0 0 10px rgba(6,182,212,0.5)'
+                          }}
+                        >viral</span>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-energetic" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#06B6D4"} onChange={val => updateStyle("emphasisColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 {/* NxtGenGenZ Template - Metallic Style */}
                 <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-genz" ? "border-lime-500 bg-lime-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
                 <button type="button"
                   onClick={() => {
-                    const plan = user?.planType ?? "FREE";
-                    if (plan === "FREE") {
-                      onOpenUpgradeModal();
-                      return;
-                    }
                     updateStyle("layout", "nxtgen-genz");
                     updateStyle("fontFamily", "Inter");
                     updateStyle("primaryColor", "#FFFFFF");
@@ -571,11 +720,6 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                 <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-vengence" ? "border-purple-500 bg-purple-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
                 <button type="button"
                   onClick={() => {
-                    const plan = user?.planType ?? "FREE";
-                    if (plan === "FREE") {
-                      onOpenUpgradeModal();
-                      return;
-                    }
                     updateStyle("layout", "nxtgen-vengence");
                     updateStyle("fontFamily", "Inter");
                     updateStyle("primaryColor", "#FFFFFF");
@@ -645,11 +789,6 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                 <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-alpha" ? "border-amber-500 bg-amber-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
                 <button type="button"
                   onClick={() => {
-                    const plan = user?.planType ?? "FREE";
-                    if (plan === "FREE") {
-                      onOpenUpgradeModal();
-                      return;
-                    }
                     updateStyle("layout", "nxtgen-alpha");
                     updateStyle("fontFamily", "Inter");
                     updateStyle("primaryColor", "#FFFFFF");
@@ -728,11 +867,6 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                 <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-horror" ? "border-red-500 bg-red-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
                 <button type="button"
                   onClick={() => {
-                    const plan = user?.planType ?? "FREE";
-                    if (plan === "FREE") {
-                      onOpenUpgradeModal();
-                      return;
-                    }
                     updateStyle("layout", "nxtgen-horror");
                     updateStyle("fontFamily", "JaggyW01-Regular");
                     updateStyle("primaryColor", "#FFFFFF");
@@ -793,6 +927,140 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                         <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
                           <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
                           <ColorPicker label="Shadow Color" value={captionStyle.dropShadowColor || "#FFFFFF"} onChange={val => updateStyle("dropShadowColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* NxtGen CinemaLine Template - Cinematic Style */}
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-cinemaline" ? "border-red-500 bg-red-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
+                  onClick={() => {
+                    updateStyle("layout", "nxtgen-cinemaline");
+                    updateStyle("fontFamily", "Satoshi");
+                    updateStyle("fontWeight", "700");
+                    updateStyle("primaryColor", "#FFFFFF");
+                    updateStyle("emphasisColor", "#EF4444"); // Red for cinematic cursive
+                    updateStyle("dropShadow", false);
+                    updateStyle("textAlignment", "center");
+                    updateStyle("fontSize", 30);
+                    setWordsPerLine(3);
+                    setLinesOption("1 Line");
+                    resegmentWithLines(3, maxChars, "1 Line");
+                  }}
+                  className="w-full p-4 text-left relative z-10"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-red-500/20 to-transparent rounded-bl-full" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                          <span className="text-red-400 text-lg font-bold" style={{ fontFamily: "'Great Vibes', cursive" }}>C</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-sm">Nxtgen CinemaLine</h4>
+                          <p className="text-[10px] text-zinc-400">Cinematic punchlines</p>
+                        </div>
+                      </div>
+                      {captionStyle.layout === "nxtgen-cinemaline" && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.9)]" />
+                          <span className="text-[10px] text-red-400 font-black uppercase tracking-widest">Active</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Live preview thumbnail */}
+                    <div className="bg-black/50 rounded-xl p-3 flex flex-row items-center justify-center gap-1 relative overflow-hidden">
+                      <style>{`
+                        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+                        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+                      `}</style>
+                      <span className="text-white font-bold text-[11px]" style={{ fontFamily: "Satoshi" }}>go</span>
+                      <span
+                        className="font-normal text-center"
+                        style={{
+                          fontFamily: "'Great Vibes', cursive",
+                          fontSize: '15px',
+                          color: '#EF4444'
+                        }}
+                      >viral</span>
+                    </div>
+                  </div>
+                </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-cinemaline" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#EF4444"} onChange={val => updateStyle("emphasisColor", val)} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* NxtGen Director's Edition Template */}
+                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-directors-edition" ? "border-red-500 bg-red-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
+                <button type="button"
+                  onClick={() => {
+                    updateStyle("layout", "nxtgen-directors-edition");
+                    updateStyle("fontFamily", "Satoshi");
+                    updateStyle("fontWeight", "700");
+                    updateStyle("primaryColor", "#FFFFFF");
+                    updateStyle("emphasisColor", "#EF4444"); // Red for cinematic cursive
+                    updateStyle("dropShadow", false);
+                    updateStyle("textAlignment", "center");
+                    updateStyle("fontSize", 30);
+                    setWordsPerLine(3);
+                    setLinesOption("1 Line");
+                    resegmentWithLines(3, maxChars, "1 Line");
+                  }}
+                  className="w-full p-4 text-left relative z-10"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-red-500/20 to-transparent rounded-bl-full" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                          <span className="text-red-400 text-lg font-bold" style={{ fontFamily: "Satoshi", fontWeight: 900 }}>D</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-sm">Nxtgen CinemaCut</h4>
+                          <p className="text-[10px] text-zinc-400">Bold cinematic punchlines</p>
+                        </div>
+                      </div>
+                      {captionStyle.layout === "nxtgen-directors-edition" && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.9)]" />
+                          <span className="text-[10px] text-red-400 font-black uppercase tracking-widest">Active</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Live preview thumbnail */}
+                    <div className="bg-black/50 rounded-xl p-3 flex flex-row items-center justify-center gap-1 relative overflow-hidden">
+                      <style>{`
+                        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+                      `}</style>
+                      <span className="text-white font-bold text-[11px]" style={{ fontFamily: "Satoshi" }}>go</span>
+                      <span
+                        className="font-normal text-center"
+                        style={{
+                          fontFamily: "Satoshi",
+                          fontWeight: 900,
+                          fontSize: '15px',
+                          color: '#EF4444'
+                        }}
+                      >viral</span>
+                    </div>
+                  </div>
+                </button>
+                  <AnimatePresence>
+                    {captionStyle.layout === "nxtgen-directors-edition" && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
+                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
+                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#EF4444"} onChange={val => updateStyle("emphasisColor", val)} />
                         </div>
                       </motion.div>
                     )}
@@ -989,72 +1257,6 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                   </AnimatePresence>
                 </div>
 
-                {/* NxtGen CinemaLine Template - Cinematic Style */}
-                <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "nxtgen-cinemaline" ? "border-red-500 bg-red-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
-                <button type="button"
-                  onClick={() => {
-                    updateStyle("layout", "nxtgen-cinemaline");
-                    updateStyle("fontFamily", "Satoshi");
-                    updateStyle("fontWeight", "700");
-                    updateStyle("primaryColor", "#FFFFFF");
-                    updateStyle("emphasisColor", "#EF4444"); // Red for cinematic cursive
-                    updateStyle("dropShadow", false);
-                    updateStyle("textAlignment", "center");
-                    updateStyle("fontSize", 12);
-                    setWordsPerLine(3);
-                    setLinesOption("1 Line");
-                    resegmentWithLines(3, maxChars, "1 Line");
-                  }}
-                  className="w-full p-4 text-left relative z-10"
-                >
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-br from-red-500/20 to-transparent rounded-bl-full" />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
-                          <span className="text-red-400 text-lg font-bold" style={{ fontFamily: "'Great Vibes', cursive" }}>C</span>
-                        </div>
-                        <div>
-                          <h4 className="text-white font-bold text-sm">CinemaLine</h4>
-                          <p className="text-[10px] text-zinc-400">Cinematic punchlines</p>
-                        </div>
-                      </div>
-                      {captionStyle.layout === "nxtgen-cinemaline" && (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.9)]" />
-                          <span className="text-[10px] text-red-400 font-black uppercase tracking-widest">Active</span>
-                        </div>
-                      )}
-                    </div>
-                    {/* Live preview thumbnail */}
-                    <div className="bg-black/50 rounded-xl p-3 flex flex-row items-center justify-center gap-1 relative overflow-hidden">
-                      <style>{`
-                        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
-                        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
-                      `}</style>
-                      <span className="text-white font-bold text-[11px]" style={{ fontFamily: "Satoshi" }}>go</span>
-                      <span
-                        className="font-normal text-center"
-                        style={{
-                          fontFamily: "'Great Vibes', cursive",
-                          fontSize: '15px',
-                          color: '#EF4444'
-                        }}
-                      >viral</span>
-                    </div>
-                  </div>
-                </button>
-                  <AnimatePresence>
-                    {captionStyle.layout === "nxtgen-cinemaline" && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                        <div className="p-4 pt-0 space-y-3 border-t border-white/10 mt-2">
-                          <ColorPicker label="Primary Color" value={captionStyle.primaryColor || "#FFFFFF"} onChange={val => updateStyle("primaryColor", val)} />
-                          <ColorPicker label="Emphasis Color" value={captionStyle.emphasisColor || "#EF4444"} onChange={val => updateStyle("emphasisColor", val)} />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
 
                 {/* Apple Template */}
                 <div className={`rounded-2xl border-2 transition-all relative overflow-hidden group ${captionStyle.layout === "apple" ? "border-gray-300 bg-gray-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>

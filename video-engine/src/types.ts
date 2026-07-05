@@ -19,7 +19,7 @@ export interface CaptionSegment {
 export interface CaptionStyleProps {
   primaryColor: string;
   emphasisColor: string;
-  layout: "center" | "modern" | "bubble" | "hormozi" | "ali-abdaal" | "gadzhi" | "apple" | "mogrt-shimmer-stack" | "nxtgen-genz" | "nxtgen-alpha" | "nxtgen-horror" | "nxtgen-cinemaline" | "top" | "bottom" | string;
+  layout: "center" | "modern" | "bubble" | "hormozi" | "ali-abdaal" | "gadzhi" | "apple" | "mogrt-shimmer-stack" | "nxtgen-genz" | "nxtgen-alpha" | "nxtgen-horror" | "nxtgen-cinemaline" | "nxtgen-directors-edition" | "nxtgen-viral" | "nxtgen-energetic" | "top" | "bottom" | string;
   fontFamily: string;
   fontWeight: string;
   fontSize: number;
