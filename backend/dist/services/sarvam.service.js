@@ -416,79 +416,48 @@ class SarvamTranscriptionService {
     }
     async transliterateCaptions(captions, sourceLang) {
         const result = [];
-        let currentBatch = [];
-        let currentLen = 0;
-        const processBatch = async (batch) => {
-            if (batch.length === 0)
-                return [];
-            const fullText = batch.map(seg => seg.text || "").join(" ||| ");
-            if (!/[^\x00-\x7F]/.test(fullText)) {
-                return batch; // Skip API call if no Indic characters exist
-            }
-            const transliteratedFull = await this.transliterateText(fullText, sourceLang);
-            const transliteratedLines = transliteratedFull.split(/\s*\|\|\|\s*/);
-            const mapped = [];
-            for (let i = 0; i < batch.length; i++) {
-                const segment = batch[i];
-                const text = segment.text || "";
-                const containsIndic = /[^\x00-\x7F]/.test(text);
-                if (containsIndic) {
-                    const transliteratedText = (transliteratedLines[i] || "").trim();
-                    if (!transliteratedText) {
-                        mapped.push(segment); // Fallback if splitting mismatch
-                        continue;
-                    }
-                    const words = transliteratedText.split(/\s+/).filter((w) => w.length > 0);
-                    const originalWords = segment.words || [];
-                    let newWords = [];
-                    if (words.length === originalWords.length) {
-                        newWords = words.map((w, idx) => ({
-                            ...originalWords[idx],
-                            word: w
-                        }));
-                    }
-                    else {
-                        // Fallback to equal distribution
-                        const start = segment.start;
-                        const end = segment.end;
-                        const duration = end - start;
-                        const wordDuration = duration / Math.max(words.length, 1);
-                        newWords = words.map((w, index) => ({
-                            word: w,
-                            start: start + index * wordDuration,
-                            end: start + (index + 1) * wordDuration,
-                        }));
-                    }
-                    mapped.push({
-                        ...segment,
-                        text: transliteratedText,
-                        words: newWords
-                    });
-                }
-                else {
-                    mapped.push(segment);
-                }
-            }
-            return mapped;
-        };
         for (const segment of captions) {
             const text = segment.text || "";
-            const additionalLen = text.length + 5; // account for " ||| "
-            // Sarvam Transliterate API has a 1,000 character limit per request.
-            if (currentLen + additionalLen > 800) {
-                const processed = await processBatch(currentBatch);
-                result.push(...processed);
-                currentBatch = [segment];
-                currentLen = additionalLen;
+            const containsIndic = /[^\x00-\x7F]/.test(text);
+            if (containsIndic) {
+                let transliteratedText = await this.transliterateText(text, sourceLang);
+                transliteratedText = (transliteratedText || "").trim();
+                const originalText = text.trim();
+                // If API failed or returned identical text, return original segment
+                if (!transliteratedText || transliteratedText === originalText) {
+                    result.push(segment);
+                    continue;
+                }
+                const words = transliteratedText.split(/\s+/).filter((w) => w.length > 0);
+                const originalWords = segment.words || [];
+                let newWords = [];
+                if (words.length === originalWords.length) {
+                    newWords = words.map((w, idx) => ({
+                        ...originalWords[idx],
+                        word: w
+                    }));
+                }
+                else {
+                    // Fallback to equal distribution if word counts differ
+                    const start = segment.start;
+                    const end = segment.end;
+                    const duration = end - start;
+                    const wordDuration = duration / Math.max(words.length, 1);
+                    newWords = words.map((w, index) => ({
+                        word: w,
+                        start: start + index * wordDuration,
+                        end: start + (index + 1) * wordDuration,
+                    }));
+                }
+                result.push({
+                    ...segment,
+                    text: transliteratedText,
+                    words: newWords
+                });
             }
             else {
-                currentBatch.push(segment);
-                currentLen += additionalLen;
+                result.push(segment);
             }
-        }
-        if (currentBatch.length > 0) {
-            const processed = await processBatch(currentBatch);
-            result.push(...processed);
         }
         return result;
     }
