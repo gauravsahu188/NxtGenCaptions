@@ -249,18 +249,27 @@ export class SarvamTranscriptionService {
     
     try {
       // Transcribe all chunks in parallel using Promise.all
-      // First check each chunk for speech content to avoid hallucinations on silent segments
       const ffmpegSvc = new FFmpegService();
-      const transcribePromises = chunks.map(async (chunk) => {
-        const hasSpeech = await ffmpegSvc.hasSpeechContent(chunk.path);
-        if (!hasSpeech) {
-          console.log(`[SarvamService] Skipping silent chunk at offset ${chunk.offset.toFixed(2)}s (no speech detected)`);
-          return [];
-        }
-        console.log(`[SarvamService] Transcribing chunk offset: ${chunk.offset.toFixed(2)}s (${chunk.duration.toFixed(2)}s)`);
-        return this.transcribeSingleAudio(chunk.path, options, chunk.offset, chunk.duration);
-      });
-      const results = await Promise.all(transcribePromises);
+      const results: { word: string; start: number; end: number }[][] = [];
+      const CONCURRENCY_LIMIT = 5;
+      
+      for (let i = 0; i < chunks.length; i += CONCURRENCY_LIMIT) {
+        const chunkBatch = chunks.slice(i, i + CONCURRENCY_LIMIT);
+        
+        const batchPromises = chunkBatch.map(async (chunk) => {
+          const hasSpeech = await ffmpegSvc.hasSpeechContent(chunk.path);
+          if (!hasSpeech) {
+            console.log(`[SarvamService] Skipping silent chunk at offset ${chunk.offset.toFixed(2)}s (no speech detected)`);
+            return [];
+          }
+          console.log(`[SarvamService] Transcribing chunk offset: ${chunk.offset.toFixed(2)}s (${chunk.duration.toFixed(2)}s)`);
+          return this.transcribeSingleAudio(chunk.path, options, chunk.offset, chunk.duration);
+        });
+        
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+      }
+
       for (const chunkWords of results) {
         allWords = allWords.concat(chunkWords);
       }
@@ -502,62 +511,91 @@ export class SarvamTranscriptionService {
   }
 
   async transliterateCaptions(captions: any[], sourceLang: string): Promise<any[]> {
-    // Extract all text and join with a unique delimiter to batch into a single API call
-    const fullText = captions.map(seg => seg.text || "").join(" ||| ");
-    
-    if (!/[^\x00-\x7F]/.test(fullText)) {
-      return captions;
-    }
-    
-    const transliteratedFull = await this.transliterateText(fullText, sourceLang);
-    const transliteratedLines = transliteratedFull.split(/\s*\|\|\|\s*/);
-
     const result = [];
-    for (let i = 0; i < captions.length; i++) {
-      const segment = captions[i];
-      const text = segment.text || "";
-      const containsIndic = /[^\x00-\x7F]/.test(text); 
+    let currentBatch: any[] = [];
+    let currentLen = 0;
+
+    const processBatch = async (batch: any[]) => {
+      if (batch.length === 0) return [];
       
-      if (containsIndic) {
-        const transliteratedText = (transliteratedLines[i] || "").trim();
+      const fullText = batch.map(seg => seg.text || "").join(" ||| ");
+      if (!/[^\x00-\x7F]/.test(fullText)) {
+        return batch; // Skip API call if no Indic characters exist
+      }
+      
+      const transliteratedFull = await this.transliterateText(fullText, sourceLang);
+      const transliteratedLines = transliteratedFull.split(/\s*\|\|\|\s*/);
+
+      const mapped = [];
+      for (let i = 0; i < batch.length; i++) {
+        const segment = batch[i];
+        const text = segment.text || "";
+        const containsIndic = /[^\x00-\x7F]/.test(text); 
         
-        if (!transliteratedText) {
-          result.push(segment); // Fallback if splitting mismatch
-          continue;
-        }
-        
-        const words = transliteratedText.split(/\s+/).filter((w: string) => w.length > 0);
-        const originalWords = segment.words || [];
-        let newWords = [];
-        
-        if (words.length === originalWords.length) {
-          newWords = words.map((w: string, idx: number) => ({
-            ...originalWords[idx],
-            word: w
-          }));
+        if (containsIndic) {
+          const transliteratedText = (transliteratedLines[i] || "").trim();
+          
+          if (!transliteratedText) {
+            mapped.push(segment); // Fallback if splitting mismatch
+            continue;
+          }
+          
+          const words = transliteratedText.split(/\s+/).filter((w: string) => w.length > 0);
+          const originalWords = segment.words || [];
+          let newWords = [];
+          
+          if (words.length === originalWords.length) {
+            newWords = words.map((w: string, idx: number) => ({
+              ...originalWords[idx],
+              word: w
+            }));
+          } else {
+            // Fallback to equal distribution
+            const start = segment.start;
+            const end = segment.end;
+            const duration = end - start;
+            const wordDuration = duration / Math.max(words.length, 1);
+
+            newWords = words.map((w: string, index: number) => ({
+              word: w,
+              start: start + index * wordDuration,
+              end: start + (index + 1) * wordDuration,
+            }));
+          }
+
+          mapped.push({
+            ...segment,
+            text: transliteratedText,
+            words: newWords
+          });
         } else {
-          // Fallback to equal distribution
-          const start = segment.start;
-          const end = segment.end;
-          const duration = end - start;
-          const wordDuration = duration / Math.max(words.length, 1);
-
-          newWords = words.map((w: string, index: number) => ({
-            word: w,
-            start: start + index * wordDuration,
-            end: start + (index + 1) * wordDuration,
-          }));
+          mapped.push(segment);
         }
+      }
+      return mapped;
+    };
 
-        result.push({
-          ...segment,
-          text: transliteratedText,
-          words: newWords
-        });
+    for (const segment of captions) {
+      const text = segment.text || "";
+      const additionalLen = text.length + 5; // account for " ||| "
+      
+      // Sarvam Transliterate API has a 1,000 character limit per request.
+      if (currentLen + additionalLen > 800) {
+        const processed = await processBatch(currentBatch);
+        result.push(...processed);
+        currentBatch = [segment];
+        currentLen = additionalLen;
       } else {
-        result.push(segment);
+        currentBatch.push(segment);
+        currentLen += additionalLen;
       }
     }
+    
+    if (currentBatch.length > 0) {
+      const processed = await processBatch(currentBatch);
+      result.push(...processed);
+    }
+    
     return result;
   }
 }
