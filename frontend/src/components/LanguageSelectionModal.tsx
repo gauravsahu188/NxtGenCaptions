@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Globe, Type } from "lucide-react";
 
 export const LANGUAGES = [
-  { code: "auto", name: "Auto Detect International", flag: "🌐" },
+  { code: "auto", name: "Auto Detect", flag: "🌐" },
   { code: "en", name: "English", flag: "🇬🇧" },
   { code: "hi", name: "Hindi", flag: "🇮🇳" },
   { code: "ne", name: "Nepali", flag: "🇳🇵" },

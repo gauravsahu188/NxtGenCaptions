@@ -37,7 +37,7 @@ const DEFAULT_STYLE = {
     borderRadius: 12,
 };
 const LANGUAGE_NAMES = {
-    auto: "Auto Detect International",
+    auto: "Auto Detect",
     en: "English",
     hinglish: "Hinglish",
     hi: "Hindi",
@@ -171,13 +171,15 @@ class VideoController {
             console.log(`[VideoController] Routing to Sarvam AI (Language: ${language}, Script: ${script})`);
             // Use Sarvam AI exclusively for all languages and scripts
             // Stream each segment to the client as soon as it is ready
+            const transcribeOptions = { language, script: "native", duration: durationSeconds, detectedLanguage: "" };
             captions = await sarvamService.transcribeAudio(cleanedAudioPath, (segment) => {
                 // Normalise id to string for frontend CaptionSegment compatibility
                 const normalised = { ...segment, id: String(segment.id) };
                 sendEvent("segment", { segment: normalised });
-            }, { language, script: "native", duration: durationSeconds }, async (segments) => {
+            }, transcribeOptions, async (segments) => {
                 if (script === "romanised") {
-                    return await sarvamService.transliterateCaptions(segments, language);
+                    const sourceLang = transcribeOptions.detectedLanguage || language;
+                    return await sarvamService.transliterateCaptions(segments, sourceLang);
                 }
                 else if (script === "english") {
                     return await translationService.translateCaptions(segments);

@@ -164,7 +164,7 @@ class DeepgramTranscriptionService {
             ur: "Urdu", ta: "Tamil", ml: "Malayalam", gu: "Gujarati",
             bn: "Bengali", pa: "Punjabi", te: "Telugu", sd: "Sindhi",
             mr: "Marathi", kn: "Kannada", ps: "Pushto", ms: "Malay",
-            auto: "Auto Detect International",
+            auto: "Auto Detect",
         };
         const langName = languageNames[language] || "English";
         const phrases = language === "hinglish" || language === "hi"

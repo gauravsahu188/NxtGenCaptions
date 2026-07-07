@@ -267,6 +267,7 @@ class SarvamTranscriptionService {
             pa: "pa-IN",
             ur: "ur-IN",
             kn: "kn-IN",
+            auto: "unknown",
         };
         const mappedLang = langCodeMap[language] || language;
         formData.append("language_code", mappedLang);
@@ -288,7 +289,10 @@ class SarvamTranscriptionService {
                 throw new Error(`Sarvam API error: ${response.status} ${response.statusText} — ${errorText}`);
             }
             const data = await response.json();
-            console.log(`[SarvamService] Response received. Has timestamps: ${!!data.timestamps}`);
+            console.log(`[SarvamService] Response received. Has timestamps: ${!!data.timestamps}, detected language: ${data.language_code}`);
+            if (data.language_code && options) {
+                options.detectedLanguage = data.language_code;
+            }
             if (data.timestamps) {
                 console.log(`[SarvamService] Timestamps lengths - words: ${data.timestamps.words?.length}, start: ${data.timestamps.start_time_seconds?.length}, end: ${data.timestamps.end_time_seconds?.length}`);
                 console.log(`[SarvamService] Raw Timestamps:`, JSON.stringify(data.timestamps));
@@ -383,7 +387,10 @@ class SarvamTranscriptionService {
             ur: "ur-IN",
             kn: "kn-IN",
         };
-        const mappedSource = langCodeMap[sourceLang] || "hi-IN";
+        let mappedSource = langCodeMap[sourceLang] || sourceLang || "hi-IN";
+        if (mappedSource === "auto" || mappedSource === "unknown") {
+            mappedSource = "hi-IN";
+        }
         try {
             console.log(`[SarvamService] Transliterating "${text}" from ${mappedSource} to en-IN`);
             const response = await fetch(`${this.baseUrl}/transliterate`, {
