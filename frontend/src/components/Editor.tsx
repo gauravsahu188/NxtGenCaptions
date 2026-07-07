@@ -228,7 +228,7 @@ export default function EditorLayout({ user }: { user?: any }) {
         {/* Video Player & Mobile Timeline */}
         <div className="flex-1 flex flex-col items-center justify-center min-w-0 bg-transparent relative h-full">
           <div className="flex-1 w-full flex items-center justify-center relative">
-            <VideoPlayer />
+            <VideoPlayer showWatermark={isFreePlan && !removeWatermark} />
           </div>
           
           {/* Mobile Timeline Toggle */}

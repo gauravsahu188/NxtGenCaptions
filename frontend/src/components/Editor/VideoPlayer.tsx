@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ModernCaption from "./ModernCaption";
 import HoloCaption from "./HoloCaption";
 
-export default function VideoPlayer() {
+export default function VideoPlayer({ showWatermark = false }: { showWatermark?: boolean }) {
   const { videoUrl, setVideoUrl, setCaptions, currentTime, setCurrentTime, activeCaption, captionStyle, setCaptionStyle, setDuration, isPlaying, setIsPlaying, originalVideoWidth, setOriginalVideoWidth, originalVideoHeight, setOriginalVideoHeight, setAspectRatio } = useCaptionContext();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1819,6 +1819,27 @@ export default function VideoPlayer() {
             )}
           </AnimatePresence>
         </div>
+          {showWatermark && (
+            <div
+              className="absolute inset-0 pointer-events-none flex justify-center items-center z-40"
+              style={{ opacity: 0.3 }}
+            >
+              <div
+                className="flex flex-row items-center gap-4 bg-black/40 px-8 py-4 rounded-3xl"
+              >
+                <img src="/logo.png" className="w-16 h-16" alt="logo" />
+                <div
+                  className="text-[42px] font-extrabold text-white/95"
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    textShadow: "0px 4px 12px rgba(0,0,0,0.6)",
+                  }}
+                >
+                  NxtGen Captions
+                </div>
+              </div>
+            </div>
+          )}
         </div> {/* Close the new aspect ratio wrapper div */}
 
         <div className="absolute bottom-8 right-8 opacity-20 pointer-events-none group-hover:opacity-40 transition-opacity">

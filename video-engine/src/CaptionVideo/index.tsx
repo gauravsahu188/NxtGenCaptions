@@ -1,7 +1,8 @@
 import React from "react";
-import { AbsoluteFill, Video, useVideoConfig } from "remotion";
+import { AbsoluteFill, Video, useVideoConfig, Img } from "remotion";
 import { CaptionVideoProps } from "../types";
 import { CaptionOverlay } from "./CaptionOverlay";
+import logoPng from "../assets/logo.png";
 
 /**
  * CaptionVideo — the main Remotion composition.
@@ -37,24 +38,35 @@ export const CaptionVideo: React.FC<CaptionVideoProps & { alphaChannel?: boolean
         <AbsoluteFill
           style={{
             pointerEvents: "none",
-            justifyContent: "flex-end",
-            alignItems: "flex-end",
-            padding: 20,
+            justifyContent: "center",
+            alignItems: "center",
             zIndex: 40,
+            opacity: 0.3,
           }}
         >
           <div
             style={{
-              fontSize: 18,
-              fontFamily: "Inter, sans-serif",
-              color: "rgba(255, 255, 255, 0.6)",
-              fontWeight: 600,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              padding: "8px 16px",
-              borderRadius: 8,
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 16,
+              backgroundColor: "rgba(0, 0, 0, 0.4)",
+              padding: "16px 32px",
+              borderRadius: 24,
             }}
           >
-            NxtGen Captions
+            <Img src={logoPng} style={{ width: 64, height: 64 }} />
+            <div
+              style={{
+                fontSize: 42,
+                fontFamily: "Inter, sans-serif",
+                color: "rgba(255, 255, 255, 0.95)",
+                fontWeight: 800,
+                textShadow: "0px 4px 12px rgba(0,0,0,0.6)",
+              }}
+            >
+              NxtGen Captions
+            </div>
           </div>
         </AbsoluteFill>
       )}

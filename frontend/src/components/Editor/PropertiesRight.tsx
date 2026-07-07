@@ -531,7 +531,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                       `}</style>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <span className="text-white font-normal text-[11px]" style={{ fontFamily: "Satoshi" }}>this</span>
-                        <span className="text-white/70 font-normal text-[8px] self-end mb-[1px]" style={{ fontFamily: "Satoshi" }}>is</span>
+                        <span className="text-white/70 font-normal text-[8px] self-end mb-px" style={{ fontFamily: "Satoshi" }}>is</span>
                       </div>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <span className="text-white font-normal text-[11px]" style={{ fontFamily: "Satoshi" }}>how you</span>
@@ -608,7 +608,7 @@ export default function PropertiesRight({ user, onOpenUpgradeModal, activeTabOve
                       `}</style>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <span className="text-white font-normal text-[11px]" style={{ fontFamily: "Satoshi" }}>this</span>
-                        <span className="text-white/70 font-normal text-[8px] self-end mb-[1px]" style={{ fontFamily: "Satoshi" }}>is</span>
+                        <span className="text-white/70 font-normal text-[8px] self-end mb-px" style={{ fontFamily: "Satoshi" }}>is</span>
                       </div>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <span className="text-white font-normal text-[11px]" style={{ fontFamily: "Satoshi" }}>how you</span>

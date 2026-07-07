@@ -436,9 +436,9 @@ export default function Pricing() {
 
       {/* Eye-catching Trial Plans Section */}
       <div className="mb-16 md:mb-24 relative max-w-4xl mx-auto">
-        <div className="absolute inset-0 bg-gradient-to-r from-accent/20 via-purple-500/20 to-accent/20 blur-3xl opacity-30 rounded-[3rem] -z-10" />
+        <div className="absolute inset-0 bg-linear-to-r from-accent/20 via-purple-500/20 to-accent/20 blur-3xl opacity-30 rounded-[3rem] -z-10" />
         <div className="text-center mb-8">
-          <h3 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 mb-2">
+          <h3 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-white/60 mb-2">
             First Time Offers 🎁
           </h3>
           <p className="text-zinc-400 text-sm md:text-base">One-time exclusive trials to experience our full power.</p>

@@ -427,7 +427,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
                 onClick={() => setIsPaymentModalOpen(true)}
                 className="w-full relative overflow-hidden p-3 rounded-2xl border border-accent/40 bg-accent/10 hover:bg-accent/20 transition-all flex items-center justify-center gap-2 group"
               >
-                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
+                <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
                 <Sparkles className="w-4 h-4 text-accent animate-pulse" />
                 <span className="font-bold text-sm text-accent group-hover:text-white transition-colors">
                   1 Rupee First Video (No Watermark + 1080p)
