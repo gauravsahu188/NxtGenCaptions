@@ -39,18 +39,38 @@ async function loadSubscription(req, res, next) {
             };
         }
         else if (subscription) {
-            req.subscription = {
-                planType: subscription.planType,
-                maxVideoLengthMinutes: subscription.maxVideoLengthMinutes,
-                alphaChannelEnabled: subscription.alphaChannelEnabled,
-                srtRenderEnabled: subscription.srtRenderEnabled,
-                customFontEnabled: subscription.customFontEnabled,
-                prioritySupport: subscription.prioritySupport,
-                transcriptionLimitMins: subscription.transcriptionLimitMins,
-                audioCredits: subscription.audioCredits,
-                maxExportRes: subscription.maxExportRes,
-                storageLimitGb: subscription.storageLimitGb,
-            };
+            let isExpired = false;
+            if (subscription.billingCycleEnd && subscription.billingCycleEnd < new Date()) {
+                isExpired = true;
+            }
+            if (isExpired && subscription.planType !== 'FREE') {
+                req.subscription = {
+                    planType: 'FREE',
+                    maxVideoLengthMinutes: 2,
+                    alphaChannelEnabled: false,
+                    srtRenderEnabled: false,
+                    customFontEnabled: false,
+                    prioritySupport: false,
+                    transcriptionLimitMins: 2,
+                    audioCredits: subscription.audioCredits,
+                    maxExportRes: 720,
+                    storageLimitGb: 1,
+                };
+            }
+            else {
+                req.subscription = {
+                    planType: subscription.planType,
+                    maxVideoLengthMinutes: subscription.maxVideoLengthMinutes,
+                    alphaChannelEnabled: subscription.alphaChannelEnabled,
+                    srtRenderEnabled: subscription.srtRenderEnabled,
+                    customFontEnabled: subscription.customFontEnabled,
+                    prioritySupport: subscription.prioritySupport,
+                    transcriptionLimitMins: subscription.transcriptionLimitMins,
+                    audioCredits: subscription.audioCredits,
+                    maxExportRes: subscription.maxExportRes,
+                    storageLimitGb: subscription.storageLimitGb,
+                };
+            }
         }
         next();
     }

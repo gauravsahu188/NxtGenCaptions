@@ -112,8 +112,8 @@ function generateOrderId(userId) {
 }
 exports.PLAN_PRICING_INR = {
     EDITOR: {
-        amount: '599.00',
-        transcriptionBalance: 120, // 2 hours
+        amount: '199.00',
+        transcriptionBalance: 90,
         audioCredits: 50,
         maxExportRes: 1080,
         storageLimitGb: 20,
@@ -124,8 +124,8 @@ exports.PLAN_PRICING_INR = {
         prioritySupport: false,
     },
     CREATOR: {
-        amount: '999.00',
-        transcriptionBalance: 300, // 5 hours
+        amount: '349.00',
+        transcriptionBalance: 200,
         audioCredits: 150,
         maxExportRes: 2160,
         storageLimitGb: 60,
@@ -136,8 +136,8 @@ exports.PLAN_PRICING_INR = {
         prioritySupport: false,
     },
     BUSINESS: {
-        amount: '4999.00',
-        transcriptionBalance: 1800, // 30 hours
+        amount: '749.00',
+        transcriptionBalance: 500,
         audioCredits: 500,
         maxExportRes: 2160,
         storageLimitGb: 150,
@@ -147,11 +147,35 @@ exports.PLAN_PRICING_INR = {
         customFontEnabled: true,
         prioritySupport: true,
     },
+    TRIAL_1_INR: {
+        amount: '1.00',
+        transcriptionBalance: 1,
+        audioCredits: 3,
+        maxExportRes: 1080,
+        storageLimitGb: 5,
+        maxVideoLengthMinutes: 2,
+        alphaChannelEnabled: false,
+        srtRenderEnabled: false,
+        customFontEnabled: false,
+        prioritySupport: false,
+    },
+    TRIAL_9_INR: {
+        amount: '9.00',
+        transcriptionBalance: 9,
+        audioCredits: 5,
+        maxExportRes: 1080,
+        storageLimitGb: 5,
+        maxVideoLengthMinutes: 5,
+        alphaChannelEnabled: false,
+        srtRenderEnabled: false,
+        customFontEnabled: false,
+        prioritySupport: false,
+    },
 };
 exports.PLAN_PRICING_USD = {
     EDITOR: {
         amount: '9.00',
-        transcriptionBalance: 120, // 2 hours
+        transcriptionBalance: 90,
         audioCredits: 50,
         maxExportRes: 1080,
         storageLimitGb: 20,
@@ -163,7 +187,7 @@ exports.PLAN_PRICING_USD = {
     },
     CREATOR: {
         amount: '15.00',
-        transcriptionBalance: 300, // 5 hours
+        transcriptionBalance: 200,
         audioCredits: 150,
         maxExportRes: 2160,
         storageLimitGb: 60,
@@ -175,7 +199,7 @@ exports.PLAN_PRICING_USD = {
     },
     BUSINESS: {
         amount: '75.00',
-        transcriptionBalance: 1800, // 30 hours
+        transcriptionBalance: 500,
         audioCredits: 500,
         maxExportRes: 2160,
         storageLimitGb: 150,
@@ -184,6 +208,30 @@ exports.PLAN_PRICING_USD = {
         srtRenderEnabled: true,
         customFontEnabled: true,
         prioritySupport: true,
+    },
+    TRIAL_1_INR: {
+        amount: '0.29',
+        transcriptionBalance: 1,
+        audioCredits: 3,
+        maxExportRes: 1080,
+        storageLimitGb: 5,
+        maxVideoLengthMinutes: 2,
+        alphaChannelEnabled: false,
+        srtRenderEnabled: false,
+        customFontEnabled: false,
+        prioritySupport: false,
+    },
+    TRIAL_9_INR: {
+        amount: '0.99',
+        transcriptionBalance: 9,
+        audioCredits: 5,
+        maxExportRes: 1080,
+        storageLimitGb: 5,
+        maxVideoLengthMinutes: 5,
+        alphaChannelEnabled: false,
+        srtRenderEnabled: false,
+        customFontEnabled: false,
+        prioritySupport: false,
     },
 };
 exports.PLAN_PRICING = exports.PLAN_PRICING_INR;

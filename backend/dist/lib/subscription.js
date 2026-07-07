@@ -17,29 +17,43 @@ exports.SUBSCRIPTION_TIERS = {
         planType: prisma_1.PlanType.FREE,
         name: "Free",
         storageLimitGb: 1,
-        transcriptionLimitMins: 5,
+        transcriptionLimitMins: 2,
         maxExportRes: 720,
     },
     EDITOR: {
         planType: prisma_1.PlanType.EDITOR,
         name: "Editor",
         storageLimitGb: 20,
-        transcriptionLimitMins: 120,
+        transcriptionLimitMins: 90,
         maxExportRes: 1080,
     },
     CREATOR: {
         planType: prisma_1.PlanType.CREATOR,
         name: "Creator",
         storageLimitGb: 60,
-        transcriptionLimitMins: 300,
+        transcriptionLimitMins: 200,
         maxExportRes: 2160,
     },
     BUSINESS: {
         planType: prisma_1.PlanType.BUSINESS,
         name: "Business",
         storageLimitGb: 150,
-        transcriptionLimitMins: 720,
+        transcriptionLimitMins: 500,
         maxExportRes: 2160,
+    },
+    TRIAL_1_INR: {
+        planType: prisma_1.PlanType.TRIAL_1_INR,
+        name: "1 Rupee Trial",
+        storageLimitGb: 5,
+        transcriptionLimitMins: 1,
+        maxExportRes: 1080,
+    },
+    TRIAL_9_INR: {
+        planType: prisma_1.PlanType.TRIAL_9_INR,
+        name: "9 Rupee Trial",
+        storageLimitGb: 5,
+        transcriptionLimitMins: 9,
+        maxExportRes: 1080,
     },
 };
 function getTierForPlan(planType) {
@@ -64,6 +78,15 @@ async function getOrCreateSubscription(userId) {
 }
 async function upgradeSubscription(userId, planType) {
     const tier = exports.SUBSCRIPTION_TIERS[planType];
+    const extraUpdates = {};
+    if (planType === prisma_1.PlanType.TRIAL_1_INR) {
+        extraUpdates.hasUsed1RupeeTrial = true;
+        extraUpdates.billingCycleEnd = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
+    }
+    else if (planType === prisma_1.PlanType.TRIAL_9_INR) {
+        extraUpdates.hasUsed9RupeeTrial = true;
+        extraUpdates.billingCycleEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    }
     return prisma_2.prisma.subscription.upsert({
         where: { userId },
         update: {
@@ -71,6 +94,7 @@ async function upgradeSubscription(userId, planType) {
             storageLimitGb: tier.storageLimitGb,
             transcriptionLimitMins: tier.transcriptionLimitMins,
             maxExportRes: tier.maxExportRes,
+            ...extraUpdates
         },
         create: {
             userId,
@@ -78,6 +102,7 @@ async function upgradeSubscription(userId, planType) {
             storageLimitGb: tier.storageLimitGb,
             transcriptionLimitMins: tier.transcriptionLimitMins,
             maxExportRes: tier.maxExportRes,
+            ...extraUpdates
         },
     });
 }

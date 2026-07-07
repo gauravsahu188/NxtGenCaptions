@@ -16,15 +16,24 @@ async function initiatePaymentHandler(req, res, next) {
         const pricingMap = currency === 'USD' ? payment_service_1.PLAN_PRICING_USD : payment_service_1.PLAN_PRICING_INR;
         if (!planType || !pricingMap[planType]) {
             res.status(400).json({
-                error: 'Invalid plan type. Must be EDITOR, CREATOR, or BUSINESS',
+                error: 'Invalid plan type',
             });
             return;
         }
         const user = await prisma_1.prisma.user.findUnique({
             where: { id: userId },
+            include: { subscription: true }
         });
         if (!user) {
             res.status(404).json({ error: 'User not found' });
+            return;
+        }
+        if (planType === 'TRIAL_1_INR' && user.subscription?.hasUsed1RupeeTrial) {
+            res.status(403).json({ error: 'You have already used the 1 Rupee Trial' });
+            return;
+        }
+        if (planType === 'TRIAL_9_INR' && user.subscription?.hasUsed9RupeeTrial) {
+            res.status(403).json({ error: 'You have already used the 9 Rupee Trial' });
             return;
         }
         const orderId = (0, payment_service_1.generateOrderId)(userId);
@@ -109,6 +118,16 @@ async function handlePaymentCallback(req, res, next) {
         // Check if payment is successful
         if (orderDetails.status === 'paid') {
             const { maxExportRes, audioCredits, transcriptionBalance, storageLimitGb, maxVideoLengthMinutes, alphaChannelEnabled, srtRenderEnabled, customFontEnabled, prioritySupport, } = planDetails;
+            let billingCycleEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+            let extraUpdates = {};
+            if (planType === 'TRIAL_1_INR') {
+                billingCycleEnd = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
+                extraUpdates.hasUsed1RupeeTrial = true;
+            }
+            else if (planType === 'TRIAL_9_INR') {
+                billingCycleEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                extraUpdates.hasUsed9RupeeTrial = true;
+            }
             // Check if subscription exists
             const existingSubscription = await prisma_1.prisma.subscription.findUnique({
                 where: { userId },
@@ -129,8 +148,9 @@ async function handlePaymentCallback(req, res, next) {
                         customFontEnabled,
                         prioritySupport,
                         billingCycleStart: new Date(),
-                        billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        billingCycleEnd,
                         updatedAt: new Date(),
+                        ...extraUpdates
                     },
                 });
             }
@@ -150,7 +170,8 @@ async function handlePaymentCallback(req, res, next) {
                         prioritySupport,
                         audioCredits,
                         billingCycleStart: new Date(),
-                        billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        billingCycleEnd,
+                        ...extraUpdates
                     },
                 });
             }
