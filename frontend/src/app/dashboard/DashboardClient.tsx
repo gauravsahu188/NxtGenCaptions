@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Pricing from "@/components/landing/Pricing";
 import PaymentModal from "@/components/PaymentModal";
 
-type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS";
+type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS" | "TRIAL_1_INR" | "TRIAL_9_INR";
 
 interface User {
   id: string;
@@ -35,6 +35,8 @@ const PLAN_LIMITS: Record<PlanType, { transcription: number; storage: number; co
   EDITOR:   { transcription: 120, storage: 20 * 1024 * 1024 * 1024,  color: "text-accent",    icon: <Zap className="w-4 h-4" />,       label: "Editor" },
   CREATOR:  { transcription: 300, storage: 60 * 1024 * 1024 * 1024,  color: "text-purple-400",icon: <Crown className="w-4 h-4" />,     label: "Creator" },
   BUSINESS: { transcription: 720, storage: 150 * 1024 * 1024 * 1024, color: "text-amber-400", icon: <Building2 className="w-4 h-4" />, label: "Business" },
+  TRIAL_1_INR: { transcription: 1, storage: 5 * 1024 * 1024 * 1024, color: "text-cyan-400", icon: <Zap className="w-4 h-4" />, label: "1 Rupee Trial" },
+  TRIAL_9_INR: { transcription: 9, storage: 5 * 1024 * 1024 * 1024, color: "text-cyan-400", icon: <Zap className="w-4 h-4" />, label: "9 Rupee Trial" },
 };
 
 function formatBytes(bytes: number): string {

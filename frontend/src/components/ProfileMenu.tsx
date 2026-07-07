@@ -7,7 +7,7 @@ import { LogOut, User, LayoutDashboard, Crown, Zap, Star, Building2, ChevronDown
 import Link from "next/link";
 import Image from "next/image";
 
-type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS";
+type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS" | "TRIAL_1_INR" | "TRIAL_9_INR";
 
 interface ProfileMenuProps {
   user: {
@@ -23,6 +23,8 @@ const PLAN_ICON: Record<PlanType, React.ReactNode> = {
   EDITOR:   <Zap className="w-3.5 h-3.5 text-cyan-400" />,
   CREATOR:  <Crown className="w-3.5 h-3.5 text-purple-400" />,
   BUSINESS: <Building2 className="w-3.5 h-3.5 text-amber-400" />,
+  TRIAL_1_INR: <Zap className="w-3.5 h-3.5 text-cyan-400" />,
+  TRIAL_9_INR: <Zap className="w-3.5 h-3.5 text-cyan-400" />,
 };
 
 const PLAN_COLOR: Record<PlanType, string> = {
@@ -30,6 +32,8 @@ const PLAN_COLOR: Record<PlanType, string> = {
   EDITOR:   "text-cyan-400",
   CREATOR:  "text-purple-400",
   BUSINESS: "text-amber-400",
+  TRIAL_1_INR: "text-cyan-400",
+  TRIAL_9_INR: "text-cyan-400",
 };
 
 export default function ProfileMenu({ user }: ProfileMenuProps) {

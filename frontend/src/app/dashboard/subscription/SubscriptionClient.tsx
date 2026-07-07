@@ -7,7 +7,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PaymentModal from "@/components/PaymentModal";
 
-type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS";
+type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS" | "TRIAL_1_INR" | "TRIAL_9_INR";
 
 interface User {
   id: string;
@@ -40,10 +40,12 @@ interface Transaction {
 }
 
 const PLAN_LIMITS: Record<PlanType, { color: string; icon: React.ReactNode; label: string }> = {
-  FREE:     { color: "text-zinc-400",  icon: <Star className="w-5 h-5" />,      label: "Free" },
-  EDITOR:   { color: "text-cyan-400",  icon: <Zap className="w-5 h-5" />,       label: "Editor" },
-  CREATOR:  { color: "text-purple-400",icon: <Crown className="w-5 h-5" />,     label: "Creator" },
-  BUSINESS: { color: "text-amber-400", icon: <Building2 className="w-5 h-5" />, label: "Business" },
+  FREE:     { color: "text-zinc-400",  icon: <Star className="w-4 h-4" />,      label: "Free" },
+  EDITOR:   { color: "text-accent",    icon: <Zap className="w-4 h-4" />,       label: "Editor" },
+  CREATOR:  { color: "text-purple-400",icon: <Crown className="w-4 h-4" />,     label: "Creator" },
+  BUSINESS: { color: "text-amber-400", icon: <Building2 className="w-4 h-4" />, label: "Business" },
+  TRIAL_1_INR: { color: "text-cyan-400", icon: <Zap className="w-4 h-4" />, label: "1 Rupee Trial" },
+  TRIAL_9_INR: { color: "text-cyan-400", icon: <Zap className="w-4 h-4" />, label: "9 Rupee Trial" },
 };
 
 function formatDate(dateString: string | null) {

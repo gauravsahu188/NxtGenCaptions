@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-type PlanType = 'FREE' | 'EDITOR' | 'CREATOR' | 'BUSINESS';
+type PlanType = 'FREE' | 'EDITOR' | 'CREATOR' | 'BUSINESS' | 'TRIAL_1_INR' | 'TRIAL_9_INR';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -224,6 +224,8 @@ const PLAN_ICONS: Record<string, React.ReactNode> = {
   EDITOR: <Zap className="w-5 h-5" />,
   CREATOR: <Crown className="w-5 h-5" />,
   BUSINESS: <Building2 className="w-5 h-5" />,
+  TRIAL_1_INR: <Zap className="w-5 h-5" />,
+  TRIAL_9_INR: <Zap className="w-5 h-5" />,
 };
 
 export default function PaymentModal({ isOpen, onClose, currentPlan = 'FREE' }: PaymentModalProps) {

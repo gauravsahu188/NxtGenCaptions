@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import { useToast } from "@/context/ToastContext";
 
-type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS";
+type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS" | "TRIAL_1_INR" | "TRIAL_9_INR";
 
 interface EditorUser {
   id: string;

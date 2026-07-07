@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 
-type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS";
+type PlanType = "FREE" | "EDITOR" | "CREATOR" | "BUSINESS" | "TRIAL_1_INR" | "TRIAL_9_INR";
 
 interface User {
   id: string;
@@ -21,10 +21,12 @@ interface User {
 }
 
 const PLAN_META: Record<PlanType, { label: string; color: string; bg: string; icon: React.ReactNode; transcription: number; storage: number; description: string }> = {
-  FREE:     { label: "Free",     color: "text-zinc-300",   bg: "bg-zinc-500/10 border-zinc-500/20",   icon: <Star className="w-5 h-5 text-zinc-400" />,      transcription: 10,  storage: 5,   description: "Basic access" },
-  EDITOR:   { label: "Editor",   color: "text-accent",     bg: "bg-accent/10 border-accent/20",       icon: <Zap className="w-5 h-5 text-accent" />,         transcription: 120, storage: 20,  description: "For individual creators" },
-  CREATOR:  { label: "Creator",  color: "text-purple-300", bg: "bg-purple-500/10 border-purple-500/20",icon: <Crown className="w-5 h-5 text-purple-400" />,   transcription: 300, storage: 60,  description: "Unlimited audio, SRT, 4K" },
-  BUSINESS: { label: "Business", color: "text-amber-300",  bg: "bg-amber-500/10 border-amber-500/20", icon: <Building2 className="w-5 h-5 text-amber-400" />, transcription: 720, storage: 150, description: "Teams & translation" },
+  FREE: { label: "Free", color: "text-zinc-400", bg: "bg-zinc-900", icon: <Star className="w-3.5 h-3.5" />, transcription: 5, storage: 5, description: "Basic features for getting started." },
+  EDITOR: { label: "Editor", color: "text-accent", bg: "bg-accent/10", icon: <Zap className="w-3.5 h-3.5" />, transcription: 120, storage: 20, description: "Perfect for regular content creators." },
+  CREATOR: { label: "Creator", color: "text-purple-400", bg: "bg-purple-500/10", icon: <Crown className="w-3.5 h-3.5" />, transcription: 300, storage: 60, description: "Advanced tools for professionals." },
+  BUSINESS: { label: "Business", color: "text-amber-400", bg: "bg-amber-500/10", icon: <Building2 className="w-3.5 h-3.5" />, transcription: 720, storage: 150, description: "Maximum limits for teams." },
+  TRIAL_1_INR: { label: "1 Rupee Trial", color: "text-cyan-400", bg: "bg-cyan-500/10", icon: <Zap className="w-3.5 h-3.5" />, transcription: 1, storage: 5, description: "Trial plan for new users." },
+  TRIAL_9_INR: { label: "9 Rupee Trial", color: "text-cyan-400", bg: "bg-cyan-500/10", icon: <Zap className="w-3.5 h-3.5" />, transcription: 9, storage: 5, description: "Extended trial plan for new users." },
 };
 
 function formatBytes(bytes: number): string {
