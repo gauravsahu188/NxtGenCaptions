@@ -53,6 +53,16 @@ export async function POST(request: NextRequest) {
 
       const existingSub = await prisma.subscription.findUnique({ where: { userId } });
 
+      let cycleEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      let updateFlags = {};
+      if (planType === 'TRIAL_1_INR') {
+        cycleEnd = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
+        updateFlags = { hasUsed1RupeeTrial: true };
+      } else if (planType === 'TRIAL_9_INR') {
+        cycleEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        updateFlags = { hasUsed9RupeeTrial: true };
+      }
+
       if (existingSub) {
         await prisma.subscription.update({
           where: { userId },
@@ -63,8 +73,9 @@ export async function POST(request: NextRequest) {
             maxExportRes, storageLimitGb, maxVideoLengthMinutes, alphaChannelEnabled,
             srtRenderEnabled, customFontEnabled, prioritySupport,
             billingCycleStart: new Date(),
-            billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            billingCycleEnd: cycleEnd,
             updatedAt: new Date(),
+            ...updateFlags
           },
         });
       } else {
@@ -75,7 +86,8 @@ export async function POST(request: NextRequest) {
             maxExportRes, storageLimitGb, maxVideoLengthMinutes, alphaChannelEnabled,
             srtRenderEnabled, customFontEnabled, prioritySupport, audioCredits,
             billingCycleStart: new Date(),
-            billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            billingCycleEnd: cycleEnd,
+            ...updateFlags
           },
         });
       }

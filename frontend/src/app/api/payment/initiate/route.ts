@@ -8,7 +8,7 @@ import {
   PLAN_PRICING_USD,
 } from "@/lib/payment";
 
-const VALID_PLANS = ["EDITOR", "CREATOR", "BUSINESS"] as const;
+const VALID_PLANS = ["EDITOR", "CREATOR", "BUSINESS", "TRIAL_1_INR", "TRIAL_9_INR"] as const;
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,9 +30,19 @@ export async function POST(request: NextRequest) {
     const pricingMap = currency === "USD" ? PLAN_PRICING_USD : PLAN_PRICING_INR;
     const planDetails = pricingMap[planType];
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId },
+      include: { subscription: true }
+    });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (planType === 'TRIAL_1_INR' && user.subscription?.hasUsed1RupeeTrial) {
+      return NextResponse.json({ error: "You have already used the 1 Rupee Trial" }, { status: 403 });
+    }
+    if (planType === 'TRIAL_9_INR' && user.subscription?.hasUsed9RupeeTrial) {
+      return NextResponse.json({ error: "You have already used the 9 Rupee Trial" }, { status: 403 });
     }
 
     const orderId = generateOrderId(userId);
