@@ -10,7 +10,7 @@ import {
 import { prisma } from '../lib/prisma';
 
 interface InitiatePaymentRequest {
-  planType: 'EDITOR' | 'CREATOR' | 'BUSINESS';
+  planType: 'EDITOR' | 'CREATOR' | 'BUSINESS' | 'TRIAL_1_INR' | 'TRIAL_9_INR';
   currency?: 'INR' | 'USD';
 }
 
@@ -38,19 +38,30 @@ export async function initiatePaymentHandler(
 
     const pricingMap = currency === 'USD' ? PLAN_PRICING_USD : PLAN_PRICING_INR;
 
-    if (!planType || !pricingMap[planType]) {
+    if (!planType || !pricingMap[planType as keyof typeof pricingMap]) {
       res.status(400).json({
-        error: 'Invalid plan type. Must be EDITOR, CREATOR, or BUSINESS',
+        error: 'Invalid plan type',
       });
       return;
     }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      include: { subscription: true }
     });
 
     if (!user) {
       res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    if (planType === 'TRIAL_1_INR' && user.subscription?.hasUsed1RupeeTrial) {
+      res.status(403).json({ error: 'You have already used the 1 Rupee Trial' });
+      return;
+    }
+
+    if (planType === 'TRIAL_9_INR' && user.subscription?.hasUsed9RupeeTrial) {
+      res.status(403).json({ error: 'You have already used the 9 Rupee Trial' });
       return;
     }
 
@@ -169,6 +180,17 @@ export async function handlePaymentCallback(
         prioritySupport,
       } = planDetails;
 
+      let billingCycleEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      let extraUpdates: any = {};
+      
+      if (planType === 'TRIAL_1_INR') {
+        billingCycleEnd = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
+        extraUpdates.hasUsed1RupeeTrial = true;
+      } else if (planType === 'TRIAL_9_INR') {
+        billingCycleEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        extraUpdates.hasUsed9RupeeTrial = true;
+      }
+
       // Check if subscription exists
       const existingSubscription = await prisma.subscription.findUnique({
         where: { userId },
@@ -190,8 +212,9 @@ export async function handlePaymentCallback(
             customFontEnabled,
             prioritySupport,
             billingCycleStart: new Date(),
-            billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            billingCycleEnd,
             updatedAt: new Date(),
+            ...extraUpdates
           },
         });
       } else {
@@ -210,7 +233,8 @@ export async function handlePaymentCallback(
             prioritySupport,
             audioCredits,
             billingCycleStart: new Date(),
-            billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            billingCycleEnd,
+            ...extraUpdates
           },
         });
       }

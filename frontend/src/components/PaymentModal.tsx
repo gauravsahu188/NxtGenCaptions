@@ -32,15 +32,49 @@ interface PlanDetails {
 }
 
 const PLANS_INR: Record<string, PlanDetails> = {
+  TRIAL_1_INR: {
+    name: '1 Rupee Trial',
+    price: '1',
+    originalPrice: '99',
+    transcriptionBalance: 1,
+    audioCredits: 3,
+    maxExportRes: 1080,
+    highlight: false,
+    features: [
+      'For First Time Users',
+      'Valid for 1 Day',
+      '1 Minute of Transcription',
+      '1080P Video Render',
+      'No Watermark',
+      'One-time use only'
+    ],
+  },
+  TRIAL_9_INR: {
+    name: '9 Rupee Trial',
+    price: '9',
+    originalPrice: '99',
+    transcriptionBalance: 9,
+    audioCredits: 5,
+    maxExportRes: 1080,
+    highlight: false,
+    features: [
+      'Valid for 7 Days',
+      '9 Minutes of Transcription',
+      '1080P Video Render',
+      'No Watermark',
+      'One-time use only'
+    ],
+  },
   EDITOR: {
     name: 'Editor',
-    price: '599',
-    transcriptionBalance: 120,
+    price: '199',
+    originalPrice: '299',
+    transcriptionBalance: 90,
     audioCredits: 50,
     maxExportRes: 1080,
     highlight: false,
     features: [
-      '2 Hours of Transcription',
+      '90 Minutes of Transcription',
       '20 GB Cloud Storage',
       '1080P Video Render',
       'Max Video Length 5 min',
@@ -51,15 +85,15 @@ const PLANS_INR: Record<string, PlanDetails> = {
   },
   CREATOR: {
     name: 'Creator',
-    price: '999',
-    originalPrice: '1499',
-    transcriptionBalance: 300,
+    price: '349',
+    originalPrice: '499',
+    transcriptionBalance: 200,
     audioCredits: 150,
     maxExportRes: 2160,
     highlight: true,
     badge: 'Most Popular',
     features: [
-      '5 Hours of Transcription',
+      '200 Minutes of Transcription',
       '60 GB Cloud Storage',
       '4K Video Render',
       'Max Video Length 10 min',
@@ -72,14 +106,14 @@ const PLANS_INR: Record<string, PlanDetails> = {
   },
   BUSINESS: {
     name: 'Business',
-    price: '4999',
-    originalPrice: '6999',
-    transcriptionBalance: 1800,
+    price: '749',
+    originalPrice: '999',
+    transcriptionBalance: 500,
     audioCredits: 500,
     maxExportRes: 2160,
     highlight: false,
     features: [
-      '30 Hours of Transcription',
+      '500 Minutes of Transcription',
       '150 GB Cloud Storage',
       '4K Video Render',
       'Max Video Length 30 min',
@@ -93,15 +127,48 @@ const PLANS_INR: Record<string, PlanDetails> = {
 };
 
 const PLANS_USD: Record<string, PlanDetails> = {
+  TRIAL_1_INR: {
+    name: '1st Render Trial',
+    price: '0.29',
+    originalPrice: '0.99',
+    transcriptionBalance: 1,
+    audioCredits: 3,
+    maxExportRes: 1080,
+    highlight: false,
+    features: [
+      'For First Time Users',
+      'Valid for 1 Day',
+      '1 Minute of Transcription',
+      '1080P Video Render',
+      'No Watermark',
+      'One-time use only'
+    ],
+  },
+  TRIAL_9_INR: {
+    name: '7 Day Trial',
+    price: '0.99',
+    originalPrice: '2.99',
+    transcriptionBalance: 9,
+    audioCredits: 5,
+    maxExportRes: 1080,
+    highlight: false,
+    features: [
+      'Valid for 7 Days',
+      '9 Minutes of Transcription',
+      '1080P Video Render',
+      'No Watermark',
+      'One-time use only'
+    ],
+  },
   EDITOR: {
     name: 'Editor',
     price: '9',
-    transcriptionBalance: 120,
+    transcriptionBalance: 90,
     audioCredits: 50,
     maxExportRes: 1080,
     highlight: false,
     features: [
-      '2 Hours of Transcription',
+      '90 Minutes of Transcription',
       '20 GB Cloud Storage',
       '1080P Video Render',
       'Max Video Length 5 min',
@@ -114,13 +181,13 @@ const PLANS_USD: Record<string, PlanDetails> = {
     name: 'Creator',
     price: '15',
     originalPrice: '25',
-    transcriptionBalance: 300,
+    transcriptionBalance: 200,
     audioCredits: 150,
     maxExportRes: 2160,
     highlight: true,
     badge: 'Most Popular',
     features: [
-      '5 Hours of Transcription',
+      '200 Minutes of Transcription',
       '60 GB Cloud Storage',
       '4K Video Render',
       'Max Video Length 10 min',
@@ -135,12 +202,12 @@ const PLANS_USD: Record<string, PlanDetails> = {
     name: 'Business',
     price: '75',
     originalPrice: '99',
-    transcriptionBalance: 1800,
+    transcriptionBalance: 500,
     audioCredits: 500,
     maxExportRes: 2160,
     highlight: false,
     features: [
-      '30 Hours of Transcription',
+      '500 Minutes of Transcription',
       '150 GB Cloud Storage',
       '4K Video Render',
       'Max Video Length 30 min',

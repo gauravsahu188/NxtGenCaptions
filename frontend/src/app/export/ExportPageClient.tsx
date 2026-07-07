@@ -8,6 +8,7 @@ import {
   CheckCircle, Download, AlertCircle, Crown, Sparkles, HelpCircle
 } from "lucide-react";
 import Link from "next/link";
+import PaymentModal from "@/components/PaymentModal";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface ExportUser {
@@ -81,6 +82,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
   const [watermark,   setWatermark]   = useState(planType === "FREE");
   const [alphaChannel, setAlphaChannel] = useState(false);
   const [srtExport,    setSrtExport]    = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   // Render state
   type Phase = "idle" | "rendering" | "done" | "error";
@@ -419,6 +421,20 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
               </button>
             </div>
 
+            {/* Trial Offer Highlight */}
+            {planType === "FREE" && (
+              <button
+                onClick={() => setIsPaymentModalOpen(true)}
+                className="w-full relative overflow-hidden p-3 rounded-2xl border border-accent/40 bg-accent/10 hover:bg-accent/20 transition-all flex items-center justify-center gap-2 group"
+              >
+                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
+                <Sparkles className="w-4 h-4 text-accent animate-pulse" />
+                <span className="font-bold text-sm text-accent group-hover:text-white transition-colors">
+                  1 Rupee First Video (No Watermark + 1080p)
+                </span>
+              </button>
+            )}
+
             {/* Premium Render Settings */}
             <div className="pt-6 border-t border-white/6 space-y-4">
               <label className="text-xs tracking-widest uppercase text-zinc-500 font-bold mb-1 block">Advanced Render Options</label>
@@ -518,6 +534,12 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
               </div>
             </div>
           </motion.div>
+
+          <PaymentModal 
+            isOpen={isPaymentModalOpen}
+            onClose={() => setIsPaymentModalOpen(false)}
+            currentPlan={planType as any}
+          />
 
           {/* RIGHT — Summary + Export (2 cols) */}
           <motion.div

@@ -60,6 +60,8 @@ model Subscription {
   maxVideoLengthMinutes  Int       @default(2)
   prioritySupport        Boolean   @default(false)
   srtRenderEnabled       Boolean   @default(false)
+  hasUsed1RupeeTrial     Boolean   @default(false)
+  hasUsed9RupeeTrial     Boolean   @default(false)
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -100,6 +102,8 @@ enum PlanType {
   EDITOR
   CREATOR
   BUSINESS
+  TRIAL_1_INR
+  TRIAL_9_INR
 }
 
 model Transaction {

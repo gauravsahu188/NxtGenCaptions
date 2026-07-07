@@ -57,7 +57,9 @@ export namespace $Enums {
   FREE: 'FREE',
   EDITOR: 'EDITOR',
   CREATOR: 'CREATOR',
-  BUSINESS: 'BUSINESS'
+  BUSINESS: 'BUSINESS',
+  TRIAL_1_INR: 'TRIAL_1_INR',
+  TRIAL_9_INR: 'TRIAL_9_INR'
 };
 
 export type PlanType = (typeof PlanType)[keyof typeof PlanType]
@@ -4751,6 +4753,8 @@ export namespace Prisma {
     maxVideoLengthMinutes: number | null
     prioritySupport: boolean | null
     srtRenderEnabled: boolean | null
+    hasUsed1RupeeTrial: boolean | null
+    hasUsed9RupeeTrial: boolean | null
   }
 
   export type SubscriptionMaxAggregateOutputType = {
@@ -4772,6 +4776,8 @@ export namespace Prisma {
     maxVideoLengthMinutes: number | null
     prioritySupport: boolean | null
     srtRenderEnabled: boolean | null
+    hasUsed1RupeeTrial: boolean | null
+    hasUsed9RupeeTrial: boolean | null
   }
 
   export type SubscriptionCountAggregateOutputType = {
@@ -4793,6 +4799,8 @@ export namespace Prisma {
     maxVideoLengthMinutes: number
     prioritySupport: number
     srtRenderEnabled: number
+    hasUsed1RupeeTrial: number
+    hasUsed9RupeeTrial: number
     _all: number
   }
 
@@ -4836,6 +4844,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: true
     prioritySupport?: true
     srtRenderEnabled?: true
+    hasUsed1RupeeTrial?: true
+    hasUsed9RupeeTrial?: true
   }
 
   export type SubscriptionMaxAggregateInputType = {
@@ -4857,6 +4867,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: true
     prioritySupport?: true
     srtRenderEnabled?: true
+    hasUsed1RupeeTrial?: true
+    hasUsed9RupeeTrial?: true
   }
 
   export type SubscriptionCountAggregateInputType = {
@@ -4878,6 +4890,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: true
     prioritySupport?: true
     srtRenderEnabled?: true
+    hasUsed1RupeeTrial?: true
+    hasUsed9RupeeTrial?: true
     _all?: true
   }
 
@@ -4986,6 +5000,8 @@ export namespace Prisma {
     maxVideoLengthMinutes: number
     prioritySupport: boolean
     srtRenderEnabled: boolean
+    hasUsed1RupeeTrial: boolean
+    hasUsed9RupeeTrial: boolean
     _count: SubscriptionCountAggregateOutputType | null
     _avg: SubscriptionAvgAggregateOutputType | null
     _sum: SubscriptionSumAggregateOutputType | null
@@ -5026,6 +5042,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: boolean
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscription"]>
 
@@ -5048,6 +5066,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: boolean
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscription"]>
 
@@ -5070,6 +5090,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: boolean
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscription"]>
 
@@ -5092,9 +5114,11 @@ export namespace Prisma {
     maxVideoLengthMinutes?: boolean
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
-  export type SubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "planType" | "storageLimitGb" | "transcriptionLimitMins" | "maxExportRes" | "transcriptionUsedMins" | "storageUsedBytes" | "billingCycleStart" | "billingCycleEnd" | "createdAt" | "updatedAt" | "audioCredits" | "alphaChannelEnabled" | "customFontEnabled" | "maxVideoLengthMinutes" | "prioritySupport" | "srtRenderEnabled", ExtArgs["result"]["subscription"]>
+  export type SubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "planType" | "storageLimitGb" | "transcriptionLimitMins" | "maxExportRes" | "transcriptionUsedMins" | "storageUsedBytes" | "billingCycleStart" | "billingCycleEnd" | "createdAt" | "updatedAt" | "audioCredits" | "alphaChannelEnabled" | "customFontEnabled" | "maxVideoLengthMinutes" | "prioritySupport" | "srtRenderEnabled" | "hasUsed1RupeeTrial" | "hasUsed9RupeeTrial", ExtArgs["result"]["subscription"]>
   export type SubscriptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -5129,6 +5153,8 @@ export namespace Prisma {
       maxVideoLengthMinutes: number
       prioritySupport: boolean
       srtRenderEnabled: boolean
+      hasUsed1RupeeTrial: boolean
+      hasUsed9RupeeTrial: boolean
     }, ExtArgs["result"]["subscription"]>
     composites: {}
   }
@@ -5571,6 +5597,8 @@ export namespace Prisma {
     readonly maxVideoLengthMinutes: FieldRef<"Subscription", 'Int'>
     readonly prioritySupport: FieldRef<"Subscription", 'Boolean'>
     readonly srtRenderEnabled: FieldRef<"Subscription", 'Boolean'>
+    readonly hasUsed1RupeeTrial: FieldRef<"Subscription", 'Boolean'>
+    readonly hasUsed9RupeeTrial: FieldRef<"Subscription", 'Boolean'>
   }
     
 
@@ -9655,7 +9683,9 @@ export namespace Prisma {
     customFontEnabled: 'customFontEnabled',
     maxVideoLengthMinutes: 'maxVideoLengthMinutes',
     prioritySupport: 'prioritySupport',
-    srtRenderEnabled: 'srtRenderEnabled'
+    srtRenderEnabled: 'srtRenderEnabled',
+    hasUsed1RupeeTrial: 'hasUsed1RupeeTrial',
+    hasUsed9RupeeTrial: 'hasUsed9RupeeTrial'
   };
 
   export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
@@ -10070,6 +10100,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntFilter<"Subscription"> | number
     prioritySupport?: BoolFilter<"Subscription"> | boolean
     srtRenderEnabled?: BoolFilter<"Subscription"> | boolean
+    hasUsed1RupeeTrial?: BoolFilter<"Subscription"> | boolean
+    hasUsed9RupeeTrial?: BoolFilter<"Subscription"> | boolean
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
@@ -10092,6 +10124,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: SortOrder
     prioritySupport?: SortOrder
     srtRenderEnabled?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
     user?: UserOrderByWithRelationInput
   }
 
@@ -10117,6 +10151,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntFilter<"Subscription"> | number
     prioritySupport?: BoolFilter<"Subscription"> | boolean
     srtRenderEnabled?: BoolFilter<"Subscription"> | boolean
+    hasUsed1RupeeTrial?: BoolFilter<"Subscription"> | boolean
+    hasUsed9RupeeTrial?: BoolFilter<"Subscription"> | boolean
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id" | "userId">
 
@@ -10139,6 +10175,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: SortOrder
     prioritySupport?: SortOrder
     srtRenderEnabled?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
     _count?: SubscriptionCountOrderByAggregateInput
     _avg?: SubscriptionAvgOrderByAggregateInput
     _max?: SubscriptionMaxOrderByAggregateInput
@@ -10168,6 +10206,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntWithAggregatesFilter<"Subscription"> | number
     prioritySupport?: BoolWithAggregatesFilter<"Subscription"> | boolean
     srtRenderEnabled?: BoolWithAggregatesFilter<"Subscription"> | boolean
+    hasUsed1RupeeTrial?: BoolWithAggregatesFilter<"Subscription"> | boolean
+    hasUsed9RupeeTrial?: BoolWithAggregatesFilter<"Subscription"> | boolean
   }
 
   export type UserWhereInput = {
@@ -10635,6 +10675,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: number
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
     user: UserCreateNestedOneWithoutSubscriptionInput
   }
 
@@ -10657,6 +10699,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: number
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
   export type SubscriptionUpdateInput = {
@@ -10677,6 +10721,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
     prioritySupport?: BoolFieldUpdateOperationsInput | boolean
     srtRenderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
     user?: UserUpdateOneRequiredWithoutSubscriptionNestedInput
   }
 
@@ -10699,6 +10745,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
     prioritySupport?: BoolFieldUpdateOperationsInput | boolean
     srtRenderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type SubscriptionCreateManyInput = {
@@ -10720,6 +10768,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: number
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
   export type SubscriptionUpdateManyMutationInput = {
@@ -10740,6 +10790,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
     prioritySupport?: BoolFieldUpdateOperationsInput | boolean
     srtRenderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type SubscriptionUncheckedUpdateManyInput = {
@@ -10761,6 +10813,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
     prioritySupport?: BoolFieldUpdateOperationsInput | boolean
     srtRenderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type UserCreateInput = {
@@ -11352,6 +11406,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: SortOrder
     prioritySupport?: SortOrder
     srtRenderEnabled?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
   }
 
   export type SubscriptionAvgOrderByAggregateInput = {
@@ -11383,6 +11439,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: SortOrder
     prioritySupport?: SortOrder
     srtRenderEnabled?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
   }
 
   export type SubscriptionMinOrderByAggregateInput = {
@@ -11404,6 +11462,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: SortOrder
     prioritySupport?: SortOrder
     srtRenderEnabled?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
   }
 
   export type SubscriptionSumOrderByAggregateInput = {
@@ -12724,6 +12784,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: number
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
   export type SubscriptionUncheckedCreateWithoutUserInput = {
@@ -12744,6 +12806,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: number
     prioritySupport?: boolean
     srtRenderEnabled?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
   export type SubscriptionCreateOrConnectWithoutUserInput = {
@@ -12902,6 +12966,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
     prioritySupport?: BoolFieldUpdateOperationsInput | boolean
     srtRenderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type SubscriptionUncheckedUpdateWithoutUserInput = {
@@ -12922,6 +12988,8 @@ export namespace Prisma {
     maxVideoLengthMinutes?: IntFieldUpdateOperationsInput | number
     prioritySupport?: BoolFieldUpdateOperationsInput | boolean
     srtRenderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutUserInput = {

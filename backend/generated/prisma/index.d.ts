@@ -52,7 +52,9 @@ export namespace $Enums {
   FREE: 'FREE',
   EDITOR: 'EDITOR',
   CREATOR: 'CREATOR',
-  BUSINESS: 'BUSINESS'
+  BUSINESS: 'BUSINESS',
+  TRIAL_1_INR: 'TRIAL_1_INR',
+  TRIAL_9_INR: 'TRIAL_9_INR'
 };
 
 export type PlanType = (typeof PlanType)[keyof typeof PlanType]
@@ -4651,6 +4653,8 @@ export namespace Prisma {
     billingCycleEnd: Date | null
     createdAt: Date | null
     updatedAt: Date | null
+    hasUsed1RupeeTrial: boolean | null
+    hasUsed9RupeeTrial: boolean | null
   }
 
   export type SubscriptionMaxAggregateOutputType = {
@@ -4672,6 +4676,8 @@ export namespace Prisma {
     billingCycleEnd: Date | null
     createdAt: Date | null
     updatedAt: Date | null
+    hasUsed1RupeeTrial: boolean | null
+    hasUsed9RupeeTrial: boolean | null
   }
 
   export type SubscriptionCountAggregateOutputType = {
@@ -4693,6 +4699,8 @@ export namespace Prisma {
     billingCycleEnd: number
     createdAt: number
     updatedAt: number
+    hasUsed1RupeeTrial: number
+    hasUsed9RupeeTrial: number
     _all: number
   }
 
@@ -4736,6 +4744,8 @@ export namespace Prisma {
     billingCycleEnd?: true
     createdAt?: true
     updatedAt?: true
+    hasUsed1RupeeTrial?: true
+    hasUsed9RupeeTrial?: true
   }
 
   export type SubscriptionMaxAggregateInputType = {
@@ -4757,6 +4767,8 @@ export namespace Prisma {
     billingCycleEnd?: true
     createdAt?: true
     updatedAt?: true
+    hasUsed1RupeeTrial?: true
+    hasUsed9RupeeTrial?: true
   }
 
   export type SubscriptionCountAggregateInputType = {
@@ -4778,6 +4790,8 @@ export namespace Prisma {
     billingCycleEnd?: true
     createdAt?: true
     updatedAt?: true
+    hasUsed1RupeeTrial?: true
+    hasUsed9RupeeTrial?: true
     _all?: true
   }
 
@@ -4886,6 +4900,8 @@ export namespace Prisma {
     billingCycleEnd: Date | null
     createdAt: Date
     updatedAt: Date
+    hasUsed1RupeeTrial: boolean
+    hasUsed9RupeeTrial: boolean
     _count: SubscriptionCountAggregateOutputType | null
     _avg: SubscriptionAvgAggregateOutputType | null
     _sum: SubscriptionSumAggregateOutputType | null
@@ -4926,6 +4942,8 @@ export namespace Prisma {
     billingCycleEnd?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscription"]>
 
@@ -4948,6 +4966,8 @@ export namespace Prisma {
     billingCycleEnd?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscription"]>
 
@@ -4970,6 +4990,8 @@ export namespace Prisma {
     billingCycleEnd?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["subscription"]>
 
@@ -4992,9 +5014,11 @@ export namespace Prisma {
     billingCycleEnd?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
-  export type SubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "planType" | "storageLimitGb" | "transcriptionLimitMins" | "maxExportRes" | "transcriptionUsedMins" | "storageUsedBytes" | "audioCredits" | "maxVideoLengthMinutes" | "alphaChannelEnabled" | "srtRenderEnabled" | "customFontEnabled" | "prioritySupport" | "billingCycleStart" | "billingCycleEnd" | "createdAt" | "updatedAt", ExtArgs["result"]["subscription"]>
+  export type SubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "planType" | "storageLimitGb" | "transcriptionLimitMins" | "maxExportRes" | "transcriptionUsedMins" | "storageUsedBytes" | "audioCredits" | "maxVideoLengthMinutes" | "alphaChannelEnabled" | "srtRenderEnabled" | "customFontEnabled" | "prioritySupport" | "billingCycleStart" | "billingCycleEnd" | "createdAt" | "updatedAt" | "hasUsed1RupeeTrial" | "hasUsed9RupeeTrial", ExtArgs["result"]["subscription"]>
   export type SubscriptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -5029,6 +5053,8 @@ export namespace Prisma {
       billingCycleEnd: Date | null
       createdAt: Date
       updatedAt: Date
+      hasUsed1RupeeTrial: boolean
+      hasUsed9RupeeTrial: boolean
     }, ExtArgs["result"]["subscription"]>
     composites: {}
   }
@@ -5471,6 +5497,8 @@ export namespace Prisma {
     readonly billingCycleEnd: FieldRef<"Subscription", 'DateTime'>
     readonly createdAt: FieldRef<"Subscription", 'DateTime'>
     readonly updatedAt: FieldRef<"Subscription", 'DateTime'>
+    readonly hasUsed1RupeeTrial: FieldRef<"Subscription", 'Boolean'>
+    readonly hasUsed9RupeeTrial: FieldRef<"Subscription", 'Boolean'>
   }
     
 
@@ -8378,7 +8406,9 @@ export namespace Prisma {
     billingCycleStart: 'billingCycleStart',
     billingCycleEnd: 'billingCycleEnd',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    hasUsed1RupeeTrial: 'hasUsed1RupeeTrial',
+    hasUsed9RupeeTrial: 'hasUsed9RupeeTrial'
   };
 
   export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
@@ -8778,6 +8808,8 @@ export namespace Prisma {
     billingCycleEnd?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     createdAt?: DateTimeFilter<"Subscription"> | Date | string
     updatedAt?: DateTimeFilter<"Subscription"> | Date | string
+    hasUsed1RupeeTrial?: BoolFilter<"Subscription"> | boolean
+    hasUsed9RupeeTrial?: BoolFilter<"Subscription"> | boolean
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
@@ -8800,6 +8832,8 @@ export namespace Prisma {
     billingCycleEnd?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
     user?: UserOrderByWithRelationInput
   }
 
@@ -8825,6 +8859,8 @@ export namespace Prisma {
     billingCycleEnd?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     createdAt?: DateTimeFilter<"Subscription"> | Date | string
     updatedAt?: DateTimeFilter<"Subscription"> | Date | string
+    hasUsed1RupeeTrial?: BoolFilter<"Subscription"> | boolean
+    hasUsed9RupeeTrial?: BoolFilter<"Subscription"> | boolean
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id" | "userId">
 
@@ -8847,6 +8883,8 @@ export namespace Prisma {
     billingCycleEnd?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
     _count?: SubscriptionCountOrderByAggregateInput
     _avg?: SubscriptionAvgOrderByAggregateInput
     _max?: SubscriptionMaxOrderByAggregateInput
@@ -8876,6 +8914,8 @@ export namespace Prisma {
     billingCycleEnd?: DateTimeNullableWithAggregatesFilter<"Subscription"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Subscription"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Subscription"> | Date | string
+    hasUsed1RupeeTrial?: BoolWithAggregatesFilter<"Subscription"> | boolean
+    hasUsed9RupeeTrial?: BoolWithAggregatesFilter<"Subscription"> | boolean
   }
 
   export type UserWhereInput = {
@@ -9263,6 +9303,8 @@ export namespace Prisma {
     billingCycleEnd?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
     user: UserCreateNestedOneWithoutSubscriptionInput
   }
 
@@ -9285,6 +9327,8 @@ export namespace Prisma {
     billingCycleEnd?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
   export type SubscriptionUpdateInput = {
@@ -9305,6 +9349,8 @@ export namespace Prisma {
     billingCycleEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
     user?: UserUpdateOneRequiredWithoutSubscriptionNestedInput
   }
 
@@ -9327,6 +9373,8 @@ export namespace Prisma {
     billingCycleEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type SubscriptionCreateManyInput = {
@@ -9348,6 +9396,8 @@ export namespace Prisma {
     billingCycleEnd?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
   export type SubscriptionUpdateManyMutationInput = {
@@ -9368,6 +9418,8 @@ export namespace Prisma {
     billingCycleEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type SubscriptionUncheckedUpdateManyInput = {
@@ -9389,6 +9441,8 @@ export namespace Prisma {
     billingCycleEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type UserCreateInput = {
@@ -9893,6 +9947,8 @@ export namespace Prisma {
     billingCycleEnd?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
   }
 
   export type SubscriptionAvgOrderByAggregateInput = {
@@ -9924,6 +9980,8 @@ export namespace Prisma {
     billingCycleEnd?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
   }
 
   export type SubscriptionMinOrderByAggregateInput = {
@@ -9945,6 +10003,8 @@ export namespace Prisma {
     billingCycleEnd?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    hasUsed1RupeeTrial?: SortOrder
+    hasUsed9RupeeTrial?: SortOrder
   }
 
   export type SubscriptionSumOrderByAggregateInput = {
@@ -11143,6 +11203,8 @@ export namespace Prisma {
     billingCycleEnd?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
   export type SubscriptionUncheckedCreateWithoutUserInput = {
@@ -11163,6 +11225,8 @@ export namespace Prisma {
     billingCycleEnd?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    hasUsed1RupeeTrial?: boolean
+    hasUsed9RupeeTrial?: boolean
   }
 
   export type SubscriptionCreateOrConnectWithoutUserInput = {
@@ -11289,6 +11353,8 @@ export namespace Prisma {
     billingCycleEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type SubscriptionUncheckedUpdateWithoutUserInput = {
@@ -11309,6 +11375,8 @@ export namespace Prisma {
     billingCycleEnd?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    hasUsed1RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
+    hasUsed9RupeeTrial?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type UserCreateWithoutProjectsInput = {

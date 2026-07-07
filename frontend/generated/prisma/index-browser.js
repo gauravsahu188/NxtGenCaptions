@@ -166,7 +166,9 @@ exports.Prisma.SubscriptionScalarFieldEnum = {
   customFontEnabled: 'customFontEnabled',
   maxVideoLengthMinutes: 'maxVideoLengthMinutes',
   prioritySupport: 'prioritySupport',
-  srtRenderEnabled: 'srtRenderEnabled'
+  srtRenderEnabled: 'srtRenderEnabled',
+  hasUsed1RupeeTrial: 'hasUsed1RupeeTrial',
+  hasUsed9RupeeTrial: 'hasUsed9RupeeTrial'
 };
 
 exports.Prisma.UserScalarFieldEnum = {
@@ -236,7 +238,9 @@ exports.PlanType = exports.$Enums.PlanType = {
   FREE: 'FREE',
   EDITOR: 'EDITOR',
   CREATOR: 'CREATOR',
-  BUSINESS: 'BUSINESS'
+  BUSINESS: 'BUSINESS',
+  TRIAL_1_INR: 'TRIAL_1_INR',
+  TRIAL_9_INR: 'TRIAL_9_INR'
 };
 
 exports.Prisma.ModelName = {

@@ -8,6 +8,38 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import PaymentModal from '@/components/PaymentModal';
 
+const trialPlansINR = [
+  {
+    name: "1 Rupee Trial",
+    price: "1.00",
+    originalPrice: "99.00",
+    features: [
+      "For First Time Users",
+      "Valid for 1 Day",
+      "1 Minute of Transcription",
+      "1080P Video Render",
+      "No Watermark",
+      "One-time use only"
+    ],
+    highlight: true,
+    internalPlan: "TRIAL_1_INR"
+  },
+  {
+    name: "9 Rupee Trial",
+    price: "9.00",
+    originalPrice: "99.00",
+    features: [
+      "Valid for 7 Days",
+      "9 Minutes of Transcription",
+      "1080P Video Render",
+      "No Watermark",
+      "One-time use only"
+    ],
+    highlight: false,
+    internalPlan: "TRIAL_9_INR"
+  }
+];
+
 const pricingPlansINR = [
   {
     name: "Free",
@@ -15,35 +47,39 @@ const pricingPlansINR = [
     originalPrice: null,
     features: [
       "All Languages",
-      "5 Minutes Free Testing (Full Templates)",
+      "2 Minutes of Transcription",
       "5 GB Cloud Storage",
       "Max Video Length 2 min",
+      "With Watermark",
       "3 Audio Enhancement Credits"
     ],
-    highlight: false
+    highlight: false,
+    internalPlan: "FREE"
   },
   {
     name: "Editor",
-    price: "599.00",
-    originalPrice: null,
+    price: "199.00",
+    originalPrice: "299.00",
     features: [
-      "2 Hours of Transcription",
+      "90 Minutes of Transcription",
       "20 GB Cloud Storage",
       "1080P Video Render",
       "Max Video Length 5 min",
-      "50 Audio Enhancement Credits (1 Credit = 1 Video)",
+      "No Watermark",
+      "50 Audio Enhancement Credits",
       "Custom Font Upload",
       "NxtGen Premium Templates Access"
     ],
-    highlight: false
+    highlight: false,
+    internalPlan: "EDITOR"
   },
   {
     name: "Creator",
-    price: "999.00",
-    originalPrice: "1499.00",
+    price: "349.00",
+    originalPrice: "499.00",
     badge: "Most Popular",
     features: [
-      "5 Hours of Transcription",
+      "200 Minutes of Transcription",
       "60 GB Cloud Storage",
       "4K Video Render",
       "Max Video Length 10 min",
@@ -53,14 +89,15 @@ const pricingPlansINR = [
       "Custom Font Upload",
       "NxtGen Premium Templates Access"
     ],
-    highlight: true
+    highlight: true,
+    internalPlan: "CREATOR"
   },
   {
     name: "Business",
-    price: "4999.00",
-    originalPrice: "6999.00",
+    price: "749.00",
+    originalPrice: "999.00",
     features: [
-      "30 Hours of Transcription",
+      "500 Minutes of Transcription",
       "150 GB Cloud Storage",
       "4K Video Render",
       "Max Video Length 30 min",
@@ -70,7 +107,40 @@ const pricingPlansINR = [
       "Priority Support",
       "NxtGen Premium Templates Access"
     ],
-    highlight: false
+    highlight: false,
+    internalPlan: "BUSINESS"
+  }
+];
+
+const trialPlansUSD = [
+  {
+    name: "1st Render Trial",
+    price: "0.29",
+    originalPrice: "0.99",
+    features: [
+      "For First Time Users",
+      "Valid for 1 Day",
+      "1 Minute of Transcription",
+      "1080P Video Render",
+      "No Watermark",
+      "One-time use only"
+    ],
+    highlight: true,
+    internalPlan: "TRIAL_1_INR"
+  },
+  {
+    name: "7 Day Trial",
+    price: "0.99",
+    originalPrice: "2.99",
+    features: [
+      "Valid for 7 Days",
+      "9 Minutes of Transcription",
+      "1080P Video Render",
+      "No Watermark",
+      "One-time use only"
+    ],
+    highlight: false,
+    internalPlan: "TRIAL_9_INR"
   }
 ];
 
@@ -81,27 +151,31 @@ const pricingPlansUSD = [
     originalPrice: null,
     features: [
       "All Languages",
-      "5 Minutes Free Testing (Full Templates)",
+      "2 Minutes of Transcription",
       "5 GB Cloud Storage",
       "Max Video Length 2 min",
+      "With Watermark",
       "3 Audio Enhancement Credits"
     ],
-    highlight: false
+    highlight: false,
+    internalPlan: "FREE"
   },
   {
     name: "Editor",
     price: "9.00",
     originalPrice: null,
     features: [
-      "2 Hours of Transcription",
+      "90 Minutes of Transcription",
       "20 GB Cloud Storage",
       "1080P Video Render",
       "Max Video Length 5 min",
-      "50 Audio Enhancement Credits (1 Credit = 1 Video)",
+      "No Watermark",
+      "50 Audio Enhancement Credits",
       "Custom Font Upload",
       "NxtGen Premium Templates Access"
     ],
-    highlight: false
+    highlight: false,
+    internalPlan: "EDITOR"
   },
   {
     name: "Creator",
@@ -109,7 +183,7 @@ const pricingPlansUSD = [
     originalPrice: "25.00",
     badge: "Most Popular",
     features: [
-      "5 Hours of Transcription",
+      "200 Minutes of Transcription",
       "60 GB Cloud Storage",
       "4K Video Render",
       "Max Video Length 10 min",
@@ -119,14 +193,15 @@ const pricingPlansUSD = [
       "Custom Font Upload",
       "NxtGen Premium Templates Access"
     ],
-    highlight: true
+    highlight: true,
+    internalPlan: "CREATOR"
   },
   {
     name: "Business",
     price: "75.00",
     originalPrice: "99.00",
     features: [
-      "30 Hours of Transcription",
+      "500 Minutes of Transcription",
       "150 GB Cloud Storage",
       "4K Video Render",
       "Max Video Length 30 min",
@@ -136,7 +211,8 @@ const pricingPlansUSD = [
       "Priority Support",
       "NxtGen Premium Templates Access"
     ],
-    highlight: false
+    highlight: false,
+    internalPlan: "BUSINESS"
   }
 ];
 
@@ -218,9 +294,10 @@ export default function Pricing() {
   };
 
   const activePlans = currency === 'USD' ? pricingPlansUSD : pricingPlansINR;
+  const activeTrialPlans = currency === 'USD' ? trialPlansUSD : trialPlansINR;
   const currencySymbol = currency === 'USD' ? '$' : '₹';
 
-  const handlePlanClick = (e: React.MouseEvent, planName: string) => {
+  const handlePlanClick = (e: React.MouseEvent, planName: string, internalPlan?: string) => {
     if (planName === "Free") {
       return; // Let the link navigate normally
     }
@@ -230,6 +307,8 @@ export default function Pricing() {
     if (!session?.user) {
       router.push("/sign-in");
     } else {
+      // Pass standard URL param to open payment modal pre-selected if we implemented it, 
+      // but opening it is good enough
       setIsPaymentModalOpen(true);
     }
   };
@@ -277,16 +356,16 @@ export default function Pricing() {
         </div>
 
         <div className="flex items-baseline gap-2 mb-2 flex-wrap relative z-10" style={{ transform: 'translateZ(20px)' }}>
-          <span className="text-5xl font-display font-bold tracking-[-0.03em] text-white">{currencySymbol}{plan.price}</span>
+          <span className="text-5xl font-sans font-bold tracking-[-0.03em] text-white">{currencySymbol}{plan.price}</span>
           {plan.originalPrice && (
-            <span className="text-white/40 font-medium line-through text-sm decoration-white/20">{currencySymbol}{plan.originalPrice}</span>
+            <span className="text-white/40 font-medium font-sans line-through text-sm decoration-white/20">{currencySymbol}{plan.originalPrice}</span>
           )}
         </div>
         <div className="w-full mb-8 relative z-10" style={{ transform: 'translateZ(10px)' }}>
           <span className="text-(--color-fg-muted) font-medium text-sm">/ month</span>
         </div>
 
-        <Link href="/editor" onClick={(e) => handlePlanClick(e, plan.name)} className="w-full relative z-20" style={{ transform: 'translateZ(30px)' }}>
+        <Link href="/editor" onClick={(e) => handlePlanClick(e, plan.name, plan.internalPlan)} className="w-full relative z-20" style={{ transform: 'translateZ(30px)' }}>
           <button className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-[0.98] ${isHighlighted
               ? 'bg-(--color-accent) hover:bg-(--color-accent-bright) text-white shadow-[0_0_20px_rgba(94,106,210,0.3)]'
               : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
@@ -355,28 +434,52 @@ export default function Pricing() {
         </div>
       </div>
 
-      {/* Desktop Grid */}
-      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start perspective-1000">
+      {/* Eye-catching Trial Plans Section */}
+      <div className="mb-16 md:mb-24 relative max-w-4xl mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-r from-accent/20 via-purple-500/20 to-accent/20 blur-3xl opacity-30 rounded-[3rem] -z-10" />
+        <div className="text-center mb-8">
+          <h3 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 mb-2">
+            First Time Offers 🎁
+          </h3>
+          <p className="text-zinc-400 text-sm md:text-base">One-time exclusive trials to experience our full power.</p>
+        </div>
+        
+        <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-8 px-4">
+          {activeTrialPlans.map((plan, i) => (
+            <div key={`trial-${i}`} className="w-full max-w-[320px]">
+              {renderCard(plan, i, false, true)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-center mb-8 md:mb-12">
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Standard Plans</h2>
+        <p className="text-zinc-400 text-sm md:text-base">Choose the perfect plan for your needs</p>
+      </div>
+
+      {/* Desktop Grid for Normal Plans */}
+      <div className="hidden md:flex flex-wrap justify-center gap-6 items-start perspective-1000 mb-16">
         {activePlans.map((plan, i) => (
-          <div key={i} className="h-full">
+          <div key={i} className="h-full w-full max-w-[320px]">
             {renderCard(plan, i, false, false)}
           </div>
         ))}
       </div>
 
-      {/* Mobile Touch Swipable Carousel */}
-      <div className="md:hidden flex flex-col items-center w-full">
+      {/* Mobile Snap Carousel for Normal Plans */}
+      <div className="md:hidden relative w-full mb-8">
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex w-full gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-none px-[8vw] pb-8"
+          className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 px-[8vw] pb-8 pt-4 perspective-1000"
         >
           {activePlans.map((plan, i) => (
             <div 
               key={i} 
-              className="w-[84vw] max-w-[320px] shrink-0 snap-center"
+              className="min-w-[84vw] snap-center shrink-0 flex justify-center"
             >
-              {renderCard(plan, i, i === activeMobileIndex, true)}
+              {renderCard(plan, i, true, false)}
             </div>
           ))}
         </div>

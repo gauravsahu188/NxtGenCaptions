@@ -56,6 +56,8 @@ enum PlanType {
   EDITOR
   CREATOR
   BUSINESS
+  TRIAL_1_INR
+  TRIAL_9_INR
 }
 
 model Subscription {
@@ -77,6 +79,8 @@ model Subscription {
   billingCycleEnd        DateTime?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
+  hasUsed1RupeeTrial     Boolean   @default(false)
+  hasUsed9RupeeTrial     Boolean   @default(false)
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
