@@ -21,6 +21,7 @@
     "@remotion/lambda-client": "^4.0.459",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
+    "driver.js": "^1.6.0",
     "framer-motion": "^12.38.0",
     "gsap": "^3.15.0",
     "lucide-react": "^1.14.0",

@@ -1,5 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import SidebarLeft from "./Editor/SidebarLeft";
 import CaptionsList from "./Editor/CaptionsList";
 import VideoPlayer from "./Editor/VideoPlayer";
@@ -49,6 +51,43 @@ export default function EditorLayout({ user }: { user?: any }) {
 
   const [mobileLeftPanelOpen, setMobileLeftPanelOpen] = useState(false);
   const [mobileRightPanelTab, setMobileRightPanelTab] = useState<string | null>(null);
+
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem("hasSeenEditorTour");
+    if (!hasSeenTour) {
+      const timer = setTimeout(() => {
+        const isMobile = window.innerWidth < 768;
+
+        const driverObj = driver({
+          showProgress: true,
+          showButtons: ["next", "previous", "close"],
+          nextBtnText: "Next",
+          prevBtnText: "Prev",
+          doneBtnText: "Done",
+          steps: isMobile ? [
+            { element: '#tour-captions-mobile', popover: { title: 'Captions', description: 'Tap here to edit your captions manually and fix any typos.' } },
+            { element: '#tour-properties-mobile', popover: { title: 'Text & Templates', description: 'Explore templates, change animations, and style your text.' } },
+            { element: '#tour-timeline-mobile', popover: { title: 'Timeline', description: 'Adjust the timing of your captions down here.' } },
+            { element: '#tour-export-mobile', popover: { title: 'Export', description: 'Once you are happy, export your final masterpiece here.' } }
+          ] : [
+            { element: '#tour-captions-desktop', popover: { title: 'Captions Panel', description: 'Edit your captions manually here to ensure perfect accuracy.' } },
+            { element: '#tour-properties-desktop', popover: { title: 'Text & Templates', description: 'Explore templates, change in/out animations, and style your text.' } },
+            { element: '#tour-timeline-desktop', popover: { title: 'Timeline', description: 'Adjust the timing of your captions and fine-tune your animations on the timeline.' } },
+            { element: '#tour-export-desktop', popover: { title: 'Export', description: 'Click here to export your final video when everything looks perfect.' } }
+          ],
+          onDestroyStarted: () => {
+            if (!driverObj.hasNextStep() || confirm("Are you sure you want to skip the tour?")) {
+              driverObj.destroy();
+              localStorage.setItem("hasSeenEditorTour", "true");
+            }
+          },
+        });
+        driverObj.drive();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleExportClick = () => {
     if (!videoUrl) {
@@ -189,12 +228,13 @@ export default function EditorLayout({ user }: { user?: any }) {
       <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden relative">
         {/* Mobile Top Bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-2 border-b border-white/5 bg-[#050505] z-30">
-          <button onClick={() => setMobileLeftPanelOpen(true)} className="p-2 bg-white/5 rounded-xl border border-white/10 text-white flex items-center gap-2">
+          <button id="tour-captions-mobile" onClick={() => setMobileLeftPanelOpen(true)} className="p-2 bg-white/5 rounded-xl border border-white/10 text-white flex items-center gap-2">
             <Captions className="w-4 h-4" />
             <span className="text-xs font-bold">Captions</span>
           </button>
           
           <button
+            id="tour-export-mobile"
             onClick={handleExportClick}
             disabled={isRendering}
             className="bg-white text-black hover:bg-zinc-200 font-bold px-4 py-2 rounded-xl flex justify-center items-center gap-2 disabled:opacity-50"
@@ -210,7 +250,7 @@ export default function EditorLayout({ user }: { user?: any }) {
         </div>
         
         {/* Captions List Panel */}
-        <div className={`md:w-[380px] flex-col min-h-0 overflow-hidden border-r border-white/5 relative z-40 bg-[#050505] ${mobileLeftPanelOpen ? 'absolute inset-0 z-50 flex' : 'hidden'} md:flex`}>
+        <div id="tour-captions-desktop" className={`md:w-[380px] flex-col min-h-0 overflow-hidden border-r border-white/5 relative z-40 bg-[#050505] ${mobileLeftPanelOpen ? 'absolute inset-0 z-50 flex' : 'hidden'} md:flex`}>
           {mobileLeftPanelOpen && (
              <div className="flex justify-between items-center p-4 border-b border-white/5 md:hidden bg-[#050505]">
                <span className="font-bold text-white">Captions</span>
@@ -219,7 +259,7 @@ export default function EditorLayout({ user }: { user?: any }) {
           )}
           <CaptionsList />
           {/* Timeline on desktop */}
-          <div className="hidden md:block">
+          <div id="tour-timeline-desktop" className="hidden md:block">
             <Timeline />
           </div>
         </div>
@@ -231,19 +271,20 @@ export default function EditorLayout({ user }: { user?: any }) {
           </div>
           
           {/* Mobile Timeline */}
-          <div className="md:hidden w-full bg-[#050505] border-t border-white/10 z-30 flex flex-col">
+          <div id="tour-timeline-mobile" className="md:hidden w-full bg-[#050505] border-t border-white/10 z-30 flex flex-col">
             <Timeline />
           </div>
         </div>
 
         {/* Desktop Properties Right Panel */}
-        <div className="hidden md:flex flex-col min-h-0 relative z-20">
+        <div id="tour-properties-desktop" className="hidden md:flex flex-col min-h-0 relative z-20">
           <div className="flex-1 overflow-hidden">
             <PropertiesRight user={user} onOpenUpgradeModal={() => setIsPaymentModalOpen(true)} />
           </div>
           {/* Export button — always in normal document flow, never hidden */}
           <div className="p-4 border-t border-white/6 bg-[#050505]">
             <button
+              id="tour-export-desktop"
               onClick={handleExportClick}
               disabled={isRendering}
               className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-4 rounded-2xl shadow-2xl flex justify-center items-center gap-3 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -257,7 +298,7 @@ export default function EditorLayout({ user }: { user?: any }) {
         </div>
 
         {/* Mobile Right Properties Vertical Buttons */}
-        <div className="md:hidden absolute right-3 top-1/4 flex flex-col gap-3 z-30">
+        <div id="tour-properties-mobile" className="md:hidden absolute right-3 top-1/4 flex flex-col gap-3 z-30">
           {[
             { id: 'Text', icon: <Type className="w-5 h-5" /> },
             { id: 'Templates', icon: <LayoutTemplate className="w-5 h-5" /> },
