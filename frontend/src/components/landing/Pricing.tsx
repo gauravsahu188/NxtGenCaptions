@@ -448,10 +448,20 @@ export default function Pricing() {
           <p className="text-zinc-400 text-sm md:text-base">One-time exclusive trials to experience our full power.</p>
         </div>
         
-        <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-8 px-4">
+        {/* Desktop Trial Cards */}
+        <div className="hidden md:flex justify-center items-center gap-8 px-4">
           {activeTrialPlans.map((plan, i) => (
-            <div key={`trial-${i}`} className="w-full max-w-[320px]">
-              {renderCard(plan, i, false, true)}
+            <div key={`trial-desktop-${i}`} className="w-full max-w-[320px]">
+              {renderCard(plan, i, false, false)}
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile Trial Cards (Horizontal Scroll) */}
+        <div className="md:hidden flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 px-[8vw] pb-6 pt-4 perspective-1000">
+          {activeTrialPlans.map((plan, i) => (
+            <div key={`trial-mobile-${i}`} className="min-w-[84vw] snap-center shrink-0 flex justify-center">
+              {renderCard(plan, i, true, true)}
             </div>
           ))}
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Globe, Type } from "lucide-react";
 
@@ -43,6 +43,17 @@ export default function LanguageSelectionModal({
   const [selectedLanguage, setSelectedLanguage] = useState("hi");
   const [selectedScript, setSelectedScript] = useState("native");
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -62,7 +73,7 @@ export default function LanguageSelectionModal({
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          className="relative w-full max-w-3xl bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
+          className="relative w-full max-w-3xl max-h-[90vh] bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-y-auto flex flex-col md:flex-row overscroll-contain"
         >
           {/* Close button */}
           <button
@@ -81,7 +92,7 @@ export default function LanguageSelectionModal({
               <h3 className="text-xl font-semibold text-white">What language is used in video?</h3>
             </div>
             
-            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-4 max-h-[40vh] md:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar overscroll-contain touch-pan-y">
               <div className="grid grid-cols-1 gap-2">
                 {LANGUAGES.map((lang) => (
                   <button

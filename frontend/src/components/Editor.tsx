@@ -49,7 +49,6 @@ export default function EditorLayout({ user }: { user?: any }) {
 
   const [mobileLeftPanelOpen, setMobileLeftPanelOpen] = useState(false);
   const [mobileRightPanelTab, setMobileRightPanelTab] = useState<string | null>(null);
-  const [mobileTimelineExpanded, setMobileTimelineExpanded] = useState(false);
 
   const handleExportClick = () => {
     if (!videoUrl) {
@@ -231,19 +230,9 @@ export default function EditorLayout({ user }: { user?: any }) {
             <VideoPlayer showWatermark={isFreePlan && !removeWatermark} />
           </div>
           
-          {/* Mobile Timeline Toggle */}
+          {/* Mobile Timeline */}
           <div className="md:hidden w-full bg-[#050505] border-t border-white/10 z-30 flex flex-col">
-            <button onClick={() => setMobileTimelineExpanded(!mobileTimelineExpanded)} className="w-full py-3 flex justify-center items-center gap-2 text-zinc-400 hover:text-white transition-colors">
-               {mobileTimelineExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />} 
-               <span className="text-xs font-bold uppercase tracking-widest">Timeline</span>
-            </button>
-            <AnimatePresence>
-              {mobileTimelineExpanded && (
-                <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
-                  <Timeline />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <Timeline />
           </div>
         </div>
 

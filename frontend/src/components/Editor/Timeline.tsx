@@ -3,7 +3,7 @@ import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useCaptionContext } from "../../context/CaptionContext";
 import {
   Play, Pause, Volume2, VolumeX, ZoomIn, ZoomOut,
-  SkipBack, SkipForward, Scissors
+  SkipBack, SkipForward, Scissors, ChevronUp, ChevronDown
 } from "lucide-react";
 
 export default function Timeline() {
@@ -17,6 +17,7 @@ export default function Timeline() {
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -123,9 +124,9 @@ export default function Timeline() {
   const playheadX = timeToX(currentTime);
 
   return (
-    <div className="h-[240px] flex-shrink-0 w-full glass-panel border-t border-white/5 flex flex-col z-30 bg-transparent select-none">
+    <div className="w-full glass-panel border-t border-white/5 flex flex-col z-30 bg-transparent select-none md:h-[240px]">
       {/* Header Controls */}
-      <div className="min-h-[48px] border-b border-white/5 flex items-center justify-between px-3 py-2 bg-white/[0.03] flex-wrap gap-y-2 gap-x-1">
+      <div className="min-h-[48px] border-b border-white/5 flex items-center justify-between px-3 py-2 bg-white/3 flex-wrap gap-y-2 gap-x-1">
         {/* Playback controls */}
         <div className="flex items-center gap-1 text-zinc-400">
           <button
@@ -177,7 +178,7 @@ export default function Timeline() {
             <button onClick={zoomOut} className="p-1 hover:text-white transition-colors hover:bg-white/10" title="Zoom Out">
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <div className="w-[1px] h-3 bg-white/10" />
+            <div className="w-px h-3 bg-white/10" />
             <button onClick={zoomIn} className="p-1 hover:text-white transition-colors hover:bg-white/10" title="Zoom In">
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
@@ -188,17 +189,25 @@ export default function Timeline() {
         </div>
       </div>
 
+      {/* Mobile Toggle Button */}
+      <div className="md:hidden w-full bg-[#050505] border-b border-white/10 flex flex-col">
+        <button onClick={() => setMobileExpanded(!mobileExpanded)} className="w-full py-2 flex justify-center items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+           {mobileExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />} 
+           <span className="text-xs font-bold uppercase tracking-widest">Timeline Tracks</span>
+        </button>
+      </div>
+
       {/* Track Area */}
-      <div className="flex-1 relative overflow-hidden flex flex-col">
+      <div className={`flex-1 relative overflow-hidden flex-col ${mobileExpanded ? 'flex h-[200px] md:h-auto' : 'hidden md:flex'}`}>
         {/* Ruler */}
-        <div className="h-6 relative bg-black/20 border-b border-white/5 flex-shrink-0">
+        <div className="h-6 relative bg-black/20 border-b border-white/5 shrink-0">
           {ticks.map((t) => (
             <div
               key={t}
               className="absolute top-0 bottom-0 flex flex-col items-start"
               style={{ left: `${timeToX(t)}%` }}
             >
-              <div className="w-[1px] h-2 bg-white/20 mt-0" />
+              <div className="w-px h-2 bg-white/20 mt-0" />
               <span className="text-[8px] font-mono text-zinc-600 ml-0.5 leading-none mt-0.5">{formatTime(t)}</span>
             </div>
           ))}
@@ -215,7 +224,7 @@ export default function Timeline() {
         >
           {/* Captions Track */}
           <div className="relative h-9 mx-6">
-            <div className="absolute inset-0 bg-white/[0.02] rounded-xl border border-white/[0.05]" />
+            <div className="absolute inset-0 bg-white/2 rounded-xl border border-white/5" />
             <span className="absolute -left-10 top-1/2 -translate-y-1/2 text-[8px] font-black text-zinc-700 tracking-[0.15em] uppercase" style={{ writingMode: "horizontal-tb" }}>Text</span>
             {captions.map((cap) => {
               const left = timeToX(cap.start);
@@ -238,7 +247,7 @@ export default function Timeline() {
 
           {/* Audio waveform track */}
           <div className="relative h-9 mx-6">
-            <div className="absolute inset-0 bg-sky-500/[0.02] rounded-xl border border-sky-500/[0.05]" />
+            <div className="absolute inset-0 bg-sky-500/2 rounded-xl border border-sky-500/5" />
             <span className="absolute -left-10 top-1/2 -translate-y-1/2 text-[8px] font-black text-sky-900 tracking-[0.15em] uppercase">Wave</span>
             <div className="absolute inset-1 flex items-center overflow-hidden opacity-30">
               <svg width="100%" height="100%" preserveAspectRatio="none">
@@ -271,7 +280,7 @@ export default function Timeline() {
             {/* Line */}
             <div className="absolute top-0 bottom-0 left-0 w-[2px] bg-white shadow-[0_0_12px_rgba(255,255,255,0.6)]" />
             {/* Head */}
-            <div className="absolute -top-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
               <div className="bg-white text-black text-[8px] font-black px-1.5 py-0.5 rounded-b shadow-lg whitespace-nowrap">
                 {formatTime(currentTime)}
               </div>
