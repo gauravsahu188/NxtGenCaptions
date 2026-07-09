@@ -69,7 +69,7 @@ export async function getOrCreateSubscription(userId: string) {
         userId,
         planType: PlanType.FREE,
         storageLimitGb: 1,
-        transcriptionLimitMins: 5,
+        transcriptionLimitMins: 2,
         maxExportRes: 720,
       },
     })

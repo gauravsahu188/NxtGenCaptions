@@ -44,6 +44,37 @@ async function loadSubscription(req, res, next) {
                 isExpired = true;
             }
             if (isExpired && subscription.planType !== 'FREE') {
+                // Officially downgrade in DB so remaining balances are lapsed
+                try {
+                    await prisma_1.prisma.$transaction([
+                        prisma_1.prisma.subscription.update({
+                            where: { userId },
+                            data: {
+                                planType: 'FREE',
+                                transcriptionLimitMins: 2,
+                                maxVideoLengthMinutes: 2,
+                                alphaChannelEnabled: false,
+                                srtRenderEnabled: false,
+                                customFontEnabled: false,
+                                prioritySupport: false,
+                                maxExportRes: 720,
+                                storageLimitGb: 1,
+                            }
+                        }),
+                        prisma_1.prisma.user.update({
+                            where: { id: userId },
+                            data: {
+                                planType: 'FREE',
+                                transcriptionBalance: 2,
+                                // Don't modify audioCredits as they don't expire for FREE plan
+                            }
+                        })
+                    ]);
+                    console.log(`[LoadSubscription] Downgraded expired subscription for user: ${userId}`);
+                }
+                catch (dbErr) {
+                    console.error(`[LoadSubscription] Failed to downgrade expired user ${userId}:`, dbErr);
+                }
                 req.subscription = {
                     planType: 'FREE',
                     maxVideoLengthMinutes: 2,

@@ -92,6 +92,17 @@ export async function razorpayWebhookHandler(
         prioritySupport,
       } = planDetails;
 
+      let billingCycleEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      let extraUpdates: any = {};
+      
+      if (planType === 'TRIAL_1_INR') {
+        billingCycleEnd = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
+        extraUpdates.hasUsed1RupeeTrial = true;
+      } else if (planType === 'TRIAL_9_INR') {
+        billingCycleEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        extraUpdates.hasUsed9RupeeTrial = true;
+      }
+
       // Update or create subscription in DB
       const existingSubscription = await prisma.subscription.findUnique({
         where: { userId },
@@ -113,8 +124,9 @@ export async function razorpayWebhookHandler(
             customFontEnabled,
             prioritySupport,
             billingCycleStart: new Date(),
-            billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            billingCycleEnd,
             updatedAt: new Date(),
+            ...extraUpdates
           },
         });
       } else {
@@ -133,7 +145,8 @@ export async function razorpayWebhookHandler(
             prioritySupport,
             audioCredits,
             billingCycleStart: new Date(),
-            billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            billingCycleEnd,
+            ...extraUpdates
           },
         });
       }

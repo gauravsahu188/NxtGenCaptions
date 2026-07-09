@@ -68,6 +68,16 @@ async function razorpayWebhookHandler(req, res, next) {
             }
             console.log(`[Webhook] Processing payment.captured for User: ${userId}, Plan: ${planType}`);
             const { maxExportRes, audioCredits, transcriptionBalance, storageLimitGb, maxVideoLengthMinutes, alphaChannelEnabled, srtRenderEnabled, customFontEnabled, prioritySupport, } = planDetails;
+            let billingCycleEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+            let extraUpdates = {};
+            if (planType === 'TRIAL_1_INR') {
+                billingCycleEnd = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
+                extraUpdates.hasUsed1RupeeTrial = true;
+            }
+            else if (planType === 'TRIAL_9_INR') {
+                billingCycleEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                extraUpdates.hasUsed9RupeeTrial = true;
+            }
             // Update or create subscription in DB
             const existingSubscription = await prisma_1.prisma.subscription.findUnique({
                 where: { userId },
@@ -88,8 +98,9 @@ async function razorpayWebhookHandler(req, res, next) {
                         customFontEnabled,
                         prioritySupport,
                         billingCycleStart: new Date(),
-                        billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        billingCycleEnd,
                         updatedAt: new Date(),
+                        ...extraUpdates
                     },
                 });
             }
@@ -109,7 +120,8 @@ async function razorpayWebhookHandler(req, res, next) {
                         prioritySupport,
                         audioCredits,
                         billingCycleStart: new Date(),
-                        billingCycleEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        billingCycleEnd,
+                        ...extraUpdates
                     },
                 });
             }

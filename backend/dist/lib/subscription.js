@@ -69,7 +69,7 @@ async function getOrCreateSubscription(userId) {
                 userId,
                 planType: prisma_1.PlanType.FREE,
                 storageLimitGb: 1,
-                transcriptionLimitMins: 5,
+                transcriptionLimitMins: 2,
                 maxExportRes: 720,
             },
         });

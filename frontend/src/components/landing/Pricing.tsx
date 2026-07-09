@@ -13,6 +13,7 @@ const trialPlansINR = [
     name: "1 Rupee Trial",
     price: "1.00",
     originalPrice: "99.00",
+    badge: "Limited Time Offer",
     features: [
       "For First Time Users",
       "Valid for 1 Day",
@@ -28,6 +29,7 @@ const trialPlansINR = [
     name: "9 Rupee Trial",
     price: "9.00",
     originalPrice: "99.00",
+    badge: "Limited Time Offer",
     features: [
       "Valid for 7 Days",
       "9 Minutes of Transcription",
@@ -117,6 +119,7 @@ const trialPlansUSD = [
     name: "1st Render Trial",
     price: "0.29",
     originalPrice: "0.99",
+    badge: "Limited Time Offer",
     features: [
       "For First Time Users",
       "Valid for 1 Day",
@@ -132,6 +135,7 @@ const trialPlansUSD = [
     name: "7 Day Trial",
     price: "0.99",
     originalPrice: "2.99",
+    badge: "Limited Time Offer",
     features: [
       "Valid for 7 Days",
       "9 Minutes of Transcription",
