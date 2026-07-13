@@ -89,6 +89,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
   const [stageLabel,  setStageLabel]  = useState("");
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [errorMsg,    setErrorMsg]    = useState("");
+  const [recordedExt, setRecordedExt] = useState("mp4");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Warning on navigation / close during render
@@ -244,6 +245,9 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
       if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/webm";
       if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/mp4";
 
+      const fileExt = mimeType.includes("mp4") ? "mp4" : "webm";
+      setRecordedExt(fileExt);
+
       let kbps = 4000000; // default 4 Mbps
       if (bitrate === "high") kbps = 8000000;
       else if (bitrate === "ultra") kbps = 16000000;
@@ -356,10 +360,10 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
           setStageLabel("Export complete!");
           setPhase("done");
 
-          // Auto-download video using a clean click trigger (always .mp4 for compatibility)
+          // Auto-download video using a clean click trigger
           const a = document.createElement("a");
           a.href = finalUrl;
-          a.download = `${projectName}.mp4`;
+          a.download = `${projectName}.${fileExt}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -421,7 +425,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
     if (!downloadUrl) return;
 
     // Download video
-    const ext = alphaChannel ? "webm" : "mp4";
+    const ext = alphaChannel ? "webm" : recordedExt;
     const a = document.createElement("a");
     a.href = downloadUrl;
     a.setAttribute("download", `${projectName}.${ext}`);
@@ -454,6 +458,9 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
     <div className="min-h-screen bg-(--color-bg-base) text-(--color-foreground) font-sans overflow-hidden relative">
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Roboto:wght@400;500;700;900&family=Poppins:wght@400;600;700;800;900&family=Montserrat:wght@400;600;700;800;900&family=Oswald:wght@400;600;700&family=Bebas+Neue&family=Space+Grotesk:wght@400;600;700&family=Great+Vibes&display=swap');
+        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
+        @import url('https://fonts.cdnfonts.com/css/gilroy-bold');
+        @import url('https://fonts.cdnfonts.com/css/aston-script');
         @font-face {
           font-family: 'JaggyW01-Regular';
           src: url('/fonts/jaggy-w01-regular.ttf') format('truetype');
@@ -1056,10 +1063,10 @@ function drawCaptionOnCanvas(
     const heroWordObj = words[heroIndex];
     const bottomWords = words.slice(heroIndex + 1);
 
-    const SUB_FONT_SIZE = baseFontSize * 1.5;
-    const HERO_FONT_SIZE = words.length <= 2 ? baseFontSize * 2.25 : baseFontSize * 3.28;
+    const SUB_FONT_SIZE = baseFontSize * 3;
+    const HERO_FONT_SIZE = words.length <= 2 ? baseFontSize * 4.5 : baseFontSize * 6.56;
 
-    let currentY = posY - (baseFontSize * 3) / 2;
+    let currentY = posY - (baseFontSize * 5) / 2;
 
     const drawWordLine = (wordList: any[], fontName: string, fontSize: number, alignRight = false) => {
       if (wordList.length === 0) return;
@@ -1092,24 +1099,44 @@ function drawCaptionOnCanvas(
       }
     };
 
-    const normalFont = layout === "nxtgen-alpha" ? `'Aston Script', cursive` : `'Satoshi', sans-serif`;
-    const finalNormalFont = `${normalFont}, ${NOTO_FALLBACK_STACK}`;
+    let topFont = `'Satoshi', sans-serif`;
+    let bottomFont = `'Satoshi', sans-serif`;
+    let heroFont = fontStack;
+
+    if (layout === "nxtgen-alpha") {
+      topFont = `'Aston Script', cursive`;
+      bottomFont = `'Aston Script', cursive`;
+      heroFont = `'Bastliga One', cursive`;
+    } else if (layout === "nxtgen-horror") {
+      topFont = `'JaggyW01-Regular', sans-serif`;
+      bottomFont = `'JaggyW01-Regular', sans-serif`;
+      heroFont = `'Chalk-y', sans-serif`;
+    } else if (layout === "nxtgen-vengence") {
+      topFont = `'Bastliga One', cursive`;
+      bottomFont = `'Space Grotesk', sans-serif`;
+      heroFont = `'Droid 1997', sans-serif`;
+    }
+
+    const finalTopFont = `${topFont}, ${NOTO_FALLBACK_STACK}`;
+    const finalBottomFont = `${bottomFont}, ${NOTO_FALLBACK_STACK}`;
+    const finalHeroFont = `${heroFont}, ${NOTO_FALLBACK_STACK}`;
     
-    drawWordLine(topWords, finalNormalFont, SUB_FONT_SIZE, false);
+    drawWordLine(topWords, finalTopFont, SUB_FONT_SIZE, false);
     currentY += SUB_FONT_SIZE * 1.3;
 
     if (heroWordObj) {
-      const heroFont = layout === "nxtgen-horror" ? `'Chalk-y'` : (layout === "nxtgen-alpha" ? `'Bastliga One'` : fontStack);
       const isAct = currentTime >= heroWordObj.start;
-      ctx.font = `900 ${HERO_FONT_SIZE}px ${heroFont}, ${NOTO_FALLBACK_STACK}`;
-      ctx.fillStyle = isAct ? (layout === "nxtgen-horror" ? "#ffffff" : emphasisColor) : primaryColor;
+      ctx.font = `900 ${HERO_FONT_SIZE}px ${finalHeroFont}`;
+      
+      // Vengence Hero text is rendered with mix-blend-mode: difference in white
+      ctx.fillStyle = (layout === "nxtgen-vengence" || layout === "nxtgen-horror") ? "#ffffff" : (isAct ? emphasisColor : primaryColor);
       
       const hw = ctx.measureText(heroWordObj.word).width;
       ctx.fillText(heroWordObj.word, posX - hw / 2, currentY);
       currentY += HERO_FONT_SIZE * 1.1;
     }
 
-    drawWordLine(bottomWords, finalNormalFont, SUB_FONT_SIZE, true);
+    drawWordLine(bottomWords, finalBottomFont, SUB_FONT_SIZE, true);
     ctx.restore();
     return;
   }
