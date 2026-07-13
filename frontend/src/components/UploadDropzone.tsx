@@ -238,6 +238,8 @@ export default function UploadDropzone({
     } catch (error) {
       console.error(error);
       showError("Failed to connect to the server.");
+    } finally {
+      // Always reset processing state when the stream ends, regardless of how
       setIsProcessing(false);
     }
   };

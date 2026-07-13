@@ -6,8 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeepgramTranscriptionService = void 0;
 const fs_1 = __importDefault(require("fs"));
 const LANGUAGE_MODEL_MAPPING = {
-    hi: "nova-3",
+    // nova-3 with language=multi handles English AND Hindi natively
     en: "nova-3",
+    hi: "nova-3",
+    auto: "nova-3",
+    hinglish: "nova-3",
+    // Fallback for other languages if ever routed here
     bn: "nova-3",
     kn: "nova-3",
     ml: "nova-3",
@@ -31,8 +35,6 @@ const LANGUAGE_MODEL_MAPPING = {
     doi: "nova-3",
     ps: "nova-3",
     ms: "nova-3",
-    auto: "nova-3",
-    hinglish: "nova-3",
 };
 class DeepgramTranscriptionService {
     defaultModel = "nova-3";
@@ -94,14 +96,18 @@ class DeepgramTranscriptionService {
         }
         catch (error) {
             console.error("[DeepgramTranscription] CRITICAL FAILURE:", error.message);
-            return [];
+            throw error; // re-throw so the controller sends an error event instead of silently returning []
         }
     }
     buildApiUrl(model, language) {
         const baseUrl = "https://api.deepgram.com/v1/listen";
-        // "auto" and "en" use language=multi so Deepgram auto-detects.
-        const resolvesToMulti = (language === "auto" || language === "en");
-        const resolvedModel = model; // always nova-3
+        // nova-3 supports language=multi which handles English + Hindi mixed audio.
+        // We use multi for: en, auto, hi, hinglish — so nova-3 handles all of them.
+        const resolvesToMulti = (language === "auto" ||
+            language === "en" ||
+            language === "hi" ||
+            language === "hinglish");
+        const resolvedModel = model;
         const params = new URLSearchParams({
             model: resolvedModel,
             smart_format: "true",
@@ -114,9 +120,7 @@ class DeepgramTranscriptionService {
             params.append("language", "multi");
         }
         else {
-            // hinglish → hi-Latn (romanised Hindi output directly from Deepgram)
-            // hi       → hi     (native Devanagari — nova-2 handles it well)
-            params.append("language", language === "hinglish" ? "hi-Latn" : language);
+            params.append("language", language);
         }
         return `${baseUrl}?${params.toString()}`;
     }

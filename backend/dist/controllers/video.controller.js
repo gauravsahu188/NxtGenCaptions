@@ -185,15 +185,25 @@ class VideoController {
                 language === "hinglish" ||
                 (language === "hi" && (script === "native" || script === "romanised"));
             if (useDeepgram) {
-                // For Hindi romanised we pass "hi-Latn" to Deepgram so it outputs
-                // the script directly in Latin characters — no transliteration needed.
-                const deepgramLanguage = language === "hi" && script === "romanised" ? "hinglish" : language;
-                console.log(`[VideoController] → Deepgram | language=${deepgramLanguage} script=${script}`);
+                // For Hindi: always transcribe with nova-3 + language=multi (gets Devanagari output).
+                // For Hindi romanised: we get Devanagari from Deepgram, then transliterate via Sarvam.
+                // This is better than hi-Latn (nova-2 only, lower quality).
+                const deepgramLanguage = language; // hi, en, hinglish — all go as-is; buildApiUrl maps them to multi
+                console.log(`[VideoController] → Deepgram nova-3+multi | language=${deepgramLanguage} script=${script}`);
                 sendEvent("status", { message: `Generating captions with Deepgram (${languageName})...` });
-                captions = await transcriptionService.transcribeAudio(cleanedAudioPath, (segment) => {
+                let deepgramCaptions = await transcriptionService.transcribeAudio(cleanedAudioPath, undefined, // no streaming callback yet — we post-process first if needed
+                { language: deepgramLanguage });
+                // Post-process: if romanised Hindi, transliterate Devanagari → Roman via Sarvam
+                if (language === "hi" && script === "romanised") {
+                    sendEvent("status", { message: "Converting to Romanised Latin..." });
+                    deepgramCaptions = await sarvamService.transliterateCaptions(deepgramCaptions, "hi");
+                }
+                // Stream all segments to frontend
+                captions = deepgramCaptions;
+                for (const segment of captions) {
                     const normalised = { ...segment, id: String(segment.id) };
                     sendEvent("segment", { segment: normalised });
-                }, { language: deepgramLanguage });
+                }
             }
             else {
                 // Sarvam AI for all other languages (Tamil, Telugu, Bengali, etc.)
