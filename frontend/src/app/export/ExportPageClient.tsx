@@ -190,10 +190,10 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
       const canvasCtx = canvas.getContext("2d");
       if (!canvasCtx) throw new Error("Could not create 2D canvas context.");
 
-      // 3. Create hidden video element
       const video = document.createElement("video");
       video.crossOrigin = "anonymous";
-      video.src = ctx.videoUrl;
+      // Force fresh cache-bypassing fetch with Origin headers to satisfy CORS
+      video.src = ctx.videoUrl + (ctx.videoUrl.includes("?") ? "&" : "?") + "cors_cb=" + Date.now();
       video.muted = false; // We need to capture the audio!
       video.playsInline = true;
 
