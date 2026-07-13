@@ -202,16 +202,25 @@ class SarvamTranscriptionService {
             for (let i = 0; i < chunks.length; i += CONCURRENCY_LIMIT) {
                 const chunkBatch = chunks.slice(i, i + CONCURRENCY_LIMIT);
                 const batchPromises = chunkBatch.map(async (chunk) => {
-                    const hasSpeech = await ffmpegSvc.hasSpeechContent(chunk.path);
-                    if (!hasSpeech) {
-                        console.log(`[SarvamService] Skipping silent chunk at offset ${chunk.offset.toFixed(2)}s (no speech detected)`);
-                        return [];
-                    }
                     console.log(`[SarvamService] Transcribing chunk offset: ${chunk.offset.toFixed(2)}s (${chunk.duration.toFixed(2)}s)`);
                     return this.transcribeSingleAudio(chunk.path, options, chunk.offset, chunk.duration);
                 });
                 const batchResults = await Promise.all(batchPromises);
                 results.push(...batchResults);
+                // Stream segments for this batch immediately so the UI doesn't appear stuck
+                if (onProgress) {
+                    let batchWords = [];
+                    for (const chunkWords of batchResults) {
+                        batchWords = batchWords.concat(chunkWords);
+                    }
+                    let batchSegments = segmentWords(batchWords);
+                    if (transformSegments) {
+                        batchSegments = await transformSegments(batchSegments);
+                    }
+                    for (const seg of batchSegments) {
+                        await onProgress(seg);
+                    }
+                }
             }
             for (const chunkWords of results) {
                 allWords = allWords.concat(chunkWords);
@@ -230,17 +239,22 @@ class SarvamTranscriptionService {
                 }
             }
         }
-        // Segment the merged words into caption segments
-        let segments = segmentWords(allWords);
-        if (transformSegments) {
-            segments = await transformSegments(segments);
-        }
-        // Progressive streaming of segments to client
-        if (onProgress) {
-            for (const seg of segments) {
-                await onProgress(seg);
+        // If onProgress was provided, we already streamed the segments per batch.
+        // We only need to return the full array of segments.
+        let segments = [];
+        if (!onProgress) {
+            segments = segmentWords(allWords);
+            if (transformSegments) {
+                segments = await transformSegments(segments);
             }
         }
+        else {
+            segments = segmentWords(allWords);
+            if (transformSegments) {
+                segments = await transformSegments(segments);
+            }
+        }
+        return segments;
         return segments;
     }
     async transcribeSingleAudio(audioPath, options, offsetSeconds = 0, chunkDuration) {
@@ -267,6 +281,18 @@ class SarvamTranscriptionService {
             pa: "pa-IN",
             ur: "ur-IN",
             kn: "kn-IN",
+            od: "od-IN",
+            as: "as-IN",
+            ne: "ne-IN",
+            kok: "kok-IN",
+            ks: "ks-IN",
+            sd: "sd-IN",
+            sa: "sa-IN",
+            sat: "sat-IN",
+            mni: "mni-IN",
+            brx: "brx-IN",
+            mai: "mai-IN",
+            doi: "doi-IN",
             auto: "unknown",
         };
         const mappedLang = langCodeMap[language] || language;
@@ -277,13 +303,25 @@ class SarvamTranscriptionService {
         formData.append("with_timestamps", "true");
         try {
             console.log(`[SarvamService] Calling ${endpoint} | lang=${mappedLang} script=${script} | timestamps=true`);
+            // Abort controller to prevent hanging forever
+            const controller = new AbortController();
+            let timeoutId;
+            if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+                // Node 20+ supports AbortSignal.timeout natively
+            }
+            else {
+                timeoutId = setTimeout(() => controller.abort(), 90000); // 90 seconds fallback
+            }
             const response = await fetch(endpoint, {
                 method: "POST",
                 headers: {
                     "api-subscription-key": this.apiKey,
                 },
                 body: formData,
+                signal: (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') ? AbortSignal.timeout(90000) : controller.signal,
             });
+            if (timeoutId)
+                clearTimeout(timeoutId);
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`Sarvam API error: ${response.status} ${response.statusText} — ${errorText}`);
@@ -386,6 +424,18 @@ class SarvamTranscriptionService {
             pa: "pa-IN",
             ur: "ur-IN",
             kn: "kn-IN",
+            od: "od-IN",
+            as: "as-IN",
+            ne: "ne-IN",
+            kok: "kok-IN",
+            ks: "ks-IN",
+            sd: "sd-IN",
+            sa: "sa-IN",
+            sat: "sat-IN",
+            mni: "mni-IN",
+            brx: "brx-IN",
+            mai: "mai-IN",
+            doi: "doi-IN",
         };
         let mappedSource = langCodeMap[sourceLang] || sourceLang || "hi-IN";
         if (mappedSource === "auto" || mappedSource === "unknown") {

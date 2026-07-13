@@ -40,19 +40,29 @@ const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
   hinglish: "Hinglish",
   hi: "Hindi",
-  ne: "Nepali",
-  ur: "Urdu",
-  ta: "Tamil",
-  ml: "Malayalam",
-  gu: "Gujarati",
   bn: "Bengali",
-  pa: "Punjabi",
-  te: "Telugu",
-  sd: "Sindhi",
-  mr: "Marathi",
   kn: "Kannada",
+  ml: "Malayalam",
+  mr: "Marathi",
+  od: "Odia",
+  pa: "Punjabi",
+  ta: "Tamil",
+  te: "Telugu",
+  gu: "Gujarati",
+  ur: "Urdu",
+  ne: "Nepali",
+  kok: "Konkani",
+  ks: "Kashmiri",
+  sd: "Sindhi",
+  sa: "Sanskrit",
+  sat: "Santali",
+  mni: "Manipuri",
+  brx: "Bodo",
+  mai: "Maithili",
+  doi: "Dogri",
+  as: "Assamese",
   ps: "Pushto",
-  ms: "Malay"
+  ms: "Malay",
 };
 
 export class VideoController {
@@ -188,29 +198,60 @@ export class VideoController {
       sendEvent("status", { message: `Generating captions (${languageName})...` });
 
       let captions: any[] = [];
-      
-      console.log(`[VideoController] Routing to Sarvam AI (Language: ${language}, Script: ${script})`);
-      // Use Sarvam AI exclusively for all languages and scripts
-      // Stream each segment to the client as soon as it is ready
-      const transcribeOptions = { language, script: "native", duration: durationSeconds, detectedLanguage: "" };
-      captions = await sarvamService.transcribeAudio(
-        cleanedAudioPath,
-        (segment) => {
-          // Normalise id to string for frontend CaptionSegment compatibility
-          const normalised = { ...segment, id: String(segment.id) };
-          sendEvent("segment", { segment: normalised });
-        },
-        transcribeOptions,
-        async (segments) => {
-          if (script === "romanised") {
-            const sourceLang = transcribeOptions.detectedLanguage || language;
-            return await sarvamService.transliterateCaptions(segments, sourceLang);
-          } else if (script === "english") {
-            return await translationService.translateCaptions(segments);
+
+      // ─── Routing: decide which service to use ──────────────────────────────
+      //  Deepgram  → English, Hindi native, Hindi romanised, Hinglish
+      //  Sarvam AI → Auto Detect + all other Indian languages
+      const useDeepgram =
+        language === "en" ||
+        language === "hinglish" ||
+        (language === "hi" && (script === "native" || script === "romanised"));
+
+      if (useDeepgram) {
+        // For Hindi romanised we pass "hi-Latn" to Deepgram so it outputs
+        // the script directly in Latin characters — no transliteration needed.
+        const deepgramLanguage =
+          language === "hi" && script === "romanised" ? "hinglish" : language;
+
+        console.log(
+          `[VideoController] → Deepgram | language=${deepgramLanguage} script=${script}`
+        );
+        sendEvent("status", { message: `Generating captions with Deepgram (${languageName})...` });
+
+        captions = await transcriptionService.transcribeAudio(
+          cleanedAudioPath,
+          (segment) => {
+            const normalised = { ...segment, id: String(segment.id) };
+            sendEvent("segment", { segment: normalised });
+          },
+          { language: deepgramLanguage }
+        );
+      } else {
+        // Sarvam AI for all other languages (Tamil, Telugu, Bengali, etc.)
+        console.log(
+          `[VideoController] → Sarvam AI | language=${language} script=${script}`
+        );
+        sendEvent("status", { message: `Generating captions with Sarvam AI (${languageName})...` });
+
+        const transcribeOptions = { language, script: "native", duration: durationSeconds, detectedLanguage: "" };
+        captions = await sarvamService.transcribeAudio(
+          cleanedAudioPath,
+          (segment) => {
+            const normalised = { ...segment, id: String(segment.id) };
+            sendEvent("segment", { segment: normalised });
+          },
+          transcribeOptions,
+          async (segments) => {
+            if (script === "romanised") {
+              const sourceLang = transcribeOptions.detectedLanguage || language;
+              return await sarvamService.transliterateCaptions(segments, sourceLang);
+            } else if (script === "english") {
+              return await translationService.translateCaptions(segments);
+            }
+            return segments;
           }
-          return segments;
-        }
-      );
+        );
+      }
 
       // Normalise all segment IDs to strings before sending the complete event
       captions = captions.map((seg) => ({ ...seg, id: String(seg.id) }));

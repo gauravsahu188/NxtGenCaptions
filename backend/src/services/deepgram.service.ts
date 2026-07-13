@@ -16,32 +16,42 @@ export interface CaptionSegment {
 }
 
 export interface TranscriptionOptions {
-  language?: string; // 'en', 'hi', 'hinglish', 'auto', 'ne', 'ur', 'ta', 'ml', 'gu', 'bn', 'pa', 'te', 'sd', 'mr', 'kn', 'ps', 'ms'
+  language?: string; // 'en', 'hi', 'hinglish', 'auto', 'bn', 'kn', 'ml', 'mr', 'od', 'pa', 'ta', 'te', 'gu', 'ur', 'ne', 'kok', 'ks', 'sd', 'sa', 'sat', 'mni', 'brx', 'mai', 'doi', 'as'
   model?: string;    // 'nova-2', 'whisper-large', etc.
 }
 
 const LANGUAGE_MODEL_MAPPING: Record<string, string> = {
-  hi:       "nova-2",
-  en:       "nova-2",
-  ne:       "whisper-large",
-  ur:       "nova-2",
-  ta:       "nova-2",
-  ml:       "nova-2",
-  gu:       "nova-2",
-  bn:       "nova-2",
-  pa:       "nova-2",
-  te:       "nova-2",
-  sd:       "whisper-large",
-  mr:       "nova-2",
-  kn:       "nova-2",
-  ps:       "whisper-large",
-  ms:       "nova-2",
-  auto:     "nova-2",
-  hinglish: "nova-2",
+  hi:       "nova-3",
+  en:       "nova-3",
+  bn:       "nova-3",
+  kn:       "nova-3",
+  ml:       "nova-3",
+  mr:       "nova-3",
+  pa:       "nova-3",
+  ta:       "nova-3",
+  te:       "nova-3",
+  gu:       "nova-3",
+  ur:       "nova-3",
+  ne:       "nova-3",
+  sd:       "nova-3",
+  od:       "nova-3",
+  as:       "nova-3",
+  kok:      "nova-3",
+  ks:       "nova-3",
+  sa:       "nova-3",
+  sat:      "nova-3",
+  mni:      "nova-3",
+  brx:      "nova-3",
+  mai:      "nova-3",
+  doi:      "nova-3",
+  ps:       "nova-3",
+  ms:       "nova-3",
+  auto:     "nova-3",
+  hinglish: "nova-3",
 };
 
 export class DeepgramTranscriptionService {
-  private defaultModel = "nova-2";
+  private defaultModel = "nova-3";
   private defaultLanguage = "auto";
 
   async transcribeAudio(
@@ -86,6 +96,7 @@ export class DeepgramTranscriptionService {
           "Content-Type": "audio/mpeg",
         },
         body: audioBuffer,
+        signal: AbortSignal.timeout(90000), // 90s timeout — prevent silent hangs
       });
 
       if (!response.ok) {
@@ -125,9 +136,8 @@ export class DeepgramTranscriptionService {
     const baseUrl = "https://api.deepgram.com/v1/listen";
 
     // "auto" and "en" use language=multi so Deepgram auto-detects.
-    // whisper doesn't support multi — swap to nova-2.
     const resolvesToMulti = (language === "auto" || language === "en");
-    const resolvedModel = (resolvesToMulti && model.startsWith("whisper")) ? "nova-2" : model;
+    const resolvedModel = model; // always nova-3
 
     const params = new URLSearchParams({
       model:        resolvedModel,
@@ -135,13 +145,15 @@ export class DeepgramTranscriptionService {
       punctuate:    "true",
       words:        "true",
       diarize:      "false",
+      filler_words: "false",
     });
 
     if (resolvesToMulti) {
       params.append("language", "multi");
     } else {
-      // Hinglish → use Hindi language code; everything else passes exactly
-      params.append("language", language === "hinglish" ? "hi" : language);
+      // hinglish → hi-Latn (romanised Hindi output directly from Deepgram)
+      // hi       → hi     (native Devanagari — nova-2 handles it well)
+      params.append("language", language === "hinglish" ? "hi-Latn" : language);
     }
 
     return `${baseUrl}?${params.toString()}`;
@@ -193,15 +205,21 @@ export class DeepgramTranscriptionService {
 
       if (hasPunctuation || isTooLong || isLastWord || hasLongGap) {
         if (currentWords.length > 0) {
-          const segment: CaptionSegment = {
-            id:    (segments.length + 1).toString(),
-            start: currentWords[0].start,
-            end:   currentWords[currentWords.length - 1].end,
-            text:  currentWords.map(cw => cw.word).join(" "),
-            words: [...currentWords],
-          };
-          segments.push(segment);
-          if (onSegment) onSegment(segment);
+          // Filter out segments that are just noise hallucinations (e.g. repeated "haan")
+          const segmentText = currentWords.map(cw => cw.word).join(" ").toLowerCase().replace(/[^a-z ]/g, '').trim();
+          const isHallucination = segmentText.split(' ').every(w => w === "haan" || w === "hm" || w === "hmm");
+          
+          if (!isHallucination) {
+            const segment: CaptionSegment = {
+              id:    (segments.length + 1).toString(),
+              start: currentWords[0].start,
+              end:   currentWords[currentWords.length - 1].end,
+              text:  currentWords.map(cw => cw.word).join(" "),
+              words: [...currentWords],
+            };
+            segments.push(segment);
+            if (onSegment) onSegment(segment);
+          }
           currentWords = [];
         }
       }
@@ -212,10 +230,15 @@ export class DeepgramTranscriptionService {
 
   private getMockCaptions(language: string = "en"): CaptionSegment[] {
     const languageNames: Record<string, string> = {
-      en: "English", hi: "Hindi", hinglish: "Hinglish", ne: "Nepali",
-      ur: "Urdu", ta: "Tamil", ml: "Malayalam", gu: "Gujarati",
-      bn: "Bengali", pa: "Punjabi", te: "Telugu", sd: "Sindhi",
-      mr: "Marathi", kn: "Kannada", ps: "Pushto", ms: "Malay",
+      en: "English", hi: "Hindi", hinglish: "Hinglish",
+      bn: "Bengali", kn: "Kannada", ml: "Malayalam",
+      mr: "Marathi", od: "Odia", pa: "Punjabi",
+      ta: "Tamil", te: "Telugu", gu: "Gujarati",
+      ur: "Urdu", ne: "Nepali", kok: "Konkani",
+      ks: "Kashmiri", sd: "Sindhi", sa: "Sanskrit",
+      sat: "Santali", mni: "Manipuri", brx: "Bodo",
+      mai: "Maithili", doi: "Dogri", as: "Assamese",
+      ps: "Pushto", ms: "Malay",
       auto: "Auto Detect",
     };
     const langName = languageNames[language] || "English";
