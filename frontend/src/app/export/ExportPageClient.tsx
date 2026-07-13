@@ -191,10 +191,19 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
       const canvasCtx = canvas.getContext("2d");
       if (!canvasCtx) throw new Error("Could not create 2D canvas context.");
 
+      // 3. Fetch video file into memory as local blob to bypass CORS cache bugs without invalidating S3 signatures
+      setStageLabel("Downloading video source into browser memory...");
+      const videoResponse = await fetch(ctx.videoUrl, { cache: "no-cache" });
+      if (!videoResponse.ok) {
+        throw new Error(`Failed to fetch video source. Server responded with status ${videoResponse.status}`);
+      }
+      const videoBlob = await videoResponse.blob();
+      const localVideoUrl = URL.createObjectURL(videoBlob);
+
+      // Create hidden video element
       const video = document.createElement("video");
       video.crossOrigin = "anonymous";
-      // Force fresh cache-bypassing fetch with Origin headers to satisfy CORS
-      video.src = ctx.videoUrl + (ctx.videoUrl.includes("?") ? "&" : "?") + "cors_cb=" + Date.now();
+      video.src = localVideoUrl;
       video.muted = false; // We need to capture the audio!
       video.playsInline = true;
 
@@ -342,11 +351,12 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
           cancelAnimationFrame(animationFrameId);
           video.pause();
 
-          // Clean up elements
+           // Clean up elements
           try {
             document.body.removeChild(video);
           } catch {}
           audioCtx.close();
+          URL.revokeObjectURL(localVideoUrl);
 
           // Compile output blob
           setStageLabel("Finalizing video container...");
