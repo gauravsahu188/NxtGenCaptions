@@ -212,6 +212,16 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
         video.onerror = () => reject(new Error("Failed to load video source. Check S3 CORS configuration."));
       });
 
+      // Wait for fonts to be completely ready
+      setStageLabel("Loading styles and custom fonts...");
+      try {
+        await document.fonts.ready;
+        // Introduce a small buffer for Next.js CSS rendering context
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } catch (e) {
+        console.warn("Fonts ready promise failed:", e);
+      }
+
       // 4. Set up audio context
       setStageLabel("Setting up audio pipeline...");
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -346,11 +356,10 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
           setStageLabel("Export complete!");
           setPhase("done");
 
-          // Auto-download video using a clean click trigger
-          const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+          // Auto-download video using a clean click trigger (always .mp4 for compatibility)
           const a = document.createElement("a");
           a.href = finalUrl;
-          a.download = `${projectName}.${ext}`;
+          a.download = `${projectName}.mp4`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -1105,6 +1114,161 @@ function drawCaptionOnCanvas(
     return;
   }
 
+  // Viral & Energetic Kinetic layouts
+  if (["nxtgen-viral", "nxtgen-energetic"].includes(layout)) {
+    const isEnergetic = layout === "nxtgen-energetic";
+    
+    // Find target word (longest word in the segment)
+    let targetIndex = 0;
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        targetIndex = i;
+      }
+    }
+
+    // Group words into lines exactly like VideoPlayer.tsx
+    const lines: { words: any[], hasTarget: boolean }[] = [];
+    let i = 0;
+    while (i < words.length) {
+      if (i === targetIndex || i === targetIndex - 1) {
+        const chunk = [];
+        if (i === targetIndex - 1) {
+          chunk.push(words[i]);
+          i++;
+        }
+        if (i < words.length) {
+          chunk.push(words[i]); // targetIndex
+          i++;
+        }
+        while (i < words.length && chunk.length < 2) {
+          chunk.push(words[i]);
+          i++;
+        }
+        lines.push({ words: chunk, hasTarget: true });
+      } else {
+        const chunk = [];
+        chunk.push(words[i]);
+        i++;
+        if (i < words.length && i !== targetIndex && i !== targetIndex - 1) {
+          chunk.push(words[i]);
+          i++;
+        }
+        lines.push({ words: chunk, hasTarget: false });
+      }
+    }
+
+    const satoshiFont = `'Satoshi', ${fontStack}`;
+    
+    // Calculate total height of the block
+    let totalHeight = 0;
+    const lineHeights = lines.map(line => {
+      let maxH = baseFontSize;
+      for (const w of line.words) {
+        const wordGlobalIdx = words.indexOf(w);
+        const isTarget = wordGlobalIdx === targetIndex;
+        if (isTarget) maxH = Math.max(maxH, baseFontSize * 2.5);
+      }
+      return maxH;
+    });
+
+    for (let h of lineHeights) {
+      totalHeight += h + 10 * renderScale;
+    }
+
+    let currentY = posY - totalHeight / 2 + lineHeights[0] / 2;
+
+    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+      const line = lines[lineIdx];
+      const lineHeight = lineHeights[lineIdx];
+
+      // Measure all words in this line
+      const measuredWords = line.words.map(w => {
+        const wordGlobalIdx = words.indexOf(w);
+        const isTarget = wordGlobalIdx === targetIndex;
+        const isPreceding = wordGlobalIdx === targetIndex - 1;
+        const isLastInNormal = !line.hasTarget && words.indexOf(w) === words.indexOf(line.words[line.words.length - 1]);
+
+        let fSize = baseFontSize;
+        let weight = "700";
+        if (isTarget) {
+          fSize = baseFontSize * 2.5;
+          weight = "900";
+        } else if (isPreceding || isLastInNormal) {
+          fSize = baseFontSize * 0.65;
+          weight = "500";
+        }
+
+        ctx.font = `${weight} ${fSize}px ${satoshiFont}`;
+        const wWidth = ctx.measureText(w.word).width;
+
+        return {
+          ...w,
+          width: wWidth,
+          fontSize: fSize,
+          fontWeight: weight,
+          isTarget,
+          isPreceding,
+          isLastInNormal
+        };
+      });
+
+      const spaceW = ctx.measureText(" ").width;
+      let totalLineWidth = 0;
+      for (let wIdx = 0; wIdx < measuredWords.length; wIdx++) {
+        totalLineWidth += measuredWords[wIdx].width + (wIdx < measuredWords.length - 1 ? spaceW : 0);
+      }
+
+      let startX = posX - totalLineWidth / 2;
+
+      for (const w of measuredWords) {
+        const isSpoken = currentTime >= w.start;
+
+        ctx.save();
+
+        let color = primaryColor;
+        let opacity = 1;
+
+        if (w.isTarget) {
+          color = emphasisColor;
+          ctx.shadowColor = `${color}90`;
+          ctx.shadowBlur = 15 * renderScale;
+        }
+
+        if (isSpoken) {
+          opacity = (w.isPreceding || w.isLastInNormal) ? 0.8 : 1;
+          ctx.filter = "none";
+        } else {
+          opacity = 0;
+          if (!isEnergetic) {
+            ctx.filter = `blur(${10 * renderScale}px)`;
+          }
+        }
+
+        ctx.globalAlpha = opacity;
+        ctx.font = `${w.fontWeight} ${w.fontSize}px ${satoshiFont}`;
+        ctx.fillStyle = color;
+
+        let wordY = currentY;
+        if (w.isPreceding || w.isLastInNormal) {
+          wordY = currentY + lineHeight / 2 - w.fontSize / 2;
+        }
+
+        ctx.fillText(w.word, startX, wordY);
+        ctx.restore();
+
+        startX += w.width + spaceW;
+      }
+
+      currentY += lineHeight + 10 * renderScale;
+    }
+
+    ctx.restore();
+    return;
+  }
+
   // Modern Fade Reveal animation
   const isModern = layout === "modern";
 
@@ -1117,7 +1281,6 @@ function drawCaptionOnCanvas(
   for (let idx = 0; idx < words.length; idx++) {
     const w = words[idx];
     const isActive = currentTime >= w.start && currentTime <= w.end;
-    const isAccent = w.isEmphasized || w.isHighlighted || isActive;
     let wordFontSize = baseFontSize;
 
     ctx.font = `${fontWeight} ${wordFontSize}px ${fontStack}`;
@@ -1146,14 +1309,43 @@ function drawCaptionOnCanvas(
       lineWidth += line[i].width + (i < line.length - 1 ? spaceWidth : 0);
     }
 
-    let startX = posX - lineWidth / 2;
+    // Set starting position based on selected alignment
+    const textAlignment = style.textAlignment || "center";
+    let startX = posX;
+    if (textAlignment === "left") {
+      startX = posX - maxWidth / 2;
+    } else if (textAlignment === "right") {
+      startX = posX + maxWidth / 2 - lineWidth;
+    } else {
+      startX = posX - lineWidth / 2;
+    }
 
     for (let i = 0; i < line.length; i++) {
       const w = line[i];
       const isActive = currentTime >= w.start && currentTime <= w.end;
       const isAccent = w.isEmphasized || w.isHighlighted || isActive;
 
-      ctx.font = `${fontWeight} ${w.fontSize}px ${fontStack}`;
+      // Determine proper weight for current template
+      let weight = fontWeight;
+      if (layout === "gadzhi") {
+        weight = isActive ? "700" : "300";
+      } else if (layout === "ali-abdaal") {
+        weight = (w.isEmphasized || w.isHighlighted) ? "700" : "400";
+      } else {
+        weight = isActive ? "900" : "700";
+      }
+
+      // Handle active scale up in-place
+      let wordSize = w.fontSize;
+      if (isActive) {
+        if (["classic", "bubble", "modern"].includes(layout)) {
+          wordSize = w.fontSize * 1.05;
+        } else if (layout === "hormozi") {
+          wordSize = w.fontSize * 1.2;
+        }
+      }
+
+      ctx.font = `${weight} ${wordSize}px ${fontStack}`;
 
       let color = primaryColor;
       if (w.isHighlighted) color = highlightColor;
@@ -1177,8 +1369,28 @@ function drawCaptionOnCanvas(
       ctx.save();
       ctx.globalAlpha = opacity;
 
-      // Drop shadow
-      if (style.dropShadow) {
+      // Apply blur filter for Apple Style
+      if (layout === "apple") {
+        const isSpoken = currentTime >= w.start;
+        if (isSpoken) {
+          ctx.filter = "none";
+          color = style.emphasisColor || emphasisColor;
+        } else {
+          ctx.filter = `blur(${3 * renderScale}px)`;
+          ctx.globalAlpha = 0.5;
+        }
+      }
+
+      // Configure Shadows / Glows
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
+      if (isAccent && style.emphasisGlow) {
+        ctx.shadowColor = style.emphasisGlowColor || color;
+        ctx.shadowBlur = style.emphasisGlowIntensity * 4 * renderScale;
+      } else if (style.dropShadow) {
         ctx.shadowColor = style.dropShadowColor || "rgba(0,0,0,0.5)";
         ctx.shadowBlur = style.dropShadowOpacity * 10 * renderScale;
         ctx.shadowOffsetX = 2 * renderScale;
@@ -1193,6 +1405,8 @@ function drawCaptionOnCanvas(
         
         if (bgCol !== "transparent") {
           ctx.save();
+          // Disable shadow for background drawing to prevent double-shadow
+          ctx.shadowColor = "transparent";
           ctx.fillStyle = bgCol;
           const padX = 8 * renderScale;
           const padY = 4 * renderScale;
@@ -1202,7 +1416,7 @@ function drawCaptionOnCanvas(
             currentY + yOffset - w.fontSize / 2 - padY,
             w.width + padX * 2,
             w.fontSize + padY * 2,
-            8 * renderScale
+            999 // Pill shapes
           );
           ctx.fill();
           ctx.restore();
@@ -1217,6 +1431,7 @@ function drawCaptionOnCanvas(
       if (layout === "ali-abdaal") {
         if (isAccent) {
           ctx.save();
+          ctx.shadowColor = "transparent";
           ctx.fillStyle = w.isHighlighted
             ? highlightColor
             : (w.isEmphasized || isActive ? emphasisColor : "transparent");
@@ -1231,16 +1446,12 @@ function drawCaptionOnCanvas(
 
       ctx.fillStyle = color;
 
+      // Handle word casing cases
       let displayWord = w.word;
       if (layout === "hormozi") {
         displayWord = w.word.toUpperCase();
-        if (isAccent) {
-          ctx.save();
-          ctx.shadowColor = color;
-          ctx.shadowBlur = 15 * renderScale;
-          ctx.fillText(displayWord, startX, currentY + yOffset);
-          ctx.restore();
-        }
+      } else if (layout === "gadzhi") {
+        displayWord = w.word.toLowerCase();
       }
 
       ctx.fillText(displayWord, startX, currentY + yOffset);
