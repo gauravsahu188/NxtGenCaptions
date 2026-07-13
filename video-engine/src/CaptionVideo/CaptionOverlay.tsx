@@ -144,6 +144,33 @@ function secToFrame(sec: number, fps: number) {
   return Math.round(sec * fps);
 }
 
+/**
+ * Extend the last word's end-time to fill the entire segment.
+ * ASR engines systematically underestimate last-word duration;
+ * this prevents the active-word highlight from cutting off early
+ * and leaving blank frames before the next segment starts.
+ */
+function preprocessCaptions(captions: CaptionSegment[]): CaptionSegment[] {
+  return captions.map(seg => {
+    if (seg.words.length === 0) return seg;
+    const words = [...seg.words];
+    words[words.length - 1] = { ...words[words.length - 1], end: seg.end };
+    return { ...seg, words };
+  });
+}
+
+/** Resolve the best word color given emphasis/highlight flags and current active state */
+function resolveWordColor(
+  wordObj: { isEmphasized?: boolean; isHighlighted?: boolean },
+  isTimingActive: boolean,
+  style: { emphasisColor: string; highlightColor: string; primaryColor: string }
+): string {
+  if (wordObj.isHighlighted) return style.highlightColor ?? "#FACC15";
+  if (wordObj.isEmphasized)  return style.emphasisColor  ?? "#4ADE80";
+  if (isTimingActive)        return style.emphasisColor  ?? "#4ADE80";
+  return style.primaryColor;
+}
+
 // ─── Modern Caption (word-by-word top-to-bottom reveal) ──────────────────────
 const ModernCaption: React.FC<{
   caption: CaptionSegment;
@@ -246,7 +273,7 @@ export const CaptionOverlay: React.FC<{
   captions: CaptionSegment[];
   style: CaptionStyleProps;
   isBackgroundLayer?: boolean;
-}> = ({ captions, style: originalStyle, isBackgroundLayer }) => {
+}> = ({ captions: rawCaptions, style: originalStyle, isBackgroundLayer }) => {
   const frame = useCurrentFrame();
   const { fps, width: videoWidth } = useVideoConfig();
 
@@ -261,64 +288,93 @@ export const CaptionOverlay: React.FC<{
     });
   }, [handle]);
 
+  // ── Pre-process captions: extend last word end → segment end ─────────────
+  const captions = preprocessCaptions(rawCaptions);
 
-  // seconds equivalent of current frame — used just like `currentTime` in the editor
+  // ── Dual-buffer crossfade constants ──────────────────────────────────────
+  // CROSSFADE_FRAMES: how many frames the exiting segment stays visible while
+  // the entering segment fades in. 0.18s @ 30fps = ~5 frames.
+  const CROSSFADE_FRAMES = Math.round(fps * 0.18);
+
   const currentTime = frame / fps;
 
-  // Find the active caption segment
-  const activeCaption = captions.find((seg) => {
-    const startFrame = secToFrame(seg.start, fps);
-    const endFrame   = secToFrame(seg.end,   fps);
-    return frame >= startFrame && frame < endFrame;
-  });
+  // Active segment (currently playing)
+  const activeCaption = captions.find(seg =>
+    frame >= secToFrame(seg.start, fps) && frame < secToFrame(seg.end, fps)
+  );
 
-  if (!activeCaption) return null;
+  // Exiting segment: the one that ended within the last CROSSFADE_FRAMES frames
+  const exitingCaption = !activeCaption
+    ? captions.find(seg => {
+        const endFrame = secToFrame(seg.end, fps);
+        return frame >= endFrame && frame < endFrame + CROSSFADE_FRAMES;
+      })
+    : undefined;
 
-  // Scale sizes to match frontend proportion.
-  // The editor measures the actual video preview pixel width via ResizeObserver and stores it as previewWidth.
-  // renderScale converts editor px → render px so captions appear identical.
-  //
-  // Layout math (1280px CSS screen):
-  //   SidebarLeft(80) + CaptionsList(380) + PropertiesRight(360) = 820px
-  //   VideoPlayer p-8 padding = 64px  →  video display ≈ 1280-820-64 = 396px ≈ 400px
-  //
-  // Fallback is 400 (matches the original hardcoded value that was working).
-  // When previewWidth IS supplied by the editor, that exact value is used instead.
+  // Exit opacity: 1→0 over CROSSFADE_FRAMES
+  const exitOpacity = exitingCaption
+    ? interpolate(
+        frame,
+        [secToFrame(exitingCaption.end, fps), secToFrame(exitingCaption.end, fps) + CROSSFADE_FRAMES],
+        [1, 0],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+      )
+    : 0;
+
+  // Nothing to render at all
+  if (!activeCaption && !exitingCaption) return null;
+
   const previewWidth = originalStyle.previewWidth ?? 400;
-  const renderScale = videoWidth / previewWidth;
-  
-  // Shadow the original style with scaled properties.
-  // resolveRenderFont() maps unknown/invalid font names (e.g. "THEBOLDFONT") to
-  // a safe fallback (Inter) so no □□□ boxes appear in the render.
-  const style = {
-    ...originalStyle,
-    fontSize: originalStyle.fontSize * renderScale,
-    letterSpacing: originalStyle.letterSpacing * renderScale,
-    fontFamily: resolveRenderFont(originalStyle.fontFamily ?? "Inter"),
+  const renderScale  = videoWidth / previewWidth;
+
+  /**
+   * Build the effective style for a given segment.
+   * Per-segment overrides (layout + colors) are merged on top of global style.
+   * Font / size / position always come from global style.
+   */
+  const buildSegmentStyle = (seg: CaptionSegment) => {
+    const ov = (seg as any).segmentOverride ?? {};
+    return {
+      ...originalStyle,
+      // apply per-segment color overrides
+      ...(ov.primaryColor   ? { primaryColor:   ov.primaryColor }   : {}),
+      ...(ov.emphasisColor  ? { emphasisColor:  ov.emphasisColor }  : {}),
+      ...(ov.highlightColor ? { highlightColor: ov.highlightColor } : {}),
+      ...(ov.spotlightColor ? { spotlightColor: ov.spotlightColor } : {}),
+      // apply per-segment layout
+      ...(ov.layout         ? { layout: ov.layout }                 : {}),
+      // scale font
+      fontSize:      originalStyle.fontSize * renderScale,
+      letterSpacing: originalStyle.letterSpacing * renderScale,
+      fontFamily:    resolveRenderFont(originalStyle.fontFamily ?? "Inter"),
+      // ensure highlightColor fallback
+      highlightColor: ov.highlightColor ?? (originalStyle as any).highlightColor ?? "#FACC15",
+    };
   };
 
-
+  const style = buildSegmentStyle(activeCaption ?? exitingCaption!);
 
   // ── renderStyledText ─────────────────────────────────────────────────────
-  const renderStyledText = () =>
-    activeCaption.words.map((wordObj, i) => {
-      const isHighlight = currentTime >= wordObj.start && currentTime <= wordObj.end;
-
-      const wordShadow = style.dropShadow
-        ? `0px 0px 15px ${isHighlight ? style.emphasisColor : style.dropShadowColor}${Math.round(style.dropShadowOpacity * 2.55).toString(16).padStart(2, "0")}`
+  const renderStyledText = (seg: CaptionSegment = activeCaption!) => {
+    const segStyle = buildSegmentStyle(seg);
+    return seg.words.map((wordObj, i) => {
+      const isTimingActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      const wordColor = resolveWordColor(wordObj, isTimingActive, segStyle);
+      const isAccent = wordObj.isEmphasized || wordObj.isHighlighted || isTimingActive;
+      const wordShadow = segStyle.dropShadow
+        ? `0px 0px 15px ${wordColor}${Math.round(segStyle.dropShadowOpacity * 2.55).toString(16).padStart(2, "0")}`
         : "none";
-      const hardShadow = style.dropShadow
-        ? `2px 2px 0px ${style.dropShadowColor}${Math.round(style.dropShadowOpacity * 2.55).toString(16).padStart(2, "0")}`
+      const hardShadow = segStyle.dropShadow
+        ? `2px 2px 0px ${segStyle.dropShadowColor}${Math.round(segStyle.dropShadowOpacity * 2.55).toString(16).padStart(2, "0")}`
         : "none";
-
       return (
         <span
           key={i}
           style={{
-            color: isHighlight ? style.emphasisColor : style.primaryColor,
-            textShadow: isHighlight ? wordShadow : hardShadow,
-            transform: `scale(${isHighlight ? 1.05 : 1}) translateY(${isHighlight ? -2 : 0}px)`,
-            fontWeight: isHighlight ? 900 : 700,
+            color: wordColor,
+            textShadow: isAccent ? wordShadow : hardShadow,
+            transform: `scale(${isAccent ? 1.05 : 1}) translateY(${isAccent ? -2 : 0}px)`,
+            fontWeight: isAccent ? 900 : 700,
             display: "inline-block",
             marginRight: "0.25em",
           }}
@@ -327,25 +383,36 @@ export const CaptionOverlay: React.FC<{
         </span>
       );
     });
+  };
 
   // ── renderBubbleText ──────────────────────────────────────────────────────
-  const renderBubbleText = () =>
-    activeCaption.words.map((wordObj, i) => {
-      const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+  const renderBubbleText = (seg: CaptionSegment = activeCaption!) => {
+    const segStyle = buildSegmentStyle(seg);
+    return seg.words.map((wordObj, i) => {
+      const isTimingActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      const isAccent = wordObj.isEmphasized || wordObj.isHighlighted || isTimingActive;
+      const accentBg = wordObj.isHighlighted
+        ? segStyle.highlightColor
+        : segStyle.bubbleSecondaryColor;
+      const accentFg = wordObj.isHighlighted
+        ? "#000000"
+        : wordObj.isEmphasized
+        ? segStyle.emphasisColor
+        : segStyle.bubbleTertiaryColor;
       return (
         <span
           key={i}
           style={{
-            backgroundColor: isActive ? style.bubbleSecondaryColor : "transparent",
-            color: isActive ? style.bubbleTertiaryColor : style.bubblePrimaryColor,
-            transform: `scale(${isActive ? 1.08 : 1}) translateY(${isActive ? -2 : 0}px)`,
-            fontWeight: isActive ? 900 : 700,
+            backgroundColor: isAccent ? accentBg : "transparent",
+            color: isAccent ? accentFg : segStyle.bubblePrimaryColor,
+            transform: `scale(${isAccent ? 1.08 : 1}) translateY(${isAccent ? -2 : 0}px)`,
+            fontWeight: isAccent ? 900 : 700,
             display: "inline-block",
             marginRight: "0.25em",
-            paddingLeft:   isActive ? "0.55em" : "0",
-            paddingRight:  isActive ? "0.55em" : "0",
-            paddingTop:    isActive ? "0.1em"  : "0",
-            paddingBottom: isActive ? "0.1em"  : "0",
+            paddingLeft:   isAccent ? "0.55em" : "0",
+            paddingRight:  isAccent ? "0.55em" : "0",
+            paddingTop:    isAccent ? "0.1em"  : "0",
+            paddingBottom: isAccent ? "0.1em"  : "0",
             borderRadius: "999px",
           }}
         >
@@ -353,19 +420,23 @@ export const CaptionOverlay: React.FC<{
         </span>
       );
     });
+  };
 
   // ── renderHormoziText ─────────────────────────────────────────────────────
-  const renderHormoziText = () =>
-    activeCaption.words.map((wordObj, i) => {
-      const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+  const renderHormoziText = (seg: CaptionSegment = activeCaption!) => {
+    const segStyle = buildSegmentStyle(seg);
+    return seg.words.map((wordObj, i) => {
+      const isTimingActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      const isAccent = wordObj.isEmphasized || wordObj.isHighlighted || isTimingActive;
+      const wordColor = resolveWordColor(wordObj, isTimingActive, { ...segStyle, emphasisColor: segStyle.spotlightColor });
       return (
         <span
           key={i}
           style={{
-            color: isActive ? style.spotlightColor : style.primaryColor,
-            transform: `scale(${isActive ? 1.2 : 1})`,
-            textShadow: style.dropShadow
-              ? `4px 4px 0px ${style.dropShadowColor}, 0px 0px 10px rgba(0,0,0,0.5)`
+            color: wordColor,
+            transform: `scale(${isAccent ? 1.2 : 1})`,
+            textShadow: segStyle.dropShadow
+              ? `4px 4px 0px ${segStyle.dropShadowColor}, 0px 0px 10px rgba(0,0,0,0.5)`
               : "none",
             fontWeight: 900,
             textTransform: "uppercase",
@@ -377,20 +448,29 @@ export const CaptionOverlay: React.FC<{
         </span>
       );
     });
+  };
 
   // ── renderAliAbdaalText ───────────────────────────────────────────────────
-  const renderAliAbdaalText = () =>
-    activeCaption.words.map((wordObj, i) => {
+  const renderAliAbdaalText = (seg: CaptionSegment = activeCaption!) => {
+    const segStyle = buildSegmentStyle(seg);
+    return seg.words.map((wordObj, i) => {
       const isSpoken = currentTime >= wordObj.start;
-      const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      const isTimingActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      const highlightBg = wordObj.isHighlighted
+        ? segStyle.highlightColor
+        : wordObj.isEmphasized
+        ? segStyle.emphasisColor
+        : isTimingActive
+        ? segStyle.emphasisColor
+        : "transparent";
       return (
         <span
           key={i}
           style={{
             opacity: isSpoken ? 1 : 0,
-            backgroundColor: isActive ? style.emphasisColor : "transparent",
-            color: style.primaryColor,
-            fontWeight: 400,
+            backgroundColor: highlightBg,
+            color: wordObj.isHighlighted ? "#000000" : segStyle.primaryColor,
+            fontWeight: (wordObj.isEmphasized || wordObj.isHighlighted) ? 700 : 400,
             display: "inline-block",
             marginRight: "0.25em",
             padding: "0 0.1em",
@@ -401,17 +481,21 @@ export const CaptionOverlay: React.FC<{
         </span>
       );
     });
+  };
 
   // ── renderGadzhiText ──────────────────────────────────────────────────────
-  const renderGadzhiText = () =>
-    activeCaption.words.map((wordObj, i) => {
-      const isActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+  const renderGadzhiText = (seg: CaptionSegment = activeCaption!) => {
+    const segStyle = buildSegmentStyle(seg);
+    return seg.words.map((wordObj, i) => {
+      const isTimingActive = currentTime >= wordObj.start && currentTime <= wordObj.end;
+      const wordColor = resolveWordColor(wordObj, isTimingActive, { ...segStyle, emphasisColor: segStyle.spotlightColor });
+      const isAccent = wordObj.isEmphasized || wordObj.isHighlighted || isTimingActive;
       return (
         <span
           key={i}
           style={{
-            color: isActive ? style.spotlightColor : style.primaryColor,
-            fontWeight: isActive ? 700 : 300,
+            color: wordColor,
+            fontWeight: isAccent ? 700 : 300,
             textTransform: "lowercase",
             display: "inline-block",
             marginRight: "0.25em",
@@ -421,6 +505,7 @@ export const CaptionOverlay: React.FC<{
         </span>
       );
     });
+  };
 
   // ── renderAppleText ───────────────────────────────────────────────────────
   const renderAppleText = () => (
@@ -435,7 +520,7 @@ export const CaptionOverlay: React.FC<{
       <style>{`
         @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
       `}</style>
-      {activeCaption.words.map((wordObj, i) => {
+      {activeCaption!.words.map((wordObj, i) => {
         const isSpoken = currentTime >= wordObj.start;
         const wordStartFrame = secToFrame(wordObj.start, fps);
         const blurAnim = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.2], [4, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
@@ -467,7 +552,7 @@ export const CaptionOverlay: React.FC<{
   // ── renderNxtgenGenZ ─────────────────────────────────────────────────────
   // Kalakar-style: Top(words) → Hero(1 word with shimmer) → Bottom(words)
   const renderNxtgenGenZ = () => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     if (words.length === 0) return null;
 
     // Find the hero word - longest word in the segment not greater than 7 letters
@@ -652,7 +737,7 @@ export const CaptionOverlay: React.FC<{
   // ── renderNxtgenAlpha ─────────────────────────────────────────────────────
   // Cursive Style: Top('Aston Script') → Hero(1 word with shimmer) → Bottom('Aston Script')
   const renderNxtgenAlpha = () => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     if (words.length === 0) return null;
 
     // Find the hero word - longest word in the segment not greater than 7 letters
@@ -841,7 +926,7 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderNxtgenHorror ───────────────────────────────────────────────────
   const renderNxtgenHorror = () => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     if (words.length === 0) return null;
 
     // Split logic exactly like Nxtgen GenZ
@@ -1027,7 +1112,7 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderNxtgenVengence ─────────────────────────────────────────────────
   const renderNxtgenVengence = () => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     if (words.length === 0) return null;
 
     let heroIndex = Math.floor(words.length / 2);
@@ -1187,7 +1272,7 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderNxtgenCinemaLine ─────────────────────────────────────────────
   const renderNxtgenCinemaLine = () => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     if (words.length === 0) return null;
 
     let longestIndex = 0;
@@ -1297,7 +1382,7 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderNxtgenDirectorsEdition ─────────────────────────────────────────────
   const renderNxtgenDirectorsEdition = () => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     if (words.length === 0) return null;
 
     let longestIndex = 0;
@@ -1404,7 +1489,7 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderNxtgenViralOrEnergetic ───────────────────────────────────────────
   const renderNxtgenViralOrEnergetic = (isEnergetic: boolean) => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     if (words.length === 0) return null;
 
     let targetIndex = 0;
@@ -1538,7 +1623,7 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderMogrtShimmerStack ───────────────────────────────────────────────
   const renderMogrtShimmerStack = () => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     let focusIndex = Math.floor(words.length / 2);
     let maxLen = 0;
     for (let i = 0; i < words.length; i++) {
@@ -1642,7 +1727,7 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderHoloText ────────────────────────────────────────────────────────
   const renderHoloText = () => {
-    const words = activeCaption.words;
+    const words = activeCaption!.words;
     if (words.length === 0) return null;
 
     const segmentStartFrame = secToFrame(words[0].start, fps);
@@ -1734,93 +1819,108 @@ export const CaptionOverlay: React.FC<{
     );
   };
 
-  // ── Layout / positioning (mirrors the editor's draggable handle exactly) ──
-  const textAlign =
-    style.layout === "ali-abdaal"
-      ? (style.aliAbdaalPosition as any)
-      : (style.layout === "hormozi" || style.layout === "gadzhi" || style.layout === "bubble" || style.layout === "apple")
-      ? "center"
-      : (style.textAlignment as any);
+  // ── Shared layout renderer for a given segment ───────────────────────────
+  const renderSegmentContent = (seg: CaptionSegment, segStyle: ReturnType<typeof buildSegmentStyle>) => {
+    const effectiveLayout = segStyle.layout;
+    const textAlign =
+      effectiveLayout === "ali-abdaal"
+        ? (segStyle.aliAbdaalPosition as any)
+        : (effectiveLayout === "hormozi" || effectiveLayout === "gadzhi" || effectiveLayout === "bubble" || effectiveLayout === "apple")
+        ? "center"
+        : (segStyle.textAlignment as any);
 
+    // Word-by-word layouts get NO group-level animation wrapper — each word
+    // animates itself. Group wrapper caused the entire block to slam in together.
+    const isWordByWord = [
+      "bubble", "hormozi", "ali-abdaal", "gadzhi", "apple",
+      "nxtgen-genz", "nxtgen-alpha", "nxtgen-horror", "nxtgen-vengence",
+      "nxtgen-cinemaline", "nxtgen-directors-edition", "nxtgen-viral", "nxtgen-energetic",
+      "mogrt-shimmer-stack",
+    ].includes(effectiveLayout);
 
+    // Group animation only for classic/center layouts that don't animate per-word
+    const isAnimationEnabled = segStyle.animationEnabled !== false;
+    const segStartFrame = secToFrame(seg.start, fps);
+    const animDur = Math.round(fps * 0.15);
+    const groupOpacity = (!isWordByWord && isAnimationEnabled)
+      ? interpolate(frame, [segStartFrame, segStartFrame + animDur], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+      : 1;
+    const groupScale = (!isWordByWord && isAnimationEnabled)
+      ? interpolate(frame, [segStartFrame, segStartFrame + animDur], [0.97, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+      : 1;
 
-  // Animation for standard/fallback captions (mirrors frontend 'animProps')
-  const isAnimationEnabled = style.animationEnabled !== false;
-  const segmentStartFrameForFallback = secToFrame(activeCaption.start, fps);
-  const fallbackAnimDuration = Math.round(fps * 0.2); // 0.2s duration
-  
-  const fallbackOpacity = isAnimationEnabled
-    ? interpolate(frame, [segmentStartFrameForFallback, segmentStartFrameForFallback + fallbackAnimDuration], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
-    : 1;
-  const fallbackScale = isAnimationEnabled
-    ? interpolate(frame, [segmentStartFrameForFallback, segmentStartFrameForFallback + fallbackAnimDuration], [0.95, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
-    : 1;
-  const fallbackY = isAnimationEnabled
-    ? interpolate(frame, [segmentStartFrameForFallback, segmentStartFrameForFallback + fallbackAnimDuration], [10, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
-    : 0;
-
-  return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
-      {/* ── Native Google Fonts Injection for Indian Scripts (Solves EC2 Rendering Boxes) ── */}
-      <link 
-        rel="stylesheet" 
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;800;900&family=Noto+Sans+Tamil:wght@400;700;800;900&family=Noto+Sans+Bengali:wght@400;700;800;900&family=Noto+Sans+Telugu:wght@400;700;800;900&family=Noto+Sans+Kannada:wght@400;700;800;900&family=Noto+Sans+Malayalam:wght@400;700;800;900&family=Noto+Sans+Gujarati:wght@400;700;800;900&family=Noto+Sans+Gurmukhi:wght@400;700;800;900&family=Noto+Sans+Oriya:wght@400;700;800;900&family=Noto+Sans+Arabic:wght@400;700;800;900&display=swap" 
-      />
-
-      {/* Local custom fonts (bundled, no network) */}
-      <style>{LOCAL_FONT_CSS}</style>
-
-      {/* Positioned exactly like the editor's draggable caption handle */}
+    return (
       <div
         style={{
           position: "absolute",
-          top: `${style.positionY}%`,
-          left: `${style.positionX}%`,
+          top: `${originalStyle.positionY}%`,
+          left: `${originalStyle.positionX}%`,
           transform: "translate(-50%, -50%)",
           textAlign,
-          letterSpacing: `${style.letterSpacing}px`,
-          lineHeight: style.lineSpacing,
-          fontSize: `${style.fontSize}px`,
-          fontFamily: buildFontStack(style.fontFamily),
-          width: `${style.width}%`,
+          letterSpacing: `${segStyle.letterSpacing}px`,
+          lineHeight: segStyle.lineSpacing,
+          fontSize: `${segStyle.fontSize}px`,
+          fontFamily: buildFontStack(originalStyle.fontFamily),
+          width: `${originalStyle.width}%`,
           maxWidth: "100%",
           padding: "1rem",
-          mixBlendMode: style.layout === "nxtgen-vengence" ? "difference" : "normal",
+          mixBlendMode: effectiveLayout === "nxtgen-vengence" ? "difference" : "normal",
         }}
       >
-        {style.layout === "modern" ? (
-          <ModernCaption caption={activeCaption} style={style} fps={fps} />
-        ) : style.layout === "holo" ? (
+        {effectiveLayout === "modern" ? (
+          <ModernCaption caption={seg} style={segStyle as any} fps={fps} />
+        ) : effectiveLayout === "holo" ? (
           renderHoloText()
         ) : (
-          <div 
-            style={{ 
-              width: "100%", 
-              padding: `0 ${Math.round(64 * renderScale)}px`, 
+          <div
+            style={{
+              width: "100%",
+              padding: `0 ${Math.round(64 * renderScale)}px`,
               boxSizing: "border-box",
-              opacity: fallbackOpacity,
-              transform: `scale(${fallbackScale}) translateY(${fallbackY}px)`,
+              opacity: groupOpacity,
+              transform: `scale(${groupScale})`,
             }}
           >
-            {style.layout === "bubble"              ? renderBubbleText()         :
-             style.layout === "hormozi"             ? renderHormoziText()        :
-             style.layout === "ali-abdaal"          ? renderAliAbdaalText()      :
-             style.layout === "gadzhi"              ? renderGadzhiText()         :
-             style.layout === "apple"               ? renderAppleText()          :
-             style.layout === "mogrt-shimmer-stack" ? renderMogrtShimmerStack()  :
-             style.layout === "nxtgen-genz"         ? renderNxtgenGenZ()         :
-             style.layout === "nxtgen-alpha"        ? renderNxtgenAlpha()        :
-             style.layout === "nxtgen-horror"       ? renderNxtgenHorror()       :
-             style.layout === "nxtgen-vengence"     ? renderNxtgenVengence()     :
-             style.layout === "nxtgen-cinemaline"   ? renderNxtgenCinemaLine() :
-             style.layout === "nxtgen-directors-edition" ? renderNxtgenDirectorsEdition() :
-             style.layout === "nxtgen-viral"        ? renderNxtgenViralOrEnergetic(false) :
-             style.layout === "nxtgen-energetic"    ? renderNxtgenViralOrEnergetic(true) :
-             <div style={{ lineHeight: 1.25, letterSpacing: "-0.025em" }}>{renderStyledText()}</div>
+            {effectiveLayout === "bubble"              ? renderBubbleText(seg)                   :
+             effectiveLayout === "hormozi"             ? renderHormoziText(seg)                  :
+             effectiveLayout === "ali-abdaal"          ? renderAliAbdaalText(seg)                :
+             effectiveLayout === "gadzhi"              ? renderGadzhiText(seg)                   :
+             effectiveLayout === "apple"               ? renderAppleText()                       :
+             effectiveLayout === "mogrt-shimmer-stack" ? renderMogrtShimmerStack()               :
+             effectiveLayout === "nxtgen-genz"         ? renderNxtgenGenZ()                      :
+             effectiveLayout === "nxtgen-alpha"        ? renderNxtgenAlpha()                     :
+             effectiveLayout === "nxtgen-horror"       ? renderNxtgenHorror()                    :
+             effectiveLayout === "nxtgen-vengence"     ? renderNxtgenVengence()                  :
+             effectiveLayout === "nxtgen-cinemaline"   ? renderNxtgenCinemaLine()               :
+             effectiveLayout === "nxtgen-directors-edition" ? renderNxtgenDirectorsEdition()    :
+             effectiveLayout === "nxtgen-viral"        ? renderNxtgenViralOrEnergetic(false)     :
+             effectiveLayout === "nxtgen-energetic"    ? renderNxtgenViralOrEnergetic(true)      :
+             <div style={{ lineHeight: 1.25, letterSpacing: "-0.025em" }}>{renderStyledText(seg)}</div>
             }
           </div>
         )}
       </div>
+    );
+  };
+
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      {/* ── Native Google Fonts Injection for Indian Scripts ── */}
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;800;900&family=Noto+Sans+Tamil:wght@400;700;800;900&family=Noto+Sans+Bengali:wght@400;700;800;900&family=Noto+Sans+Telugu:wght@400;700;800;900&family=Noto+Sans+Kannada:wght@400;700;800;900&family=Noto+Sans+Malayalam:wght@400;700;800;900&family=Noto+Sans+Gujarati:wght@400;700;800;900&family=Noto+Sans+Gurmukhi:wght@400;700;800;900&family=Noto+Sans+Oriya:wght@400;700;800;900&family=Noto+Sans+Arabic:wght@400;700;800;900&display=swap"
+      />
+      <style>{LOCAL_FONT_CSS}</style>
+
+      {/* ── EXITING segment (crossfade out) ── */}
+      {exitingCaption && (
+        <div style={{ opacity: exitOpacity, pointerEvents: "none" }}>
+          {renderSegmentContent(exitingCaption, buildSegmentStyle(exitingCaption))}
+        </div>
+      )}
+
+      {/* ── ACTIVE segment (entry + normal render) ── */}
+      {activeCaption && renderSegmentContent(activeCaption, style)}
     </AbsoluteFill>
   );
 };

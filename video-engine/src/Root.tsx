@@ -54,6 +54,7 @@ export const RemotionRoot: React.FC = () => {
       bubbleSecondaryColor: "#38bdf8",
       bubbleTertiaryColor: "#000000",
       spotlightColor: "#facc15",
+      highlightColor: "#FACC15",
       aliAbdaalPosition: "center",
       kineticLayout: "center",
       transitionTarget: "word",
