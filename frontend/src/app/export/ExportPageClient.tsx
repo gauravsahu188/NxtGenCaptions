@@ -181,8 +181,10 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
       width = width % 2 !== 0 ? width + 1 : width;
       height = height % 2 !== 0 ? height + 1 : height;
 
-      // 2. Set up offscreen canvas
-      const canvas = document.createElement("canvas");
+      // 2. Set up export canvas from the DOM (mounted in progress popup)
+      await new Promise(resolve => setTimeout(resolve, 200));
+      const canvas = document.getElementById("export-canvas") as HTMLCanvasElement;
+      if (!canvas) throw new Error("Render canvas not found in DOM.");
       canvas.width = width;
       canvas.height = height;
       const canvasCtx = canvas.getContext("2d");
@@ -322,42 +324,54 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
 
       // 8. MediaRecorder callbacks
       mediaRecorder.onstop = async () => {
-        cancelAnimationFrame(animationFrameId);
-        video.pause();
-
-        // Clean up elements
         try {
-          document.body.removeChild(video);
-        } catch {}
-        audioCtx.close();
+          cancelAnimationFrame(animationFrameId);
+          video.pause();
 
-        // Compile output blob
-        setStageLabel("Finalizing video container...");
-        setProgress(98);
-        const finalBlob = new Blob(chunks, { type: mimeType });
-        const finalUrl = URL.createObjectURL(finalBlob);
+          // Clean up elements
+          try {
+            document.body.removeChild(video);
+          } catch {}
+          audioCtx.close();
 
-        setDownloadUrl(finalUrl);
-        setExportComplete(true);
-        setProgress(100);
-        setStageLabel("Export complete!");
-        setPhase("done");
+          // Compile output blob
+          setStageLabel("Finalizing video container...");
+          setProgress(98);
+          
+          const finalBlob = new Blob(chunks, { type: mimeType });
+          const finalUrl = URL.createObjectURL(finalBlob);
 
-        // Auto-download video
-        window.location.assign(finalUrl);
+          setDownloadUrl(finalUrl);
+          setProgress(100);
+          setStageLabel("Export complete!");
+          setPhase("done");
 
-        // Auto-download SRT if enabled
-        if (srtExport && ctx.captions) {
-          const srtContent = generateSRT(ctx.captions);
-          const blob = new Blob([srtContent], { type: "text/srt;charset=utf-8;" });
-          const url = URL.createObjectURL(blob);
-          const aSrt = document.createElement("a");
-          aSrt.href = url;
-          aSrt.setAttribute("download", `${projectName}.srt`);
-          document.body.appendChild(aSrt);
-          aSrt.click();
-          document.body.removeChild(aSrt);
-          URL.revokeObjectURL(url);
+          // Auto-download video using a clean click trigger
+          const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+          const a = document.createElement("a");
+          a.href = finalUrl;
+          a.download = `${projectName}.${ext}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          // Auto-download SRT if enabled
+          if (srtExport && ctx.captions) {
+            const srtContent = generateSRT(ctx.captions);
+            const blob = new Blob([srtContent], { type: "text/srt;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const aSrt = document.createElement("a");
+            aSrt.href = url;
+            aSrt.setAttribute("download", `${projectName}.srt`);
+            document.body.appendChild(aSrt);
+            aSrt.click();
+            document.body.removeChild(aSrt);
+            URL.revokeObjectURL(url);
+          }
+        } catch (err: any) {
+          console.error("Error on MediaRecorder stop:", err);
+          setErrorMsg(err.message || "Error compiling output video.");
+          setPhase("error");
         }
       };
 
@@ -830,6 +844,16 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
                         </div>
                       </div>
 
+                      {/* Live preview container */}
+                      {phase === "rendering" && (
+                        <div className="flex flex-col items-center gap-3 my-4">
+                          <p className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Live Export Preview</p>
+                          <div className="relative aspect-video w-full max-w-[480px] bg-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl flex items-center justify-center">
+                            <canvas id="export-canvas" className="w-full h-full object-contain" />
+                          </div>
+                        </div>
+                      )}
+
                       {/* AI Style Progress Bar */}
                       <div className="relative h-2 bg-[#050505] rounded-full overflow-hidden border border-white/5 shadow-inner">
                         <motion.div
@@ -849,24 +873,6 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                           />
                         )}
-                      </div>
-
-                      {/* Stage steps */}
-                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
-                        {["Init", "Bundle", "Render", "Stitch", "Upload", "Done"].map((s, i) => {
-                          const stagePct = [0, 15, 35, 65, 85, 100][i];
-                          const done     = progress >= stagePct;
-                          return (
-                            <div key={s} className="flex flex-col items-center gap-1.5">
-                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
-                                done ? "border-accent bg-accent/20" : "border-white/10 bg-[#050505]"
-                              }`}>
-                                {done && <div className="w-2 h-2 bg-accent rounded-full" />}
-                              </div>
-                              <span className={`text-[10px] font-bold tracking-wide transition-colors ${done ? "text-accent" : "text-zinc-600"}`}>{s}</span>
-                            </div>
-                          );
-                        })}
                       </div>
                     </>
                   )}
@@ -901,13 +907,25 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
                         <p className="font-bold text-green-400 mb-0.5">Ready to download!</p>
                         <p className="text-xs text-zinc-400">If it didn't start automatically, click the button →</p>
                       </div>
-                      <button
-                        onClick={handleDownloadClick}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-sm rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
-                      >
-                        <Download className="w-4 h-4" />
-                        {srtExport ? "Download Video & SRT" : "Download Now"}
-                      </button>
+                      <div className="flex flex-wrap gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            setPhase("idle");
+                            setProgress(0);
+                            setDownloadUrl(null);
+                          }}
+                          className="flex items-center justify-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white font-bold text-sm rounded-xl border border-white/10 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                        >
+                          Re-render Video
+                        </button>
+                        <button
+                          onClick={handleDownloadClick}
+                          className="flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-sm rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                        >
+                          <Download className="w-4 h-4" />
+                          {srtExport ? "Download Video & SRT" : "Download Now"}
+                        </button>
+                      </div>
                     </motion.div>
                   )}
                 </div>
