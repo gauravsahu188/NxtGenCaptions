@@ -1269,8 +1269,415 @@ function drawCaptionOnCanvas(
     return;
   }
 
+  // Futuristic Glitch / Monospace Holo Layout
+  if (layout === "holo") {
+    // Draw green/matrix border box around the text segment
+    const paddingX = 24 * renderScale;
+    const paddingY = 16 * renderScale;
+    
+    ctx.font = `${fontWeight} ${baseFontSize}px 'Space Grotesk', monospace`;
+    const spaceW = ctx.measureText(" ").width;
+    
+    let totalTextWidth = 0;
+    const wordWidths = words.map((w: any) => {
+      const wWidth = ctx.measureText(w.word).width;
+      return wWidth;
+    });
+
+    for (let wIdx = 0; wIdx < words.length; wIdx++) {
+      totalTextWidth += wordWidths[wIdx] + (wIdx < words.length - 1 ? spaceW : 0);
+    }
+
+    const boxW = Math.min(maxWidth, totalTextWidth + paddingX * 2);
+    const boxH = baseFontSize + paddingY * 2;
+    const boxX = posX - boxW / 2;
+    const boxY = posY - boxH / 2;
+
+    ctx.fillStyle = "rgba(0, 255, 65, 0.08)";
+    ctx.strokeStyle = primaryColor;
+    ctx.lineWidth = 1 * renderScale;
+    drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 8 * renderScale);
+    ctx.fill();
+    ctx.stroke();
+
+    // Glowing shadow overlay
+    ctx.shadowColor = `${primaryColor}40`;
+    ctx.shadowBlur = 15 * renderScale;
+
+    // Typewriter letters drawing
+    let currentX = posX - totalTextWidth / 2;
+    let charGlobalIdx = 0;
+    const captionAge = currentTime - segment.start;
+
+    for (let wIdx = 0; wIdx < words.length; wIdx++) {
+      const w = words[wIdx];
+      const isGlitch = (wIdx + 1) % 4 === 0;
+
+      ctx.save();
+      if (isGlitch) {
+        ctx.shadowColor = "red";
+        ctx.shadowOffsetX = -2 * renderScale;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowBlur = 1 * renderScale;
+        ctx.transform(1, 0, -0.15, 1, 0, 0); // Skew slightly
+      }
+
+      ctx.font = `${fontWeight} ${baseFontSize}px 'Space Grotesk', monospace`;
+      ctx.fillStyle = primaryColor;
+
+      for (let cIdx = 0; cIdx < w.word.length; cIdx++) {
+        const char = w.word[cIdx];
+        const delay = charGlobalIdx * 0.03;
+        
+        if (captionAge >= delay) {
+          ctx.fillText(char, currentX, posY);
+        }
+        currentX += ctx.measureText(char).width;
+        charGlobalIdx++;
+      }
+
+      ctx.restore();
+      currentX += spaceW;
+      charGlobalIdx++; // Count space character
+    }
+
+    ctx.restore();
+    return;
+  }
+
+  // Modern Fade Reveal vertical stack animation
+  if (layout === "modern") {
+    const spacing = 10 * renderScale;
+    
+    const stopWords = new Set([
+      "the", "and", "is", "in", "to", "of", "a", "for", "it",
+      "on", "with", "as", "at", "by", "an", "or", "be", "this",
+      "that", "are",
+    ]);
+
+    const processedWords = words.map((w: any, index: number) => {
+      const cleanWord = w.word.toLowerCase().replace(/[^a-z]/g, "");
+      const isStopWord = stopWords.has(cleanWord);
+      const isLongWord = w.word.length >= 4;
+      const isRhythmicWord = index % 3 === 2;
+      const isSpotlight = (isLongWord && !isStopWord) || (isRhythmicWord && !isStopWord);
+
+      const seed = w.word.length + index + (cleanWord.charCodeAt(0) || 0);
+      const pseudoRand = ((seed * 9301 + 49297) % 233280) / 233280;
+
+      let fontSizeMultiplier;
+      if (isSpotlight && style.emphasisWords) {
+        fontSizeMultiplier = 1.3 + pseudoRand * 0.35;
+      } else if (isLongWord && !isStopWord) {
+        fontSizeMultiplier = 0.9 + pseudoRand * 0.25;
+      } else {
+        fontSizeMultiplier = 0.65 + pseudoRand * 0.25;
+      }
+
+      const offsetX = (((seed * 9301 + 49297) % 233280) / 233280) * 60 - 30; // -30% to +30%
+
+      return {
+        ...w,
+        isSpotlight,
+        fontSizeMultiplier,
+        offsetX,
+        index,
+      };
+    });
+
+    let totalHeight = 0;
+    for (const w of processedWords) {
+      totalHeight += baseFontSize * w.fontSizeMultiplier + spacing;
+    }
+
+    let currentY = posY - totalHeight / 2;
+
+    for (const w of processedWords) {
+      const isSpoken = currentTime >= w.start;
+      const isActive = currentTime >= w.start && currentTime <= w.end;
+      const isEmphasis = w.isSpotlight && style.emphasisWords;
+
+      let opacity = 0;
+      let wordYOffset = -22 * renderScale;
+      const captionAge = currentTime - segment.start;
+      const wordDelay = w.index * 0.08;
+
+      if (captionAge >= wordDelay) {
+        const wordAge = captionAge - wordDelay;
+        opacity = Math.min(1, Math.max(0, wordAge / 0.35));
+        wordYOffset = -22 * (1 - opacity) * renderScale;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = opacity;
+
+      const size = baseFontSize * w.fontSizeMultiplier;
+      const weight = isEmphasis ? "800" : "400";
+      ctx.font = `${weight} ${size}px ${fontStack}`;
+
+      let color = isEmphasis ? emphasisColor : primaryColor;
+      ctx.fillStyle = color;
+
+      if (isEmphasis && style.emphasisGlow) {
+        ctx.shadowColor = style.emphasisGlowColor || color;
+        ctx.shadowBlur = style.emphasisGlowIntensity * 4 * renderScale;
+      } else if (style.dropShadow) {
+        ctx.shadowColor = style.dropShadowColor || "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = style.dropShadowOpacity * 10 * renderScale;
+        ctx.shadowOffsetX = 2 * renderScale;
+        ctx.shadowOffsetY = 2 * renderScale;
+      }
+
+      const wordX = posX + (w.offsetX * 0.01 * maxWidth);
+      ctx.textAlign = "center";
+      ctx.fillText(w.word, wordX, currentY + wordYOffset + size / 2);
+      ctx.restore();
+
+      currentY += size + spacing;
+    }
+
+    ctx.restore();
+    return;
+  }
+
+  // Mogrt Shimmer Stack layout
+  if (layout === "mogrt-shimmer-stack") {
+    let focusIndex = Math.floor(words.length / 2);
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, '');
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        focusIndex = i;
+      }
+    }
+
+    const topWords = words.slice(0, focusIndex);
+    const focusWord = words[focusIndex];
+    const bottomWords = words.slice(focusIndex + 1);
+
+    const isFocusActive = currentTime >= focusWord.start && currentTime <= focusWord.end;
+    const FOCUS_FONT_SIZE = baseFontSize * 2.8;
+
+    let totalHeight = 0;
+    if (topWords.length > 0) totalHeight += baseFontSize + 12 * renderScale;
+    if (focusWord) totalHeight += FOCUS_FONT_SIZE + 12 * renderScale;
+    if (bottomWords.length > 0) totalHeight += baseFontSize;
+
+    let currentY = posY - totalHeight / 2;
+
+    const drawPhrase = (phraseWords: any[], isTop: boolean) => {
+      if (phraseWords.length === 0) return;
+      const anySpoken = phraseWords.some(w => currentTime >= w.start);
+      if (!anySpoken) return;
+
+      ctx.save();
+      ctx.font = `600 ${baseFontSize}px ${fontStack}`;
+      
+      let lineW = 0;
+      const spW = ctx.measureText(" ").width;
+      const measured = phraseWords.map(w => {
+        const isSp = currentTime >= w.start;
+        const wd = ctx.measureText(w.word).width;
+        return { ...w, width: wd, isSp };
+      });
+
+      for (let i = 0; i < measured.length; i++) {
+        lineW += measured[i].width + (i < measured.length - 1 ? spW : 0);
+      }
+
+      let startX = posX - lineW / 2;
+      for (const w of measured) {
+        ctx.save();
+        ctx.globalAlpha = w.isSp ? 1 : 0.15;
+        ctx.fillStyle = primaryColor;
+        
+        if (style.dropShadow) {
+          ctx.shadowColor = style.dropShadowColor || "rgba(0,0,0,0.5)";
+          ctx.shadowBlur = style.dropShadowOpacity * 10 * renderScale;
+          ctx.shadowOffsetX = 2 * renderScale;
+          ctx.shadowOffsetY = 2 * renderScale;
+        }
+
+        ctx.fillText(w.word, startX, currentY);
+        ctx.restore();
+        startX += w.width + spW;
+      }
+      ctx.restore();
+    };
+
+    if (topWords.length > 0) {
+      drawPhrase(topWords, true);
+      currentY += baseFontSize + 12 * renderScale;
+    }
+
+    if (focusWord && currentTime >= focusWord.start) {
+      ctx.save();
+      let sizeMultiplier = 1;
+      if (isFocusActive) {
+        sizeMultiplier = 1.05;
+      }
+
+      ctx.font = `900 ${FOCUS_FONT_SIZE * sizeMultiplier}px ${fontStack}`;
+      const fW = ctx.measureText(focusWord.word.toUpperCase()).width;
+
+      const shimmerGrad = ctx.createLinearGradient(posX - fW / 2, 0, posX + fW / 2, 0);
+      shimmerGrad.addColorStop(0, "#eee");
+      shimmerGrad.addColorStop(0.25, "#eee");
+      shimmerGrad.addColorStop(0.5, "#fff");
+      shimmerGrad.addColorStop(0.75, "#eee");
+      shimmerGrad.addColorStop(1, "#eee");
+
+      ctx.fillStyle = shimmerGrad;
+      ctx.textAlign = "center";
+      ctx.fillText(focusWord.word.toUpperCase(), posX, currentY + FOCUS_FONT_SIZE / 2);
+      ctx.restore();
+
+      currentY += FOCUS_FONT_SIZE + 12 * renderScale;
+    }
+
+    if (bottomWords.length > 0) {
+      drawPhrase(bottomWords, false);
+    }
+
+    ctx.restore();
+    return;
+  }
+
+  // Cinemaline & Directors Edition layouts
+  if (["nxtgen-cinemaline", "nxtgen-directors-edition"].includes(layout)) {
+    const isCinema = layout === "nxtgen-cinemaline";
+    
+    let longestIndex = 0;
+    let maxLen = 0;
+    for (let i = 0; i < words.length; i++) {
+      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        longestIndex = i;
+      }
+    }
+
+    const isCursiveFirst = longestIndex === 0 && words.length > 1;
+    const isCursiveLast = longestIndex === words.length - 1 && words.length > 1;
+
+    const satoshiFont = `'Satoshi', ${fontStack}`;
+    const cursiveFont = `'Great Vibes', cursive, ${fontStack}`;
+
+    const drawCinemaWord = (w: any, index: number, isTarget: boolean, currentX: number, drawY: number) => {
+      const isSpoken = currentTime >= w.start;
+      ctx.save();
+      
+      const font = isTarget ? (isCinema ? cursiveFont : satoshiFont) : satoshiFont;
+      const weight = isTarget ? (isCinema ? "400" : "900") : (isCinema ? "700" : "400");
+      const size = isTarget ? baseFontSize * 2 : baseFontSize;
+      const color = isTarget ? (style.emphasisColor || "#EF4444") : (style.primaryColor || "#FFFFFF");
+
+      let opacity = 0;
+      if (isSpoken) {
+        opacity = 1;
+        ctx.filter = "none";
+      } else {
+        opacity = 0;
+        ctx.filter = `blur(${10 * renderScale}px)`;
+      }
+
+      ctx.globalAlpha = opacity;
+      ctx.font = `${weight} ${size}px ${font}`;
+      ctx.fillStyle = color;
+      
+      ctx.fillText(w.word, currentX, drawY);
+      ctx.restore();
+      
+      ctx.font = `${weight} ${size}px ${font}`;
+      return ctx.measureText(w.word).width;
+    };
+
+    if (isCursiveFirst) {
+      const topY = posY - baseFontSize;
+      const bottomY = posY + baseFontSize;
+
+      ctx.font = `${isCinema ? "400" : "900"} ${baseFontSize * 2}px ${isCinema ? cursiveFont : satoshiFont}`;
+      const topW = ctx.measureText(words[0].word).width;
+      drawCinemaWord(words[0], 0, true, posX - topW / 2, topY);
+
+      ctx.font = `${isCinema ? "700" : "400"} ${baseFontSize}px ${satoshiFont}`;
+      const spaceW = ctx.measureText(" ").width;
+      
+      let bottomW = 0;
+      const measured = words.slice(1).map((w: any) => {
+        const wd = ctx.measureText(w.word).width;
+        return { ...w, width: wd };
+      });
+      for (let i = 0; i < measured.length; i++) {
+        bottomW += measured[i].width + (i < measured.length - 1 ? spaceW : 0);
+      }
+
+      let startX = posX - bottomW / 2;
+      for (let idx = 0; idx < measured.length; idx++) {
+        drawCinemaWord(measured[idx], idx + 1, false, startX, bottomY);
+        startX += measured[idx].width + spaceW;
+      }
+      
+    } else if (isCursiveLast) {
+      const topY = posY - baseFontSize;
+      const bottomY = posY + baseFontSize;
+
+      ctx.font = `${isCinema ? "700" : "400"} ${baseFontSize}px ${satoshiFont}`;
+      const spaceW = ctx.measureText(" ").width;
+      
+      let topW = 0;
+      const measured = words.slice(0, words.length - 1).map((w: any) => {
+        const wd = ctx.measureText(w.word).width;
+        return { ...w, width: wd };
+      });
+      for (let i = 0; i < measured.length; i++) {
+        topW += measured[i].width + (i < measured.length - 1 ? spaceW : 0);
+      }
+
+      let startX = posX - topW / 2;
+      for (let idx = 0; idx < measured.length; idx++) {
+        drawCinemaWord(measured[idx], idx, false, startX, topY);
+        startX += measured[idx].width + spaceW;
+      }
+
+      ctx.font = `${isCinema ? "400" : "900"} ${baseFontSize * 2}px ${isCinema ? cursiveFont : satoshiFont}`;
+      const bottomW = ctx.measureText(words[words.length - 1].word).width;
+      drawCinemaWord(words[words.length - 1], words.length - 1, true, posX - bottomW / 2, bottomY);
+
+    } else {
+      ctx.font = `${isCinema ? "700" : "400"} ${baseFontSize}px ${satoshiFont}`;
+      const spaceW = ctx.measureText(" ").width;
+
+      let totalW = 0;
+      const measured = words.map((w: any, idx: number) => {
+        const isTarget = idx === longestIndex;
+        const font = isTarget ? (isCinema ? cursiveFont : satoshiFont) : satoshiFont;
+        const weight = isTarget ? (isCinema ? "400" : "900") : (isCinema ? "700" : "400");
+        const size = isTarget ? baseFontSize * 2 : baseFontSize;
+
+        ctx.font = `${weight} ${size}px ${font}`;
+        const wd = ctx.measureText(w.word).width;
+        return { ...w, width: wd, isTarget };
+      });
+
+      for (let i = 0; i < measured.length; i++) {
+        totalW += measured[i].width + (i < measured.length - 1 ? spaceW : 0);
+      }
+
+      let startX = posX - totalW / 2;
+      for (let idx = 0; idx < measured.length; idx++) {
+        drawCinemaWord(measured[idx], idx, measured[idx].isTarget, startX, posY);
+        startX += measured[idx].width + spaceW;
+      }
+    }
+
+    ctx.restore();
+    return;
+  }
+
   // Modern Fade Reveal animation
-  const isModern = layout === "modern";
+  const isModern = false; // Handled dynamically in dedicated loop above
 
   // Word measurements & wrapping
   ctx.font = `${fontWeight} ${baseFontSize}px ${fontStack}`;
