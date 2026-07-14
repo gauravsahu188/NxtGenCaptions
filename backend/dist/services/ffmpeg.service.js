@@ -314,5 +314,26 @@ class FFmpegService {
         }
         return chunks;
     }
+    async extractFrame(videoPath, outputFilename, timeInSeconds = 1) {
+        return new Promise((resolve, reject) => {
+            const outputPath = path_1.default.join(tempDir, outputFilename);
+            const command = (0, fluent_ffmpeg_1.default)(videoPath);
+            command.setFfmpegPath(ffmpegInstaller.path);
+            command.setFfprobePath(ffprobeInstaller.path);
+            command
+                .seekInput(timeInSeconds)
+                .frames(1)
+                .output(outputPath)
+                .on("end", () => {
+                console.log(`[FFmpegService] Frame extracted to ${outputPath}`);
+                resolve(outputPath);
+            })
+                .on("error", (err) => {
+                console.warn("[FFmpegService] Frame extraction failed:", err.message);
+                reject(err);
+            })
+                .run();
+        });
+    }
 }
 exports.FFmpegService = FFmpegService;

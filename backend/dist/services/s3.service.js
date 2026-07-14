@@ -38,7 +38,7 @@ class S3Service {
     /**
      * Upload a local file to S3 and return its key.
      */
-    async upload(localPath, userPath = "anonymous") {
+    async upload(localPath, userPath = "anonymous", contentType) {
         if (!this.bucket) {
             throw new Error("AWS_S3_BUCKET is not set in environment variables.");
         }
@@ -46,14 +46,26 @@ class S3Service {
         // Path format: Imported Stuff NxtgenCaption/[UserId]/[Type]/[Timestamp]-[Filename]
         const key = `${this.BASE_DIR}/${userPath}/${Date.now()}-${filename}`;
         const fileBuffer = fs_1.default.readFileSync(localPath);
+        let mimeType = contentType;
+        if (!mimeType) {
+            const ext = path_1.default.extname(localPath).toLowerCase();
+            if (ext === ".jpg" || ext === ".jpeg")
+                mimeType = "image/jpeg";
+            else if (ext === ".png")
+                mimeType = "image/png";
+            else if (ext === ".mp4")
+                mimeType = "video/mp4";
+            else
+                mimeType = "application/octet-stream";
+        }
         await this.client.send(new client_s3_1.PutObjectCommand({
             Bucket: this.bucket,
             Key: key,
             Body: fileBuffer,
-            ContentType: "video/mp4",
+            ContentType: mimeType,
             // Private by default — accessed via presigned URL
         }));
-        console.log(`[S3Service] Uploaded to s3://${this.bucket}/${key}`);
+        console.log(`[S3Service] Uploaded to s3://${this.bucket}/${key} with ContentType: ${mimeType}`);
         return key;
     }
     /**

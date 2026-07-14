@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { FFmpegService } from "../services/ffmpeg.service";
-import ffmpeg from "fluent-ffmpeg";
 import { DeepgramTranscriptionService } from "../services/deepgram.service";
 import { AudioEnhancementService } from "../services/audio.service";
 import { RemotionRenderService, CaptionStyleProps } from "../services/remotion.service";
@@ -644,76 +643,6 @@ export class VideoController {
         status: "success",
         data: {
           cutoutVideoUrl,
-        },
-      });
-    } catch (error: any) {
-      next(error);
-    }
-  }
-
-  // ─── POST /api/video/transcode ──────────────────────────────────────────────
-  async transcodeWebMToMP4(req: Request, res: Response, next: NextFunction) {
-    try {
-      if (!req.file) {
-        throw new ValidationError("No video file uploaded for transcoding");
-      }
-
-      const inputPath = req.file.path;
-      const outputPath = path.join(
-        path.dirname(inputPath),
-        `transcoded-${Date.now()}-${path.basename(inputPath, path.extname(inputPath))}.mp4`
-      );
-
-      // Extract options from req.body
-      const requestedBitrate = req.body.bitrate || "auto";
-
-      let kbps = "4000k"; // Default 4 Mbps
-      if (requestedBitrate === "high") kbps = "8000k";
-      else if (requestedBitrate === "ultra") kbps = "16000k";
-
-      console.log(`[VideoController] Transcoding WebM to MP4. Input: ${inputPath}, Output: ${outputPath}, Bitrate: ${kbps}`);
-
-      // Run FFmpeg conversion command to output standard QuickTime compatible H.264 / AAC MP4
-      await new Promise<void>((resolve, reject) => {
-        ffmpeg(inputPath)
-          .output(outputPath)
-          .videoCodec("libx264")
-          .audioCodec("aac")
-          .audioBitrate(192)
-          .outputOptions([
-            "-preset", "fast",
-            "-b:v", kbps,
-            "-pix_fmt", "yuv420p" // Ensures maximum player compatibility
-          ])
-          .on("end", () => {
-            console.log("[VideoController] Transcode complete!");
-            resolve();
-          })
-          .on("error", (err: any) => {
-            console.error("[VideoController] Transcode error:", err);
-            reject(err);
-          })
-          .run();
-      });
-
-      // Upload output MP4 to S3
-      const userId = (req.headers["x-user-id"] || "anonymous") as string;
-      const s3Key = await s3Service.upload(outputPath, `${userId}/exports`);
-      const downloadUrl = await s3Service.getSignedDownloadUrl(s3Key);
-
-      // Clean up temp files
-      try {
-        fs.unlinkSync(inputPath);
-        fs.unlinkSync(outputPath);
-      } catch (err) {
-        console.warn("[VideoController] Failed to delete temp transcode files:", err);
-      }
-
-      return res.status(200).json({
-        status: "success",
-        data: {
-          downloadUrl,
-          s3Key,
         },
       });
     } catch (error: any) {

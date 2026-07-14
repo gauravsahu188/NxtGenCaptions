@@ -93,6 +93,19 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
   const [errorMsg,    setErrorMsg]    = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Warning on navigation / close during render
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (phase === "rendering") {
+        e.preventDefault();
+        e.returnValue = "Render is in progress. Do not close this window or switch tabs.";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [phase]);
+
   // Load context from sessionStorage
   useEffect(() => {
     try {

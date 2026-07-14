@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VideoController = void 0;
 const ffmpeg_service_1 = require("../services/ffmpeg.service");
-const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
 const deepgram_service_1 = require("../services/deepgram.service");
 const audio_service_1 = require("../services/audio.service");
 const remotion_service_1 = require("../services/remotion.service");
@@ -235,11 +234,28 @@ class VideoController {
             srtPath = ffmpegService.generateSrt(captions, srtFilename);
             let s3SourceKey = "";
             let projectId = "";
+            let thumbnailKey = "";
             // S3 upload and project creation — wrapped so failure doesn't block response
             if (user && userId) {
                 try {
                     sendEvent("status", { message: "Uploading to secure storage..." });
                     s3SourceKey = await s3Service.upload(videoPath, `${userId}/source`);
+                    // Extract and upload thumbnail snapshot
+                    try {
+                        const thumbnailFilename = `thumb-${path_1.default.basename(videoPath, path_1.default.extname(videoPath))}.jpg`;
+                        const seekTime = Math.min(1, durationSeconds > 0 ? durationSeconds / 2 : 0.5);
+                        console.log(`[VideoController] Extracting thumbnail at ${seekTime}s`);
+                        const localThumbPath = await ffmpegService.extractFrame(videoPath, thumbnailFilename, seekTime);
+                        thumbnailKey = await s3Service.upload(localThumbPath, `${userId}/thumbnails`, "image/jpeg");
+                        // Delete local temp thumbnail file
+                        if (fs_1.default.existsSync(localThumbPath)) {
+                            fs_1.default.unlinkSync(localThumbPath);
+                            console.log(`[VideoController] Cleaned up local thumbnail: ${localThumbPath}`);
+                        }
+                    }
+                    catch (thumbError) {
+                        console.warn("[VideoController] Thumbnail generation/upload failed (non-fatal):", thumbError);
+                    }
                     const stat = fs_1.default.statSync(videoPath);
                     await prisma_1.prisma.user.update({
                         where: { id: userId },
@@ -254,7 +270,8 @@ class VideoController {
                             metadata: {
                                 originalFilename: req.file.originalname,
                                 transcription: captions,
-                                language
+                                language,
+                                thumbnailKey
                             }
                         }
                     });
@@ -546,68 +563,6 @@ class VideoController {
                 status: "success",
                 data: {
                     cutoutVideoUrl,
-                },
-            });
-        }
-        catch (error) {
-            next(error);
-        }
-    }
-    // ─── POST /api/video/transcode ──────────────────────────────────────────────
-    async transcodeWebMToMP4(req, res, next) {
-        try {
-            if (!req.file) {
-                throw new errors_1.ValidationError("No video file uploaded for transcoding");
-            }
-            const inputPath = req.file.path;
-            const outputPath = path_1.default.join(path_1.default.dirname(inputPath), `transcoded-${Date.now()}-${path_1.default.basename(inputPath, path_1.default.extname(inputPath))}.mp4`);
-            // Extract options from req.body
-            const requestedBitrate = req.body.bitrate || "auto";
-            let kbps = "4000k"; // Default 4 Mbps
-            if (requestedBitrate === "high")
-                kbps = "8000k";
-            else if (requestedBitrate === "ultra")
-                kbps = "16000k";
-            console.log(`[VideoController] Transcoding WebM to MP4. Input: ${inputPath}, Output: ${outputPath}, Bitrate: ${kbps}`);
-            // Run FFmpeg conversion command to output standard QuickTime compatible H.264 / AAC MP4
-            await new Promise((resolve, reject) => {
-                (0, fluent_ffmpeg_1.default)(inputPath)
-                    .output(outputPath)
-                    .videoCodec("libx264")
-                    .audioCodec("aac")
-                    .audioBitrate(192)
-                    .outputOptions([
-                    "-preset", "fast",
-                    "-b:v", kbps,
-                    "-pix_fmt", "yuv420p" // Ensures maximum player compatibility
-                ])
-                    .on("end", () => {
-                    console.log("[VideoController] Transcode complete!");
-                    resolve();
-                })
-                    .on("error", (err) => {
-                    console.error("[VideoController] Transcode error:", err);
-                    reject(err);
-                })
-                    .run();
-            });
-            // Upload output MP4 to S3
-            const userId = (req.headers["x-user-id"] || "anonymous");
-            const s3Key = await s3Service.upload(outputPath, `${userId}/exports`);
-            const downloadUrl = await s3Service.getSignedDownloadUrl(s3Key);
-            // Clean up temp files
-            try {
-                fs_1.default.unlinkSync(inputPath);
-                fs_1.default.unlinkSync(outputPath);
-            }
-            catch (err) {
-                console.warn("[VideoController] Failed to delete temp transcode files:", err);
-            }
-            return res.status(200).json({
-                status: "success",
-                data: {
-                    downloadUrl,
-                    s3Key,
                 },
             });
         }
