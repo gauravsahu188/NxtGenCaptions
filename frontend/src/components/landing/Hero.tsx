@@ -191,7 +191,7 @@ export default function Hero() {
             transition={{ duration: 0.8, ease: expoOut, delay: 0.45 }}
             className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 w-full"
           >
-            <Link href="/sign-in" className="w-full sm:w-auto">
+            <Link href="/editor" className="w-full sm:w-auto">
               <button id="btn-hero-primary" className="group relative flex h-11 w-full sm:w-auto items-center justify-center gap-4 rounded-xl bg-white px-6 font-display text-sm font-semibold text-black transition-all hover:bg-white/95 active:scale-[0.98] shadow-[0_4px_30px_rgba(255,255,255,0.15)] overflow-hidden">
                 {/* Shimmer light effect */}
                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.5)_50%,transparent_75%)] bg-size-[250%_250%] opacity-0 group-hover:opacity-100 group-hover:animate-shimmer pointer-events-none" />

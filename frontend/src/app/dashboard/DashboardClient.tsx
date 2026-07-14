@@ -28,6 +28,7 @@ interface Project {
   duration: number | null;
   createdAt: string;
   metadata?: any;
+  thumbnailUrl?: string | null;
 }
 
 const PLAN_LIMITS: Record<PlanType, { transcription: number; storage: number; color: string; icon: React.ReactNode; label: string }> = {
@@ -68,14 +69,33 @@ function UsageBar({ used, max, color }: { used: number; max: number; color: stri
 }
 
 function ProjectCard({ project }: { project: Project }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <Link href={`/editor?projectId=${project.id}`}>
       <motion.div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         whileHover={{ y: -5, scale: 1.02 }}
         className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-6 group cursor-pointer transition-all hover:bg-[#111111] hover:border-white/10"
       >
         <div className="aspect-video bg-white/5 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative">
-          {project.s3Url ? (
+          {isHovered && project.s3Url ? (
+            <video
+              src={project.s3Url}
+              className="absolute inset-0 w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : project.thumbnailUrl ? (
+            <img
+              src={project.thumbnailUrl}
+              alt={project.title}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          ) : project.s3Url ? (
             <video
               src={`${project.s3Url}#t=0.1`}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"

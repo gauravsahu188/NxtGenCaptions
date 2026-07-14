@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Mail, Loader2, Lock, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // Google Icon SVG
 const GoogleIcon = () => (
@@ -20,8 +20,11 @@ const GoogleIcon = () => (
 
 type Mode = "main" | "login" | "signup" | "verify-otp";
 
-export default function SignInPage() {
+function SignInPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
   const [mode, setMode] = useState<Mode>("main");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,7 +35,7 @@ export default function SignInPage() {
 
   const handleOAuth = async (provider: "google") => {
     setLoading(provider);
-    await signIn(provider, { callbackUrl: "/dashboard" });
+    await signIn(provider, { callbackUrl });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -45,14 +48,14 @@ export default function SignInPage() {
       email,
       password,
       redirect: false,
-      callbackUrl: "/dashboard",
+      callbackUrl,
     });
 
     if (res?.error) {
       setLoading(null);
       setError("Invalid email or password. Please try again.");
     } else {
-      window.location.href = "/dashboard";
+      window.location.href = callbackUrl;
     }
   };
 
@@ -108,14 +111,14 @@ export default function SignInPage() {
           email,
           password,
           redirect: false,
-          callbackUrl: "/dashboard",
+          callbackUrl,
         });
 
         if (signInRes?.error) {
           setLoading(null);
           setError("Account created, but failed to log in automatically.");
         } else {
-          window.location.href = "/dashboard";
+          window.location.href = callbackUrl;
         }
       }
     } catch (err) {
@@ -175,8 +178,6 @@ export default function SignInPage() {
                   {loading === "google" ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
                   Continue with Google
                 </button>
-
-
 
                 {/* Divider */}
                 <div className="relative flex items-center py-2">
@@ -427,5 +428,21 @@ export default function SignInPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-accent/15 blur-[120px] rounded-full pointer-events-none" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+          <p className="text-zinc-400 text-sm">Loading...</p>
+        </div>
+      </div>
+    }>
+      <SignInPageContent />
+    </Suspense>
   );
 }

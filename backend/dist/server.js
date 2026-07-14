@@ -23,6 +23,7 @@ const render_routes_1 = __importDefault(require("./routes/render.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const webhook_routes_1 = __importDefault(require("./routes/webhook.routes"));
 const errors_1 = require("./utils/errors");
+const cleanup_1 = require("./utils/cleanup");
 const app = (0, express_1.default)();
 // Security middleware
 app.use((0, helmet_1.default)({ crossOriginResourcePolicy: false })); // Allow cross-origin static files
@@ -81,4 +82,6 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    // Start background task to clean up old files in uploads/ and temp/ every 15 minutes
+    (0, cleanup_1.startPeriodicCleanup)();
 });

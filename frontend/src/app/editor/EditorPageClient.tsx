@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCaptionContext, CaptionProvider } from "@/context/CaptionContext";
 import UploadDropzone from "@/components/UploadDropzone";
 import Editor from "@/components/Editor";
+import Loader from "@/components/Loader";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import { useToast } from "@/context/ToastContext";
@@ -29,11 +30,19 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
     setOriginalWords,
     setS3Key,
     setDuration,
+    isProcessing,
     setIsProcessing,
+    processingMessage,
     setProcessingMessage,
   } = useCaptionContext();
 
   const loaded = useRef(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    setIsMobile(mobileCheck);
+  }, []);
 
   // Auto-load project from backend if projectId is provided
   useEffect(() => {
@@ -98,6 +107,8 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
     loadProject();
   }, [projectId]);
 
+  const showLoader = isProcessing && (isMobile || !videoUrl);
+
   return (
     <div className="min-h-screen w-full">
       <Navbar />
@@ -105,7 +116,19 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
       <main className={`relative z-10 ${!videoUrl ? "flex flex-col items-center justify-center p-6 sm:p-12 md:p-24 min-h-[calc(100vh-64px)]" : ""}`}>
         <div className="aurora-bg" />
 
-        {!videoUrl ? (
+        {showLoader ? (
+          <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050505] p-6 text-center">
+            <Loader text={processingMessage || "Generating captions..."} />
+            <div className="mt-8 space-y-3 max-w-xs">
+              <h3 className="text-xl font-bold text-white tracking-tight">Captions are generating</h3>
+              <p className="text-sm text-zinc-400">Please wait while our AI transcribes your video and creates cinematic captions.</p>
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Processing with Sarvam AI</p>
+              </div>
+            </div>
+          </div>
+        ) : !videoUrl ? (
           <div className="w-full flex flex-col items-center space-y-12">
             <motion.div
               initial={{ opacity: 0, y: -20 }}

@@ -11,5 +11,6 @@ router.post("/render", videoController.renderVideo.bind(videoController));
 router.get("/project/:id", videoController.getProject.bind(videoController));
 router.post("/enhance-audio", videoController.enhanceAudio.bind(videoController));
 router.post("/isolate-subject", videoController.isolateSubject.bind(videoController));
+router.post("/transcode", uploadMiddleware.single("video"), videoController.transcodeWebMToMP4.bind(videoController));
 
 export default router;

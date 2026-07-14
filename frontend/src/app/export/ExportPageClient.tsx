@@ -90,6 +90,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [errorMsg,    setErrorMsg]    = useState("");
   const [recordedExt, setRecordedExt] = useState("mp4");
+  const [isMobile,    setIsMobile]    = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Warning on navigation / close during render
@@ -107,6 +108,9 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
 
   // Load context from sessionStorage
   useEffect(() => {
+    // Detect mobile platform
+    const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    setIsMobile(mobileCheck);
     try {
       const raw = sessionStorage.getItem("nxtgen_export");
       if (!raw) { router.replace("/editor"); return; }
@@ -221,6 +225,82 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
         video.onloadedmetadata = () => resolve();
         video.onerror = () => reject(new Error("Failed to load video source. Check S3 CORS configuration."));
       });
+
+      // 3b. Mobile platform hybrid cloud render route redirect
+      if (isMobile) {
+        setStageLabel("Submitting export request to AWS Lambda Cloud...");
+        setProgress(5);
+
+        const buildStyle = buildRemotionStyle(ctx.captionStyle);
+        const renderRes = await fetch("/api/render", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            videoKey: ctx.videoKey,
+            captions: ctx.captions,
+            style: buildStyle,
+            aspectRatio: ctx.aspectRatio || "9:16",
+            requestedRes: resolution,
+            duration: video.duration || ctx.duration || 30,
+          }),
+        });
+
+        if (!renderRes.ok) {
+          const errData = await renderRes.json();
+          throw new Error(errData.error || `Server render request failed: HTTP ${renderRes.status}`);
+        }
+
+        const renderData = await renderRes.json();
+        const renderId = renderData.renderId;
+        console.log("[MobileExport] Server render started with ID:", renderId);
+
+        setStageLabel("Cloud render queued...");
+        setProgress(10);
+
+        // Start polling status
+        pollRef.current = setInterval(async () => {
+          try {
+            const statusRes = await fetch(`/api/render/status?renderId=${renderId}`);
+            if (!statusRes.ok) {
+              console.error("[MobileExport] Status poll error:", statusRes.status);
+              return;
+            }
+
+            const statusData = await statusRes.json();
+            if (statusData.status === "complete") {
+              if (pollRef.current) clearInterval(pollRef.current);
+              
+              setDownloadUrl(statusData.downloadUrl);
+              setProgress(100);
+              setStageLabel("Cloud export complete!");
+              setPhase("done");
+
+              try {
+                document.body.removeChild(video);
+              } catch {}
+              URL.revokeObjectURL(localVideoUrl);
+
+              // Auto-download MP4
+              const a = document.createElement("a");
+              a.href = statusData.downloadUrl;
+              a.download = `${projectName}.mp4`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            } else if (statusData.status === "in_progress") {
+              const p = Math.round(statusData.overallProgress * 100);
+              setProgress(Math.min(99, Math.max(10, p)));
+              setStageLabel(`Cloud rendering: ${p}% complete...`);
+            }
+          } catch (pollErr) {
+            console.error("[MobileExport] Status polling exception:", pollErr);
+          }
+        }, 3000);
+
+        return;
+      }
 
       // Wait for fonts to be completely ready
       setStageLabel("Loading styles and custom fonts...");
@@ -360,23 +440,62 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
 
           // Compile output blob
           setStageLabel("Finalizing video container...");
-          setProgress(98);
+          setProgress(95);
           
           const finalBlob = new Blob(chunks, { type: mimeType });
-          const finalUrl = URL.createObjectURL(finalBlob);
 
-          setDownloadUrl(finalUrl);
-          setProgress(100);
-          setStageLabel("Export complete!");
-          setPhase("done");
+          if (alphaChannel) {
+            const finalUrl = URL.createObjectURL(finalBlob);
+            setDownloadUrl(finalUrl);
+            setProgress(100);
+            setStageLabel("Export complete!");
+            setPhase("done");
 
-          // Auto-download video using a clean click trigger
-          const a = document.createElement("a");
-          a.href = finalUrl;
-          a.download = `${projectName}.${fileExt}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+            // Auto-download WebM
+            const a = document.createElement("a");
+            a.href = finalUrl;
+            a.download = `${projectName}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          } else {
+            // Upload to backend for transcoding to H.264 MP4
+            setStageLabel("Transcoding video to MP4 on server...");
+            setProgress(97);
+
+            const formData = new FormData();
+            formData.append("video", finalBlob, `input.${fileExt}`);
+            formData.append("bitrate", bitrate);
+
+            const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+            const transcodeRes = await fetch(`${BACKEND_URL}/api/video/transcode`, {
+              method: "POST",
+              headers: {
+                "x-user-id": ctx?.userId || "anonymous",
+              },
+              body: formData,
+            });
+
+            if (!transcodeRes.ok) {
+              throw new Error(`Transcoding server failed: HTTP ${transcodeRes.status}`);
+            }
+
+            const transcodeData = await transcodeRes.json();
+            const mp4Url = transcodeData.data.downloadUrl;
+
+            setDownloadUrl(mp4Url);
+            setProgress(100);
+            setStageLabel("Export complete!");
+            setPhase("done");
+
+            // Auto-download MP4
+            const a = document.createElement("a");
+            a.href = mp4Url;
+            a.download = `${projectName}.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
 
           // Auto-download SRT if enabled
           if (srtExport && ctx.captions) {
@@ -435,7 +554,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
     if (!downloadUrl) return;
 
     // Download video
-    const ext = alphaChannel ? "webm" : recordedExt;
+    const ext = alphaChannel ? "webm" : "mp4";
     const a = document.createElement("a");
     a.href = downloadUrl;
     a.setAttribute("download", `${projectName}.${ext}`);

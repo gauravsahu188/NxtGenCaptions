@@ -9,7 +9,7 @@ import Timeline from "./Editor/Timeline";
 import PropertiesRight from "./Editor/PropertiesRight";
 import { useCaptionContext } from "../context/CaptionContext";
 import {
-  ArrowUpRight, Monitor, Smartphone, Tv, Lock,
+  ArrowUpRight, ArrowLeft, Monitor, Smartphone, Tv, Lock,
   CheckCircle2, Download, X, Sparkles, Zap,
   ChevronUp, ChevronDown, Type, Captions, Music, LayoutTemplate
 } from "lucide-react";
@@ -258,6 +258,17 @@ export default function EditorLayout({ user }: { user?: any }) {
              </div>
           )}
           <CaptionsList />
+          {mobileLeftPanelOpen && (
+            <div className="p-4 border-t border-white/5 bg-[#050505] md:hidden">
+              <button 
+                onClick={() => setMobileLeftPanelOpen(false)}
+                className="w-full py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Editor
+              </button>
+            </div>
+          )}
           {/* Timeline on desktop */}
           <div id="tour-timeline-desktop" className="hidden md:block">
             <Timeline />
@@ -300,6 +311,7 @@ export default function EditorLayout({ user }: { user?: any }) {
         {/* Mobile Right Properties Vertical Buttons */}
         <div id="tour-properties-mobile" className="md:hidden absolute right-3 top-1/4 flex flex-col gap-3 z-30">
           {[
+            { id: 'Captions', icon: <Captions className="w-5 h-5" /> },
             { id: 'Text', icon: <Type className="w-5 h-5" /> },
             { id: 'Templates', icon: <LayoutTemplate className="w-5 h-5" /> },
             { id: 'Motion', icon: <Sparkles className="w-5 h-5" /> },
@@ -307,7 +319,13 @@ export default function EditorLayout({ user }: { user?: any }) {
           ].map(tab => (
             <button 
               key={tab.id} 
-              onClick={() => setMobileRightPanelTab(tab.id)} 
+              onClick={() => {
+                if (tab.id === 'Captions') {
+                  setMobileLeftPanelOpen(true);
+                } else {
+                  setMobileRightPanelTab(tab.id);
+                }
+              }} 
               className="w-10 h-10 rounded-xl bg-[#050505]/80 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center text-zinc-400 hover:text-white transition-colors shadow-lg"
             >
               {tab.icon}
@@ -338,6 +356,15 @@ export default function EditorLayout({ user }: { user?: any }) {
                       activeTabOverride={mobileRightPanelTab}
                       hideTabs={true}
                    />
+                 </div>
+                 <div className="p-4 border-t border-white/5 bg-[#050505]">
+                   <button 
+                     onClick={() => setMobileRightPanelTab(null)}
+                     className="w-full py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                   >
+                     <ArrowLeft className="w-4 h-4" />
+                     Back to Editor
+                   </button>
                  </div>
               </motion.div>
            )}

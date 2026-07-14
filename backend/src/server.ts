@@ -20,6 +20,7 @@ import renderRoutes from "./routes/render.routes";
 import paymentRoutes from "./routes/payment.routes";
 import webhookRoutes from "./routes/webhook.routes";
 import { AppError } from "./utils/errors";
+import { startPeriodicCleanup } from "./utils/cleanup";
 
 const app = express();
 
@@ -93,4 +94,6 @@ const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  // Start background task to clean up old files in uploads/ and temp/ every 15 minutes
+  startPeriodicCleanup();
 });

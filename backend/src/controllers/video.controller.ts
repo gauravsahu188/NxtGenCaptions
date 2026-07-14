@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { FFmpegService } from "../services/ffmpeg.service";
+import ffmpeg from "fluent-ffmpeg";
 import { DeepgramTranscriptionService } from "../services/deepgram.service";
 import { AudioEnhancementService } from "../services/audio.service";
 import { RemotionRenderService, CaptionStyleProps } from "../services/remotion.service";
@@ -68,6 +69,11 @@ const LANGUAGE_NAMES: Record<string, string> = {
 export class VideoController {
   // ─── POST /api/video/upload ─────────────────────────────────────────────────
   async uploadAndTranscribe(req: Request, res: Response, next: NextFunction) {
+    let videoPath: string | undefined;
+    let rawAudioPath: string | undefined;
+    let cleanedAudioPath: string | undefined;
+    let srtPath: string | undefined;
+
     try {
       if (!req.file) throw new ValidationError("No video file uploaded");
 
@@ -80,7 +86,7 @@ export class VideoController {
         res.write(`data: ${JSON.stringify({ type, ...data })}\n\n`);
       };
 
-      const videoPath = req.file.path;
+      videoPath = req.file.path;
       const audioFilename = `${path.basename(videoPath, path.extname(videoPath))}.mp3`;
 
       sendEvent("init", {
@@ -163,11 +169,11 @@ export class VideoController {
       }
 
       sendEvent("status", { message: "Extracting audio..." });
-      const rawAudioPath = await ffmpegService.extractAudio(videoPath, audioFilename);
+      rawAudioPath = await ffmpegService.extractAudio(videoPath, audioFilename);
 
       // Check if audio enhancement is requested
       const audioEnhance = req.body.audioEnhance === "true" || req.body.audioEnhance === true;
-      let cleanedAudioPath = rawAudioPath;
+      cleanedAudioPath = rawAudioPath;
 
       if (audioEnhance) {
         sendEvent("status", { message: "Enhancing audio quality..." });
@@ -267,23 +273,36 @@ export class VideoController {
       captions = captions.map((seg) => ({ ...seg, id: String(seg.id) }));
 
       const srtFilename = `${path.basename(videoPath, path.extname(videoPath))}.srt`;
-      ffmpegService.generateSrt(captions, srtFilename);
-
-      try {
-        if (fs.existsSync(rawAudioPath)) fs.unlinkSync(rawAudioPath);
-        if (fs.existsSync(cleanedAudioPath) && cleanedAudioPath !== rawAudioPath) {
-          fs.unlinkSync(cleanedAudioPath);
-        }
-      } catch (e) { }
+      srtPath = ffmpegService.generateSrt(captions, srtFilename);
 
       let s3SourceKey = "";
       let projectId = "";
+      let thumbnailKey = "";
 
       // S3 upload and project creation — wrapped so failure doesn't block response
       if (user && userId) {
         try {
           sendEvent("status", { message: "Uploading to secure storage..." });
           s3SourceKey = await s3Service.upload(videoPath, `${userId}/source`);
+
+          // Extract and upload thumbnail snapshot
+          try {
+            const thumbnailFilename = `thumb-${path.basename(videoPath, path.extname(videoPath))}.jpg`;
+            const seekTime = Math.min(1, durationSeconds > 0 ? durationSeconds / 2 : 0.5);
+            console.log(`[VideoController] Extracting thumbnail at ${seekTime}s`);
+            
+            const localThumbPath = await ffmpegService.extractFrame(videoPath, thumbnailFilename, seekTime);
+            
+            thumbnailKey = await s3Service.upload(localThumbPath, `${userId}/thumbnails`, "image/jpeg");
+            
+            // Delete local temp thumbnail file
+            if (fs.existsSync(localThumbPath)) {
+              fs.unlinkSync(localThumbPath);
+              console.log(`[VideoController] Cleaned up local thumbnail: ${localThumbPath}`);
+            }
+          } catch (thumbError) {
+            console.warn("[VideoController] Thumbnail generation/upload failed (non-fatal):", thumbError);
+          }
 
           const stat = fs.statSync(videoPath);
           await prisma.user.update({
@@ -300,7 +319,8 @@ export class VideoController {
               metadata: {
                 originalFilename: req.file!.originalname,
                 transcription: captions as any,
-                language
+                language,
+                thumbnailKey
               } as any
             }
           });
@@ -325,6 +345,28 @@ export class VideoController {
     } catch (error: any) {
       res.write(`data: ${JSON.stringify({ type: "error", message: error.message })}\n\n`);
       res.end();
+    } finally {
+      // Clean up all local files (video, audio, srt)
+      try {
+        if (rawAudioPath && fs.existsSync(rawAudioPath)) {
+          fs.unlinkSync(rawAudioPath);
+          console.log(`[VideoController] Cleaned up raw audio: ${rawAudioPath}`);
+        }
+        if (cleanedAudioPath && fs.existsSync(cleanedAudioPath) && cleanedAudioPath !== rawAudioPath) {
+          fs.unlinkSync(cleanedAudioPath);
+          console.log(`[VideoController] Cleaned up cleaned audio: ${cleanedAudioPath}`);
+        }
+        if (srtPath && fs.existsSync(srtPath)) {
+          fs.unlinkSync(srtPath);
+          console.log(`[VideoController] Cleaned up srt file: ${srtPath}`);
+        }
+        if (videoPath && fs.existsSync(videoPath)) {
+          fs.unlinkSync(videoPath);
+          console.log(`[VideoController] Cleaned up local video file: ${videoPath}`);
+        }
+      } catch (cleanupError) {
+        console.warn("[VideoController] Error during temporary files cleanup:", cleanupError);
+      }
     }
   }
 
@@ -602,6 +644,76 @@ export class VideoController {
         status: "success",
         data: {
           cutoutVideoUrl,
+        },
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  // ─── POST /api/video/transcode ──────────────────────────────────────────────
+  async transcodeWebMToMP4(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.file) {
+        throw new ValidationError("No video file uploaded for transcoding");
+      }
+
+      const inputPath = req.file.path;
+      const outputPath = path.join(
+        path.dirname(inputPath),
+        `transcoded-${Date.now()}-${path.basename(inputPath, path.extname(inputPath))}.mp4`
+      );
+
+      // Extract options from req.body
+      const requestedBitrate = req.body.bitrate || "auto";
+
+      let kbps = "4000k"; // Default 4 Mbps
+      if (requestedBitrate === "high") kbps = "8000k";
+      else if (requestedBitrate === "ultra") kbps = "16000k";
+
+      console.log(`[VideoController] Transcoding WebM to MP4. Input: ${inputPath}, Output: ${outputPath}, Bitrate: ${kbps}`);
+
+      // Run FFmpeg conversion command to output standard QuickTime compatible H.264 / AAC MP4
+      await new Promise<void>((resolve, reject) => {
+        ffmpeg(inputPath)
+          .output(outputPath)
+          .videoCodec("libx264")
+          .audioCodec("aac")
+          .audioBitrate(192)
+          .outputOptions([
+            "-preset", "fast",
+            "-b:v", kbps,
+            "-pix_fmt", "yuv420p" // Ensures maximum player compatibility
+          ])
+          .on("end", () => {
+            console.log("[VideoController] Transcode complete!");
+            resolve();
+          })
+          .on("error", (err: any) => {
+            console.error("[VideoController] Transcode error:", err);
+            reject(err);
+          })
+          .run();
+      });
+
+      // Upload output MP4 to S3
+      const userId = (req.headers["x-user-id"] || "anonymous") as string;
+      const s3Key = await s3Service.upload(outputPath, `${userId}/exports`);
+      const downloadUrl = await s3Service.getSignedDownloadUrl(s3Key);
+
+      // Clean up temp files
+      try {
+        fs.unlinkSync(inputPath);
+        fs.unlinkSync(outputPath);
+      } catch (err) {
+        console.warn("[VideoController] Failed to delete temp transcode files:", err);
+      }
+
+      return res.status(200).json({
+        status: "success",
+        data: {
+          downloadUrl,
+          s3Key,
         },
       });
     } catch (error: any) {
