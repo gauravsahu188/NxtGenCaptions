@@ -34,10 +34,12 @@ const BITRATES = [
 ];
 
 const PROGRESS_STAGES = [
-  { pct: 0,   label: "Loading video into memory..." },
-  { pct: 10,  label: "Initializing browser hardware encoder..." },
-  { pct: 20,  label: "Rendering and encoding..." },
-  { pct: 95,  label: "Finalizing video container..." },
+  { pct: 0,   label: "Initializing render..." },
+  { pct: 15,  label: "Bundling composition..." },
+  { pct: 35,  label: "Encoding frames on Lambda..." },
+  { pct: 65,  label: "Stitching video segments..." },
+  { pct: 85,  label: "Uploading to cloud storage..." },
+  { pct: 95,  label: "Generating download link..." },
   { pct: 100, label: "Export complete!" },
 ];
 
@@ -89,28 +91,10 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
   const [stageLabel,  setStageLabel]  = useState("");
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [errorMsg,    setErrorMsg]    = useState("");
-  const [recordedExt, setRecordedExt] = useState("mp4");
-  const [isMobile,    setIsMobile]    = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Warning on navigation / close during render
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (phase === "rendering") {
-        e.preventDefault();
-        e.returnValue = "Render is in progress. Do not close this window or switch tabs.";
-        return e.returnValue;
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [phase]);
 
   // Load context from sessionStorage
   useEffect(() => {
-    // Detect mobile platform
-    const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    setIsMobile(mobileCheck);
     try {
       const raw = sessionStorage.getItem("nxtgen_export");
       if (!raw) { router.replace("/editor"); return; }
@@ -145,407 +129,108 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
     };
   }
 
-  // Start render client-side
+  // Start render
   async function handleExport() {
-    if (!ctx || !ctx.videoUrl) {
-      setErrorMsg("Video source URL not found.");
-      setPhase("error");
-      return;
-    }
-
+    if (!ctx) return;
     setPhase("rendering");
-    setProgress(0);
-    setStageLabel("Loading video into browser memory...");
+    setProgress(5);
+    setStageLabel(PROGRESS_STAGES[0].label);
     setErrorMsg("");
 
     try {
-      // 1. Calculate resolution & dimensions
-      let width = resolution;
-      let height = 720;
-      const finalRes = resolution;
-      const { originalVideoWidth, originalVideoHeight, aspectRatio } = ctx;
+      const style = buildRemotionStyle(ctx.captionStyle);
+      const body  = {
+        videoKey:     ctx.videoKey,
+        captions:     ctx.captions,
+        style,
+        projectName,
+        requestedRes: resolution,
+        bitrate,
+        showWatermark: watermark,
+        alphaChannel,
+        srtExport,
+        duration:     ctx.duration ?? 30,
+        fps:          30,
+        aspectRatio:  ctx.aspectRatio ?? "16:9",
+        originalVideoWidth: ctx.originalVideoWidth,
+        originalVideoHeight: ctx.originalVideoHeight,
+      };
 
-      if (originalVideoWidth && originalVideoHeight) {
-        const isPortrait = originalVideoHeight > originalVideoWidth;
-        if (isPortrait) {
-          width = finalRes;
-          height = Math.round(finalRes * (originalVideoHeight / originalVideoWidth));
-        } else {
-          height = finalRes;
-          width = Math.round(finalRes * (originalVideoWidth / originalVideoHeight));
-        }
-      } else if (aspectRatio === "9:16") {
-        width = finalRes;
-        height = Math.round(finalRes * (16 / 9));
-      } else {
-        width = Math.round(finalRes * (16 / 9));
-        height = finalRes;
-      }
-
-      // Ensure dimensions are even (required for H.264 video codec encoding)
-      width = width % 2 !== 0 ? width + 1 : width;
-      height = height % 2 !== 0 ? height + 1 : height;
-
-      // 2. Set up export canvas from the DOM (mounted in progress popup)
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const canvas = document.getElementById("export-canvas") as HTMLCanvasElement;
-      if (!canvas) throw new Error("Render canvas not found in DOM.");
-      canvas.width = width;
-      canvas.height = height;
-      const canvasCtx = canvas.getContext("2d");
-      if (!canvasCtx) throw new Error("Could not create 2D canvas context.");
-
-      // 3. Fetch video file into memory as local blob to bypass CORS cache bugs without invalidating S3 signatures
-      setStageLabel("Downloading video source into browser memory...");
-      const videoResponse = await fetch(ctx.videoUrl, { cache: "no-cache" });
-      if (!videoResponse.ok) {
-        throw new Error(`Failed to fetch video source. Server responded with status ${videoResponse.status}`);
-      }
-      const videoBlob = await videoResponse.blob();
-      const localVideoUrl = URL.createObjectURL(videoBlob);
-
-      // Create hidden video element
-      const video = document.createElement("video");
-      video.crossOrigin = "anonymous";
-      video.src = localVideoUrl;
-      video.muted = false; // We need to capture the audio!
-      video.playsInline = true;
-
-      // We append it to body but hide it, to make sure browser plays it
-      video.style.position = "fixed";
-      video.style.top = "-9999px";
-      video.style.left = "-9999px";
-      video.style.width = "100px";
-      video.style.height = "100px";
-      document.body.appendChild(video);
-
-      setStageLabel("Preparing encoder...");
-
-      await new Promise<void>((resolve, reject) => {
-        video.onloadedmetadata = () => resolve();
-        video.onerror = () => reject(new Error("Failed to load video source. Check S3 CORS configuration."));
+      const res  = await fetch("/api/export", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(body),
       });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error ?? "Render failed");
 
-      // 3b. Mobile platform hybrid cloud render route redirect
-      if (isMobile) {
-        setStageLabel("Submitting export request to AWS Lambda Cloud...");
-        setProgress(5);
+      const { renderId, bucketName, outKey } = json;
+      setProgress(20);
+      setStageLabel(PROGRESS_STAGES[2].label);
 
-        const buildStyle = buildRemotionStyle(ctx.captionStyle);
-        const renderRes = await fetch("/api/render", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            videoKey: ctx.videoKey,
-            captions: ctx.captions,
-            style: buildStyle,
-            aspectRatio: ctx.aspectRatio || "9:16",
-            requestedRes: resolution,
-            duration: video.duration || ctx.duration || 30,
-          }),
-        });
+      // Poll progress
+      pollRef.current = setInterval(async () => {
+        try {
+          const pr = await fetch(
+            `/api/export?renderId=${renderId}&bucketName=${encodeURIComponent(bucketName)}&outKey=${encodeURIComponent(outKey)}`
+          );
+          const pd = await pr.json();
+          if (pd.error) throw new Error(pd.error);
 
-        if (!renderRes.ok) {
-          const errData = await renderRes.json();
-          throw new Error(errData.error || `Server render request failed: HTTP ${renderRes.status}`);
-        }
+          const pct = Math.round((pd.overallProgress ?? 0) * 100);
+          setProgress(Math.max(pct, 20));
 
-        const renderData = await renderRes.json();
-        const renderId = renderData.renderId;
-        console.log("[MobileExport] Server render started with ID:", renderId);
+          const stage = PROGRESS_STAGES.reduce<typeof PROGRESS_STAGES[0] | undefined>(
+            (acc, s) => (pct >= s.pct ? s : acc), undefined
+          );
+          if (stage) setStageLabel(stage.label);
 
-        setStageLabel("Cloud render queued...");
-        setProgress(10);
+          if (pd.fatalErrorEncountered) {
+            throw new Error(pd.errors?.[0]?.message ?? "Lambda render failed");
+          }
 
-        // Start polling status
-        pollRef.current = setInterval(async () => {
-          try {
-            const statusRes = await fetch(`/api/render/status?renderId=${renderId}`);
-            if (!statusRes.ok) {
-              console.error("[MobileExport] Status poll error:", statusRes.status);
+          if (pd.done) {
+            clearInterval(pollRef.current!);
+            
+            if (pd.downloadError) {
+              setErrorMsg(pd.downloadError);
+              setPhase("error");
               return;
             }
 
-            const statusData = await statusRes.json();
-            if (statusData.status === "complete") {
-              if (pollRef.current) clearInterval(pollRef.current);
-              
-              setDownloadUrl(statusData.downloadUrl);
-              setProgress(100);
-              setStageLabel("Cloud export complete!");
-              setPhase("done");
-
-              try {
-                document.body.removeChild(video);
-              } catch {}
-              URL.revokeObjectURL(localVideoUrl);
-
-              // Auto-download MP4
-              const a = document.createElement("a");
-              a.href = statusData.downloadUrl;
-              a.download = `${projectName}.mp4`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-            } else if (statusData.status === "in_progress") {
-              const p = Math.round(statusData.overallProgress * 100);
-              setProgress(Math.min(99, Math.max(10, p)));
-              setStageLabel(`Cloud rendering: ${p}% complete...`);
-            }
-          } catch (pollErr) {
-            console.error("[MobileExport] Status polling exception:", pollErr);
-          }
-        }, 3000);
-
-        return;
-      }
-
-      // Wait for fonts to be completely ready
-      setStageLabel("Loading styles and custom fonts...");
-      try {
-        await document.fonts.ready;
-        // Introduce a small buffer for Next.js CSS rendering context
-        await new Promise(resolve => setTimeout(resolve, 800));
-      } catch (e) {
-        console.warn("Fonts ready promise failed:", e);
-      }
-
-      // 4. Set up audio context
-      setStageLabel("Setting up audio pipeline...");
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      const audioCtx = new AudioCtx();
-      const source = audioCtx.createMediaElementSource(video);
-      const dest = audioCtx.createMediaStreamDestination();
-      source.connect(dest);
-      source.connect(audioCtx.destination); // Let user hear the audio during export
-
-      // 5. Capture tracks
-      const canvasStream = canvas.captureStream(30);
-      const audioTrack = dest.stream.getAudioTracks()[0];
-      if (audioTrack) {
-        canvasStream.addTrack(audioTrack);
-      }
-
-      // 6. Set up MediaRecorder
-      let mimeType = "video/webm;codecs=vp9,opus";
-      if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/webm;codecs=vp8,opus";
-      if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/webm";
-      if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/mp4";
-
-      const fileExt = mimeType.includes("mp4") ? "mp4" : "webm";
-      setRecordedExt(fileExt);
-
-      let kbps = 4000000; // default 4 Mbps
-      if (bitrate === "high") kbps = 8000000;
-      else if (bitrate === "ultra") kbps = 16000000;
-
-      const mediaRecorder = new MediaRecorder(canvasStream, {
-        mimeType,
-        videoBitsPerSecond: kbps,
-      });
-
-      const chunks: Blob[] = [];
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) {
-          chunks.push(e.data);
-        }
-      };
-
-      // 7. Render & Recording Loop
-      let animationFrameId: number;
-      
-      const renderScale = width / (ctx.captionStyle.previewWidth || 400);
-      const captions = ctx.captions || [];
-
-      // Preprocess captions: extend last word end -> segment end
-      const processedCaptions = captions.map((seg: any) => {
-        if (!seg.words || seg.words.length === 0) return seg;
-        const words = [...seg.words];
-        words[words.length - 1] = { ...words[words.length - 1], end: seg.end };
-        return { ...seg, words };
-      });
-
-      const drawVideoFrame = () => {
-        const iw = video.videoWidth;
-        const ih = video.videoHeight;
-        if (!iw || !ih) return;
-
-        const r = Math.min(width / iw, height / ih);
-        let nw = iw * r;
-        let nh = ih * r;
-        if (nw < width) nw = width;
-        if (nh < height) nh = height;
-
-        const cw = iw / (nw / width);
-        const ch = ih / (nh / height);
-
-        const cx = Math.max(0, (iw - cw) * 0.5);
-        const cy = Math.max(0, (ih - ch) * 0.5);
-
-        canvasCtx.drawImage(video, cx, cy, cw, ch, 0, 0, width, height);
-      };
-
-      const drawLoop = () => {
-        if (video.paused || video.ended) return;
-
-        // Draw video frame
-        drawVideoFrame();
-
-        // Draw captions
-        const currentTime = video.currentTime;
-        const activeCaption = processedCaptions.find((seg: any) =>
-          currentTime >= seg.start && currentTime <= seg.end
-        );
-
-        if (activeCaption) {
-          drawCaptionOnCanvas(
-            canvasCtx,
-            activeCaption,
-            ctx.captionStyle,
-            currentTime,
-            width,
-            height,
-            renderScale,
-            layoutTemplateMapping(ctx.captionStyle.layout || "modern")
-          );
-        }
-
-        // Draw watermark
-        if (watermark) {
-          drawWatermarkOnCanvas(canvasCtx, width, height, renderScale);
-        }
-
-        // Update progress in UI
-        const currentProgress = Math.round((video.currentTime / video.duration) * 100);
-        setProgress(Math.min(95, Math.max(20, currentProgress)));
-        setStageLabel(`Rendering frame: ${video.currentTime.toFixed(1)}s / ${video.duration.toFixed(1)}s`);
-
-        animationFrameId = requestAnimationFrame(drawLoop);
-      };
-
-      // 8. MediaRecorder callbacks
-      mediaRecorder.onstop = async () => {
-        try {
-          cancelAnimationFrame(animationFrameId);
-          video.pause();
-
-           // Clean up elements
-          try {
-            document.body.removeChild(video);
-          } catch {}
-          audioCtx.close();
-          URL.revokeObjectURL(localVideoUrl);
-
-          // Compile output blob
-          setStageLabel("Finalizing video container...");
-          setProgress(95);
-          
-          const finalBlob = new Blob(chunks, { type: mimeType });
-
-          if (alphaChannel) {
-            const finalUrl = URL.createObjectURL(finalBlob);
-            setDownloadUrl(finalUrl);
             setProgress(100);
             setStageLabel("Export complete!");
+            setDownloadUrl(pd.downloadUrl);
             setPhase("done");
 
-            // Auto-download WebM
-            const a = document.createElement("a");
-            a.href = finalUrl;
-            a.download = `${projectName}.webm`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          } else {
-            // Upload to backend for transcoding to H.264 MP4
-            setStageLabel("Transcoding video to MP4 on server...");
-            setProgress(97);
-
-            const formData = new FormData();
-            formData.append("video", finalBlob, `input.${fileExt}`);
-            formData.append("bitrate", bitrate);
-
-            const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
-            const transcodeRes = await fetch(`${BACKEND_URL}/api/video/transcode`, {
-              method: "POST",
-              headers: {
-                "x-user-id": ctx?.userId || "anonymous",
-              },
-              body: formData,
-            });
-
-            if (!transcodeRes.ok) {
-              throw new Error(`Transcoding server failed: HTTP ${transcodeRes.status}`);
+            // Auto-download video
+            if (pd.downloadUrl) {
+              // Using window.location to bypass browser popup blockers inside setInterval
+              window.location.assign(pd.downloadUrl);
             }
 
-            const transcodeData = await transcodeRes.json();
-            const mp4Url = transcodeData.data.downloadUrl;
-
-            setDownloadUrl(mp4Url);
-            setProgress(100);
-            setStageLabel("Export complete!");
-            setPhase("done");
-
-            // Auto-download MP4
-            const a = document.createElement("a");
-            a.href = mp4Url;
-            a.download = `${projectName}.mp4`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            // Auto-download SRT if enabled
+            if (srtExport && ctx.captions) {
+              const srtContent = generateSRT(ctx.captions);
+              const blob = new Blob([srtContent], { type: "text/srt;charset=utf-8;" });
+              const url = URL.createObjectURL(blob);
+              const aSrt = document.createElement("a");
+              aSrt.href = url;
+              aSrt.setAttribute("download", `${projectName}.srt`);
+              document.body.appendChild(aSrt);
+              aSrt.click();
+              document.body.removeChild(aSrt);
+              URL.revokeObjectURL(url);
+            }
           }
-
-          // Auto-download SRT if enabled
-          if (srtExport && ctx.captions) {
-            const srtContent = generateSRT(ctx.captions);
-            const blob = new Blob([srtContent], { type: "text/srt;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const aSrt = document.createElement("a");
-            aSrt.href = url;
-            aSrt.setAttribute("download", `${projectName}.srt`);
-            document.body.appendChild(aSrt);
-            aSrt.click();
-            document.body.removeChild(aSrt);
-            URL.revokeObjectURL(url);
-          }
-        } catch (err: any) {
-          console.error("Error on MediaRecorder stop:", err);
-          setErrorMsg(err.message || "Error compiling output video.");
+        } catch (e: any) {
+          clearInterval(pollRef.current!);
+          setErrorMsg(e.message ?? "Unknown error");
           setPhase("error");
         }
-      };
-
-      // 9. Start recording
-      video.onplay = () => {
-        mediaRecorder.start();
-        setStageLabel("Encoding video stream...");
-        setProgress(20);
-        drawLoop();
-      };
-
-      video.onended = () => {
-        mediaRecorder.stop();
-      };
-
-      // Check for duration limit manually or handle manual end
-      const checkEndTimer = setInterval(() => {
-        if (video.currentTime >= video.duration || video.ended) {
-          clearInterval(checkEndTimer);
-          if (mediaRecorder.state === "recording") {
-            mediaRecorder.stop();
-          }
-        }
-      }, 500);
-
-      // Start playback
-      await audioCtx.resume();
-      await video.play();
-
+      }, 3000);
     } catch (e: any) {
-      console.error("Client side export error:", e);
-      setErrorMsg(e.message || "Unknown rendering error. Make sure your video source supports CORS.");
+      setErrorMsg(e.message ?? "Unknown error");
       setPhase("error");
     }
   }
@@ -585,28 +270,6 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
 
   return (
     <div className="min-h-screen bg-(--color-bg-base) text-(--color-foreground) font-sans overflow-hidden relative">
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Roboto:wght@400;500;700;900&family=Poppins:wght@400;600;700;800;900&family=Montserrat:wght@400;600;700;800;900&family=Oswald:wght@400;600;700&family=Bebas+Neue&family=Space+Grotesk:wght@400;600;700&family=Great+Vibes&display=swap');
-        @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
-        @import url('https://fonts.cdnfonts.com/css/gilroy-bold');
-        @import url('https://fonts.cdnfonts.com/css/aston-script');
-        @font-face {
-          font-family: 'JaggyW01-Regular';
-          src: url('/fonts/jaggy-w01-regular.ttf') format('truetype');
-        }
-        @font-face {
-          font-family: 'Chalk-y';
-          src: url('/fonts/chalk-y.otf') format('opentype');
-        }
-        @font-face {
-          font-family: 'Bastliga One';
-          src: url('/fonts/bastliga/Bastliga One.ttf') format('truetype');
-        }
-        @font-face {
-          font-family: 'Droid 1997';
-          src: url('/fonts/droid-1997.otf') format('opentype');
-        }
-      `}} />
       {/* Ambient glows */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[900px] h-[1000px] bg-accent/15 blur-[150px] rounded-full mix-blend-screen" />
@@ -906,11 +569,11 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
                 </div>
               ))}
 
-              {!ctx?.videoUrl && (
+              {!ctx?.videoKey && (
                 <div className="flex items-start gap-2 p-3 bg-accent/10 border border-accent/20 rounded-xl mt-2">
                   <AlertCircle className="w-4 h-4 text-accent mt-0.5 shrink-0" />
                   <p className="text-xs text-accent-bright">
-                    No video source found. Please go back and upload a video first.
+                    No S3 source video. Lambda render requires the video to be uploaded to S3 first. Try a fresh upload.
                   </p>
                 </div>
               )}
@@ -919,7 +582,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
             {/* Export button */}
             <button
               onClick={handleExport}
-              disabled={phase === "rendering" || !ctx?.videoUrl}
+              disabled={phase === "rendering" || !ctx?.videoKey}
               className="group relative w-full py-5 rounded-3xl font-black text-lg tracking-tight overflow-hidden transition-all duration-300
                 disabled:opacity-40 disabled:cursor-not-allowed
                 bg-accent hover:bg-accent-bright text-white
@@ -974,30 +637,15 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
                           </p>
                           
                           {phase === "rendering" && (
-                            <div className="pt-2 flex flex-col items-center md:items-start gap-1">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                                <p className="text-sm font-black uppercase tracking-wider text-red-500 animate-pulse">
-                                  ⚠️ Critical: Do not close this window or switch tabs!
-                                </p>
-                              </div>
-                              <p className="text-xs text-zinc-400 ml-4">
-                                Background browser rendering requires this tab to remain active.
+                            <div className="pt-2 flex items-center justify-center md:justify-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                              <p className="text-xs font-bold uppercase tracking-widest text-amber-500/90">
+                                Do not close this window
                               </p>
                             </div>
                           )}
                         </div>
                       </div>
-
-                      {/* Live preview container */}
-                      {phase === "rendering" && (
-                        <div className="flex flex-col items-center gap-3 my-4">
-                          <p className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Live Export Preview</p>
-                          <div className="relative aspect-video w-full max-w-[480px] bg-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl flex items-center justify-center">
-                            <canvas id="export-canvas" className="w-full h-full object-contain" />
-                          </div>
-                        </div>
-                      )}
 
                       {/* AI Style Progress Bar */}
                       <div className="relative h-2 bg-[#050505] rounded-full overflow-hidden border border-white/5 shadow-inner">
@@ -1018,6 +666,24 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                           />
                         )}
+                      </div>
+
+                      {/* Stage steps */}
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
+                        {["Init", "Bundle", "Render", "Stitch", "Upload", "Done"].map((s, i) => {
+                          const stagePct = [0, 15, 35, 65, 85, 100][i];
+                          const done     = progress >= stagePct;
+                          return (
+                            <div key={s} className="flex flex-col items-center gap-1.5">
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-500 ${
+                                done ? "border-accent bg-accent/20" : "border-white/10 bg-[#050505]"
+                              }`}>
+                                {done && <div className="w-2 h-2 bg-accent rounded-full" />}
+                              </div>
+                              <span className={`text-[10px] font-bold tracking-wide transition-colors ${done ? "text-accent" : "text-zinc-600"}`}>{s}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </>
                   )}
@@ -1052,25 +718,13 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
                         <p className="font-bold text-green-400 mb-0.5">Ready to download!</p>
                         <p className="text-xs text-zinc-400">If it didn't start automatically, click the button →</p>
                       </div>
-                      <div className="flex flex-wrap gap-2 shrink-0">
-                        <button
-                          onClick={() => {
-                            setPhase("idle");
-                            setProgress(0);
-                            setDownloadUrl(null);
-                          }}
-                          className="flex items-center justify-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 text-white font-bold text-sm rounded-xl border border-white/10 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
-                        >
-                          Re-render Video
-                        </button>
-                        <button
-                          onClick={handleDownloadClick}
-                          className="flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-sm rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
-                        >
-                          <Download className="w-4 h-4" />
-                          {srtExport ? "Download Video & SRT" : "Download Now"}
-                        </button>
-                      </div>
+                      <button
+                        onClick={handleDownloadClick}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-black text-sm rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                      >
+                        <Download className="w-4 h-4" />
+                        {srtExport ? "Download Video & SRT" : "Download Now"}
+                      </button>
                     </motion.div>
                   )}
                 </div>
@@ -1082,949 +736,4 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
       </main>
     </div>
   );
-}
-
-// ─── Client-side rendering & drawing helpers ─────────────────────────────────
-
-const NOTO_FALLBACK_STACK = [
-  "'Noto Sans Devanagari'",
-  "'Noto Sans Tamil'",
-  "'Noto Sans Bengali'",
-  "'Noto Sans Telugu'",
-  "'Noto Sans Kannada'",
-  "'Noto Sans Malayalam'",
-  "'Noto Sans Gujarati'",
-  "'Noto Sans Gurmukhi'",
-  "'Noto Sans Oriya'",
-  "'Noto Sans Arabic'",
-  "sans-serif",
-].join(", ");
-
-function layoutTemplateMapping(layout: string): string {
-  if (layout === "ali-abdaal") return "ali-abdaal";
-  if (layout === "bubble") return "bubble";
-  if (layout === "hormozi") return "hormozi";
-  if (layout === "gadzhi") return "gadzhi";
-  if (layout === "apple") return "apple";
-  return layout;
-}
-
-function drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
-  ctx.closePath();
-}
-
-function drawWatermarkOnCanvas(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, renderScale: number) {
-  ctx.save();
-  ctx.globalAlpha = 0.3;
-  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-  
-  const w = 240 * renderScale;
-  const h = 50 * renderScale;
-  const x = canvasWidth / 2 - w / 2;
-  const y = canvasHeight / 2 - h / 2;
-  
-  drawRoundedRect(ctx, x, y, w, h, 12 * renderScale);
-  ctx.fill();
-  
-  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-  ctx.font = `800 ${20 * renderScale}px 'Inter', sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("NxtGen Captions", canvasWidth / 2, canvasHeight / 2);
-  ctx.restore();
-}
-
-function drawCaptionOnCanvas(
-  ctx: CanvasRenderingContext2D,
-  segment: any,
-  style: any,
-  currentTime: number,
-  canvasWidth: number,
-  canvasHeight: number,
-  renderScale: number,
-  layout: string
-) {
-  const words = segment.words || [];
-  if (words.length === 0) return;
-
-  ctx.save();
-
-  // Setup styles
-  const fontFamily = style.fontFamily || "Inter";
-  const fontWeight = style.fontWeight || "700";
-  const baseFontSize = (style.fontSize || 32) * renderScale;
-  const primaryColor = style.primaryColor || "#ffffff";
-  const emphasisColor = style.emphasisColor || "#38bdf8";
-  const highlightColor = style.highlightColor || "#FACC15";
-
-  // Calculate position
-  const posX = (style.positionX !== undefined ? style.positionX : 50) * 0.01 * canvasWidth;
-  const posY = (style.positionY !== undefined ? style.positionY : 80) * 0.01 * canvasHeight;
-  const maxWidth = (style.width !== undefined ? style.width : 80) * 0.01 * canvasWidth;
-
-  const fontStack = `'${fontFamily}', ${NOTO_FALLBACK_STACK}`;
-  ctx.textBaseline = "middle";
-
-  // Kinetic Multi-line styles
-  if (["nxtgen-genz", "nxtgen-horror", "nxtgen-vengence", "nxtgen-alpha"].includes(layout)) {
-    // Find hero word
-    let heroIndex = Math.floor(words.length / 2);
-    let maxLen = 0;
-    for (let i = 0; i < words.length; i++) {
-      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
-      if (clean.length > maxLen && clean.length <= 7) {
-        maxLen = clean.length;
-        heroIndex = i;
-      }
-    }
-
-    const topWords = words.slice(0, heroIndex);
-    const heroWordObj = words[heroIndex];
-    const bottomWords = words.slice(heroIndex + 1);
-
-    const SUB_FONT_SIZE = baseFontSize * 3;
-    const HERO_FONT_SIZE = words.length <= 2 ? baseFontSize * 4.5 : baseFontSize * 6.56;
-
-    let currentY = posY - (baseFontSize * 5) / 2;
-
-    const drawWordLine = (wordList: any[], fontName: string, fontSize: number, alignRight = false) => {
-      if (wordList.length === 0) return;
-      ctx.font = `${fontWeight} ${fontSize}px ${fontName}`;
-      
-      let lineW = 0;
-      const spW = ctx.measureText(" ").width;
-      const measuredWords = wordList.map(w => {
-        const isAct = currentTime >= w.start && currentTime <= w.end;
-        ctx.font = `${fontWeight} ${isAct ? fontSize * 1.2 : fontSize}px ${fontName}`;
-        const wd = ctx.measureText(w.word).width;
-        return { ...w, width: wd, size: isAct ? fontSize * 1.2 : fontSize };
-      });
-
-      for (let i = 0; i < measuredWords.length; i++) {
-        lineW += measuredWords[i].width + (i < measuredWords.length - 1 ? spW : 0);
-      }
-
-      let startX = alignRight ? (posX + maxWidth / 2 - lineW) : (posX - lineW / 2);
-      if (!alignRight && wordList === topWords) {
-        startX = posX - maxWidth / 2;
-      }
-
-      for (const w of measuredWords) {
-        const isAct = currentTime >= w.start && currentTime <= w.end;
-        ctx.font = `${fontWeight} ${w.size}px ${fontName}`;
-        ctx.fillStyle = isAct ? emphasisColor : primaryColor;
-        ctx.fillText(w.word, startX, currentY);
-        startX += w.width + spW;
-      }
-    };
-
-    let topFont = `'Satoshi', sans-serif`;
-    let bottomFont = `'Satoshi', sans-serif`;
-    let heroFont = fontStack;
-
-    if (layout === "nxtgen-alpha") {
-      topFont = `'Aston Script', cursive`;
-      bottomFont = `'Aston Script', cursive`;
-      heroFont = `'Bastliga One', cursive`;
-    } else if (layout === "nxtgen-horror") {
-      topFont = `'JaggyW01-Regular', sans-serif`;
-      bottomFont = `'JaggyW01-Regular', sans-serif`;
-      heroFont = `'Chalk-y', sans-serif`;
-    } else if (layout === "nxtgen-vengence") {
-      topFont = `'Bastliga One', cursive`;
-      bottomFont = `'Space Grotesk', sans-serif`;
-      heroFont = `'Droid 1997', sans-serif`;
-    }
-
-    const finalTopFont = `${topFont}, ${NOTO_FALLBACK_STACK}`;
-    const finalBottomFont = `${bottomFont}, ${NOTO_FALLBACK_STACK}`;
-    const finalHeroFont = `${heroFont}, ${NOTO_FALLBACK_STACK}`;
-    
-    drawWordLine(topWords, finalTopFont, SUB_FONT_SIZE, false);
-    currentY += SUB_FONT_SIZE * 1.3;
-
-    if (heroWordObj) {
-      const isAct = currentTime >= heroWordObj.start;
-      ctx.font = `900 ${HERO_FONT_SIZE}px ${finalHeroFont}`;
-      
-      // Vengence Hero text is rendered with mix-blend-mode: difference in white
-      ctx.fillStyle = (layout === "nxtgen-vengence" || layout === "nxtgen-horror") ? "#ffffff" : (isAct ? emphasisColor : primaryColor);
-      
-      const hw = ctx.measureText(heroWordObj.word).width;
-      ctx.fillText(heroWordObj.word, posX - hw / 2, currentY);
-      currentY += HERO_FONT_SIZE * 1.1;
-    }
-
-    drawWordLine(bottomWords, finalBottomFont, SUB_FONT_SIZE, true);
-    ctx.restore();
-    return;
-  }
-
-  // Viral & Energetic Kinetic layouts
-  if (["nxtgen-viral", "nxtgen-energetic"].includes(layout)) {
-    const isEnergetic = layout === "nxtgen-energetic";
-    
-    // Find target word (longest word in the segment)
-    let targetIndex = 0;
-    let maxLen = 0;
-    for (let i = 0; i < words.length; i++) {
-      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
-      if (clean.length > maxLen) {
-        maxLen = clean.length;
-        targetIndex = i;
-      }
-    }
-
-    // Group words into lines exactly like VideoPlayer.tsx
-    const lines: { words: any[], hasTarget: boolean }[] = [];
-    let i = 0;
-    while (i < words.length) {
-      if (i === targetIndex || i === targetIndex - 1) {
-        const chunk = [];
-        if (i === targetIndex - 1) {
-          chunk.push(words[i]);
-          i++;
-        }
-        if (i < words.length) {
-          chunk.push(words[i]); // targetIndex
-          i++;
-        }
-        while (i < words.length && chunk.length < 2) {
-          chunk.push(words[i]);
-          i++;
-        }
-        lines.push({ words: chunk, hasTarget: true });
-      } else {
-        const chunk = [];
-        chunk.push(words[i]);
-        i++;
-        if (i < words.length && i !== targetIndex && i !== targetIndex - 1) {
-          chunk.push(words[i]);
-          i++;
-        }
-        lines.push({ words: chunk, hasTarget: false });
-      }
-    }
-
-    const satoshiFont = `'Satoshi', ${fontStack}`;
-    
-    // Calculate total height of the block
-    let totalHeight = 0;
-    const lineHeights = lines.map(line => {
-      let maxH = baseFontSize;
-      for (const w of line.words) {
-        const wordGlobalIdx = words.indexOf(w);
-        const isTarget = wordGlobalIdx === targetIndex;
-        if (isTarget) maxH = Math.max(maxH, baseFontSize * 2.5);
-      }
-      return maxH;
-    });
-
-    for (let h of lineHeights) {
-      totalHeight += h + 10 * renderScale;
-    }
-
-    let currentY = posY - totalHeight / 2 + lineHeights[0] / 2;
-
-    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-      const line = lines[lineIdx];
-      const lineHeight = lineHeights[lineIdx];
-
-      // Measure all words in this line
-      const measuredWords = line.words.map(w => {
-        const wordGlobalIdx = words.indexOf(w);
-        const isTarget = wordGlobalIdx === targetIndex;
-        const isPreceding = wordGlobalIdx === targetIndex - 1;
-        const isLastInNormal = !line.hasTarget && words.indexOf(w) === words.indexOf(line.words[line.words.length - 1]);
-
-        let fSize = baseFontSize;
-        let weight = "700";
-        if (isTarget) {
-          fSize = baseFontSize * 2.5;
-          weight = "900";
-        } else if (isPreceding || isLastInNormal) {
-          fSize = baseFontSize * 0.65;
-          weight = "500";
-        }
-
-        ctx.font = `${weight} ${fSize}px ${satoshiFont}`;
-        const wWidth = ctx.measureText(w.word).width;
-
-        return {
-          ...w,
-          width: wWidth,
-          fontSize: fSize,
-          fontWeight: weight,
-          isTarget,
-          isPreceding,
-          isLastInNormal
-        };
-      });
-
-      const spaceW = ctx.measureText(" ").width;
-      let totalLineWidth = 0;
-      for (let wIdx = 0; wIdx < measuredWords.length; wIdx++) {
-        totalLineWidth += measuredWords[wIdx].width + (wIdx < measuredWords.length - 1 ? spaceW : 0);
-      }
-
-      let startX = posX - totalLineWidth / 2;
-
-      for (const w of measuredWords) {
-        const isSpoken = currentTime >= w.start;
-
-        ctx.save();
-
-        let color = primaryColor;
-        let opacity = 1;
-
-        if (w.isTarget) {
-          color = emphasisColor;
-          ctx.shadowColor = `${color}90`;
-          ctx.shadowBlur = 15 * renderScale;
-        }
-
-        if (isSpoken) {
-          opacity = (w.isPreceding || w.isLastInNormal) ? 0.8 : 1;
-          ctx.filter = "none";
-        } else {
-          opacity = 0;
-          if (!isEnergetic) {
-            ctx.filter = `blur(${10 * renderScale}px)`;
-          }
-        }
-
-        ctx.globalAlpha = opacity;
-        ctx.font = `${w.fontWeight} ${w.fontSize}px ${satoshiFont}`;
-        ctx.fillStyle = color;
-
-        let wordY = currentY;
-        if (w.isPreceding || w.isLastInNormal) {
-          wordY = currentY + lineHeight / 2 - w.fontSize / 2;
-        }
-
-        ctx.fillText(w.word, startX, wordY);
-        ctx.restore();
-
-        startX += w.width + spaceW;
-      }
-
-      currentY += lineHeight + 10 * renderScale;
-    }
-
-    ctx.restore();
-    return;
-  }
-
-  // Futuristic Glitch / Monospace Holo Layout
-  if (layout === "holo") {
-    // Draw green/matrix border box around the text segment
-    const paddingX = 24 * renderScale;
-    const paddingY = 16 * renderScale;
-    
-    ctx.font = `${fontWeight} ${baseFontSize}px 'Space Grotesk', monospace`;
-    const spaceW = ctx.measureText(" ").width;
-    
-    let totalTextWidth = 0;
-    const wordWidths = words.map((w: any) => {
-      const wWidth = ctx.measureText(w.word).width;
-      return wWidth;
-    });
-
-    for (let wIdx = 0; wIdx < words.length; wIdx++) {
-      totalTextWidth += wordWidths[wIdx] + (wIdx < words.length - 1 ? spaceW : 0);
-    }
-
-    const boxW = Math.min(maxWidth, totalTextWidth + paddingX * 2);
-    const boxH = baseFontSize + paddingY * 2;
-    const boxX = posX - boxW / 2;
-    const boxY = posY - boxH / 2;
-
-    ctx.fillStyle = "rgba(0, 255, 65, 0.08)";
-    ctx.strokeStyle = primaryColor;
-    ctx.lineWidth = 1 * renderScale;
-    drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 8 * renderScale);
-    ctx.fill();
-    ctx.stroke();
-
-    // Glowing shadow overlay
-    ctx.shadowColor = `${primaryColor}40`;
-    ctx.shadowBlur = 15 * renderScale;
-
-    // Typewriter letters drawing
-    let currentX = posX - totalTextWidth / 2;
-    let charGlobalIdx = 0;
-    const captionAge = currentTime - segment.start;
-
-    for (let wIdx = 0; wIdx < words.length; wIdx++) {
-      const w = words[wIdx];
-      const isGlitch = (wIdx + 1) % 4 === 0;
-
-      ctx.save();
-      if (isGlitch) {
-        ctx.shadowColor = "red";
-        ctx.shadowOffsetX = -2 * renderScale;
-        ctx.shadowOffsetY = 0;
-        ctx.shadowBlur = 1 * renderScale;
-        ctx.transform(1, 0, -0.15, 1, 0, 0); // Skew slightly
-      }
-
-      ctx.font = `${fontWeight} ${baseFontSize}px 'Space Grotesk', monospace`;
-      ctx.fillStyle = primaryColor;
-
-      for (let cIdx = 0; cIdx < w.word.length; cIdx++) {
-        const char = w.word[cIdx];
-        const delay = charGlobalIdx * 0.03;
-        
-        if (captionAge >= delay) {
-          ctx.fillText(char, currentX, posY);
-        }
-        currentX += ctx.measureText(char).width;
-        charGlobalIdx++;
-      }
-
-      ctx.restore();
-      currentX += spaceW;
-      charGlobalIdx++; // Count space character
-    }
-
-    ctx.restore();
-    return;
-  }
-
-  // Modern Fade Reveal vertical stack animation
-  if (layout === "modern") {
-    const spacing = 10 * renderScale;
-    
-    const stopWords = new Set([
-      "the", "and", "is", "in", "to", "of", "a", "for", "it",
-      "on", "with", "as", "at", "by", "an", "or", "be", "this",
-      "that", "are",
-    ]);
-
-    const processedWords = words.map((w: any, index: number) => {
-      const cleanWord = w.word.toLowerCase().replace(/[^a-z]/g, "");
-      const isStopWord = stopWords.has(cleanWord);
-      const isLongWord = w.word.length >= 4;
-      const isRhythmicWord = index % 3 === 2;
-      const isSpotlight = (isLongWord && !isStopWord) || (isRhythmicWord && !isStopWord);
-
-      const seed = w.word.length + index + (cleanWord.charCodeAt(0) || 0);
-      const pseudoRand = ((seed * 9301 + 49297) % 233280) / 233280;
-
-      let fontSizeMultiplier;
-      if (isSpotlight && style.emphasisWords) {
-        fontSizeMultiplier = 1.3 + pseudoRand * 0.35;
-      } else if (isLongWord && !isStopWord) {
-        fontSizeMultiplier = 0.9 + pseudoRand * 0.25;
-      } else {
-        fontSizeMultiplier = 0.65 + pseudoRand * 0.25;
-      }
-
-      const offsetX = (((seed * 9301 + 49297) % 233280) / 233280) * 60 - 30; // -30% to +30%
-
-      return {
-        ...w,
-        isSpotlight,
-        fontSizeMultiplier,
-        offsetX,
-        index,
-      };
-    });
-
-    let totalHeight = 0;
-    for (const w of processedWords) {
-      totalHeight += baseFontSize * w.fontSizeMultiplier + spacing;
-    }
-
-    let currentY = posY - totalHeight / 2;
-
-    for (const w of processedWords) {
-      const isSpoken = currentTime >= w.start;
-      const isActive = currentTime >= w.start && currentTime <= w.end;
-      const isEmphasis = w.isSpotlight && style.emphasisWords;
-
-      let opacity = 0;
-      let wordYOffset = -22 * renderScale;
-      const captionAge = currentTime - segment.start;
-      const wordDelay = w.index * 0.08;
-
-      if (captionAge >= wordDelay) {
-        const wordAge = captionAge - wordDelay;
-        opacity = Math.min(1, Math.max(0, wordAge / 0.35));
-        wordYOffset = -22 * (1 - opacity) * renderScale;
-      }
-
-      ctx.save();
-      ctx.globalAlpha = opacity;
-
-      const size = baseFontSize * w.fontSizeMultiplier;
-      const weight = isEmphasis ? "800" : "400";
-      ctx.font = `${weight} ${size}px ${fontStack}`;
-
-      let color = isEmphasis ? emphasisColor : primaryColor;
-      ctx.fillStyle = color;
-
-      if (isEmphasis && style.emphasisGlow) {
-        ctx.shadowColor = style.emphasisGlowColor || color;
-        ctx.shadowBlur = style.emphasisGlowIntensity * 4 * renderScale;
-      } else if (style.dropShadow) {
-        ctx.shadowColor = style.dropShadowColor || "rgba(0,0,0,0.5)";
-        ctx.shadowBlur = style.dropShadowOpacity * 10 * renderScale;
-        ctx.shadowOffsetX = 2 * renderScale;
-        ctx.shadowOffsetY = 2 * renderScale;
-      }
-
-      const wordX = posX + (w.offsetX * 0.01 * maxWidth);
-      ctx.textAlign = "center";
-      ctx.fillText(w.word, wordX, currentY + wordYOffset + size / 2);
-      ctx.restore();
-
-      currentY += size + spacing;
-    }
-
-    ctx.restore();
-    return;
-  }
-
-  // Mogrt Shimmer Stack layout
-  if (layout === "mogrt-shimmer-stack") {
-    let focusIndex = Math.floor(words.length / 2);
-    let maxLen = 0;
-    for (let i = 0; i < words.length; i++) {
-      const clean = words[i].word.replace(/[^a-zA-Z]/g, '');
-      if (clean.length > maxLen) {
-        maxLen = clean.length;
-        focusIndex = i;
-      }
-    }
-
-    const topWords = words.slice(0, focusIndex);
-    const focusWord = words[focusIndex];
-    const bottomWords = words.slice(focusIndex + 1);
-
-    const isFocusActive = currentTime >= focusWord.start && currentTime <= focusWord.end;
-    const FOCUS_FONT_SIZE = baseFontSize * 2.8;
-
-    let totalHeight = 0;
-    if (topWords.length > 0) totalHeight += baseFontSize + 12 * renderScale;
-    if (focusWord) totalHeight += FOCUS_FONT_SIZE + 12 * renderScale;
-    if (bottomWords.length > 0) totalHeight += baseFontSize;
-
-    let currentY = posY - totalHeight / 2;
-
-    const drawPhrase = (phraseWords: any[], isTop: boolean) => {
-      if (phraseWords.length === 0) return;
-      const anySpoken = phraseWords.some(w => currentTime >= w.start);
-      if (!anySpoken) return;
-
-      ctx.save();
-      ctx.font = `600 ${baseFontSize}px ${fontStack}`;
-      
-      let lineW = 0;
-      const spW = ctx.measureText(" ").width;
-      const measured = phraseWords.map(w => {
-        const isSp = currentTime >= w.start;
-        const wd = ctx.measureText(w.word).width;
-        return { ...w, width: wd, isSp };
-      });
-
-      for (let i = 0; i < measured.length; i++) {
-        lineW += measured[i].width + (i < measured.length - 1 ? spW : 0);
-      }
-
-      let startX = posX - lineW / 2;
-      for (const w of measured) {
-        ctx.save();
-        ctx.globalAlpha = w.isSp ? 1 : 0.15;
-        ctx.fillStyle = primaryColor;
-        
-        if (style.dropShadow) {
-          ctx.shadowColor = style.dropShadowColor || "rgba(0,0,0,0.5)";
-          ctx.shadowBlur = style.dropShadowOpacity * 10 * renderScale;
-          ctx.shadowOffsetX = 2 * renderScale;
-          ctx.shadowOffsetY = 2 * renderScale;
-        }
-
-        ctx.fillText(w.word, startX, currentY);
-        ctx.restore();
-        startX += w.width + spW;
-      }
-      ctx.restore();
-    };
-
-    if (topWords.length > 0) {
-      drawPhrase(topWords, true);
-      currentY += baseFontSize + 12 * renderScale;
-    }
-
-    if (focusWord && currentTime >= focusWord.start) {
-      ctx.save();
-      let sizeMultiplier = 1;
-      if (isFocusActive) {
-        sizeMultiplier = 1.05;
-      }
-
-      ctx.font = `900 ${FOCUS_FONT_SIZE * sizeMultiplier}px ${fontStack}`;
-      const fW = ctx.measureText(focusWord.word.toUpperCase()).width;
-
-      const shimmerGrad = ctx.createLinearGradient(posX - fW / 2, 0, posX + fW / 2, 0);
-      shimmerGrad.addColorStop(0, "#eee");
-      shimmerGrad.addColorStop(0.25, "#eee");
-      shimmerGrad.addColorStop(0.5, "#fff");
-      shimmerGrad.addColorStop(0.75, "#eee");
-      shimmerGrad.addColorStop(1, "#eee");
-
-      ctx.fillStyle = shimmerGrad;
-      ctx.textAlign = "center";
-      ctx.fillText(focusWord.word.toUpperCase(), posX, currentY + FOCUS_FONT_SIZE / 2);
-      ctx.restore();
-
-      currentY += FOCUS_FONT_SIZE + 12 * renderScale;
-    }
-
-    if (bottomWords.length > 0) {
-      drawPhrase(bottomWords, false);
-    }
-
-    ctx.restore();
-    return;
-  }
-
-  // Cinemaline & Directors Edition layouts
-  if (["nxtgen-cinemaline", "nxtgen-directors-edition"].includes(layout)) {
-    const isCinema = layout === "nxtgen-cinemaline";
-    
-    let longestIndex = 0;
-    let maxLen = 0;
-    for (let i = 0; i < words.length; i++) {
-      const clean = words[i].word.replace(/[^a-zA-Z]/g, "");
-      if (clean.length > maxLen) {
-        maxLen = clean.length;
-        longestIndex = i;
-      }
-    }
-
-    const isCursiveFirst = longestIndex === 0 && words.length > 1;
-    const isCursiveLast = longestIndex === words.length - 1 && words.length > 1;
-
-    const satoshiFont = `'Satoshi', ${fontStack}`;
-    const cursiveFont = `'Great Vibes', cursive, ${fontStack}`;
-
-    const drawCinemaWord = (w: any, index: number, isTarget: boolean, currentX: number, drawY: number) => {
-      const isSpoken = currentTime >= w.start;
-      ctx.save();
-      
-      const font = isTarget ? (isCinema ? cursiveFont : satoshiFont) : satoshiFont;
-      const weight = isTarget ? (isCinema ? "400" : "900") : (isCinema ? "700" : "400");
-      const size = isTarget ? baseFontSize * 2 : baseFontSize;
-      const color = isTarget ? (style.emphasisColor || "#EF4444") : (style.primaryColor || "#FFFFFF");
-
-      let opacity = 0;
-      if (isSpoken) {
-        opacity = 1;
-        ctx.filter = "none";
-      } else {
-        opacity = 0;
-        ctx.filter = `blur(${10 * renderScale}px)`;
-      }
-
-      ctx.globalAlpha = opacity;
-      ctx.font = `${weight} ${size}px ${font}`;
-      ctx.fillStyle = color;
-      
-      ctx.fillText(w.word, currentX, drawY);
-      ctx.restore();
-      
-      ctx.font = `${weight} ${size}px ${font}`;
-      return ctx.measureText(w.word).width;
-    };
-
-    if (isCursiveFirst) {
-      const topY = posY - baseFontSize;
-      const bottomY = posY + baseFontSize;
-
-      ctx.font = `${isCinema ? "400" : "900"} ${baseFontSize * 2}px ${isCinema ? cursiveFont : satoshiFont}`;
-      const topW = ctx.measureText(words[0].word).width;
-      drawCinemaWord(words[0], 0, true, posX - topW / 2, topY);
-
-      ctx.font = `${isCinema ? "700" : "400"} ${baseFontSize}px ${satoshiFont}`;
-      const spaceW = ctx.measureText(" ").width;
-      
-      let bottomW = 0;
-      const measured = words.slice(1).map((w: any) => {
-        const wd = ctx.measureText(w.word).width;
-        return { ...w, width: wd };
-      });
-      for (let i = 0; i < measured.length; i++) {
-        bottomW += measured[i].width + (i < measured.length - 1 ? spaceW : 0);
-      }
-
-      let startX = posX - bottomW / 2;
-      for (let idx = 0; idx < measured.length; idx++) {
-        drawCinemaWord(measured[idx], idx + 1, false, startX, bottomY);
-        startX += measured[idx].width + spaceW;
-      }
-      
-    } else if (isCursiveLast) {
-      const topY = posY - baseFontSize;
-      const bottomY = posY + baseFontSize;
-
-      ctx.font = `${isCinema ? "700" : "400"} ${baseFontSize}px ${satoshiFont}`;
-      const spaceW = ctx.measureText(" ").width;
-      
-      let topW = 0;
-      const measured = words.slice(0, words.length - 1).map((w: any) => {
-        const wd = ctx.measureText(w.word).width;
-        return { ...w, width: wd };
-      });
-      for (let i = 0; i < measured.length; i++) {
-        topW += measured[i].width + (i < measured.length - 1 ? spaceW : 0);
-      }
-
-      let startX = posX - topW / 2;
-      for (let idx = 0; idx < measured.length; idx++) {
-        drawCinemaWord(measured[idx], idx, false, startX, topY);
-        startX += measured[idx].width + spaceW;
-      }
-
-      ctx.font = `${isCinema ? "400" : "900"} ${baseFontSize * 2}px ${isCinema ? cursiveFont : satoshiFont}`;
-      const bottomW = ctx.measureText(words[words.length - 1].word).width;
-      drawCinemaWord(words[words.length - 1], words.length - 1, true, posX - bottomW / 2, bottomY);
-
-    } else {
-      ctx.font = `${isCinema ? "700" : "400"} ${baseFontSize}px ${satoshiFont}`;
-      const spaceW = ctx.measureText(" ").width;
-
-      let totalW = 0;
-      const measured = words.map((w: any, idx: number) => {
-        const isTarget = idx === longestIndex;
-        const font = isTarget ? (isCinema ? cursiveFont : satoshiFont) : satoshiFont;
-        const weight = isTarget ? (isCinema ? "400" : "900") : (isCinema ? "700" : "400");
-        const size = isTarget ? baseFontSize * 2 : baseFontSize;
-
-        ctx.font = `${weight} ${size}px ${font}`;
-        const wd = ctx.measureText(w.word).width;
-        return { ...w, width: wd, isTarget };
-      });
-
-      for (let i = 0; i < measured.length; i++) {
-        totalW += measured[i].width + (i < measured.length - 1 ? spaceW : 0);
-      }
-
-      let startX = posX - totalW / 2;
-      for (let idx = 0; idx < measured.length; idx++) {
-        drawCinemaWord(measured[idx], idx, measured[idx].isTarget, startX, posY);
-        startX += measured[idx].width + spaceW;
-      }
-    }
-
-    ctx.restore();
-    return;
-  }
-
-  // Modern Fade Reveal animation
-  const isModern = false; // Handled dynamically in dedicated loop above
-
-  // Word measurements & wrapping
-  ctx.font = `${fontWeight} ${baseFontSize}px ${fontStack}`;
-  const spaceWidth = ctx.measureText(" ").width;
-  let lines: any[][] = [[]];
-  let currentLineWidth = 0;
-
-  for (let idx = 0; idx < words.length; idx++) {
-    const w = words[idx];
-    const isActive = currentTime >= w.start && currentTime <= w.end;
-    let wordFontSize = baseFontSize;
-
-    ctx.font = `${fontWeight} ${wordFontSize}px ${fontStack}`;
-    const wordWidth = ctx.measureText(w.word).width;
-
-    if (currentLineWidth + wordWidth > maxWidth && lines[lines.length - 1].length > 0) {
-      lines.push([]);
-      currentLineWidth = 0;
-    }
-
-    lines[lines.length - 1].push({
-      ...w,
-      width: wordWidth,
-      fontSize: wordFontSize,
-      globalIndex: idx,
-    });
-    currentLineWidth += wordWidth + spaceWidth;
-  }
-
-  // Draw lines
-  let currentY = posY - ((lines.length - 1) * baseFontSize * (style.lineSpacing || 1.25)) / 2;
-
-  for (const line of lines) {
-    let lineWidth = 0;
-    for (let i = 0; i < line.length; i++) {
-      lineWidth += line[i].width + (i < line.length - 1 ? spaceWidth : 0);
-    }
-
-    // Set starting position based on selected alignment
-    const textAlignment = style.textAlignment || "center";
-    let startX = posX;
-    if (textAlignment === "left") {
-      startX = posX - maxWidth / 2;
-    } else if (textAlignment === "right") {
-      startX = posX + maxWidth / 2 - lineWidth;
-    } else {
-      startX = posX - lineWidth / 2;
-    }
-
-    for (let i = 0; i < line.length; i++) {
-      const w = line[i];
-      const isActive = currentTime >= w.start && currentTime <= w.end;
-      const isAccent = w.isEmphasized || w.isHighlighted || isActive;
-
-      // Determine proper weight for current template
-      let weight = fontWeight;
-      if (layout === "gadzhi") {
-        weight = isActive ? "700" : "300";
-      } else if (layout === "ali-abdaal") {
-        weight = (w.isEmphasized || w.isHighlighted) ? "700" : "400";
-      } else {
-        weight = isActive ? "900" : "700";
-      }
-
-      // Handle active scale up in-place
-      let wordSize = w.fontSize;
-      if (isActive) {
-        if (["classic", "bubble", "modern"].includes(layout)) {
-          wordSize = w.fontSize * 1.05;
-        } else if (layout === "hormozi") {
-          wordSize = w.fontSize * 1.2;
-        }
-      }
-
-      ctx.font = `${weight} ${wordSize}px ${fontStack}`;
-
-      let color = primaryColor;
-      if (w.isHighlighted) color = highlightColor;
-      else if (w.isEmphasized || isActive) color = emphasisColor;
-
-      // Calculate stagger opacity for modern template
-      let opacity = 1;
-      let yOffset = 0;
-      if (isModern) {
-        const captionAge = currentTime - segment.start;
-        const wordDelay = w.globalIndex * 0.08;
-        if (captionAge < wordDelay) {
-          opacity = 0;
-        } else {
-          const wordAge = captionAge - wordDelay;
-          opacity = Math.min(1, Math.max(0, wordAge / 0.15));
-          yOffset = -22 * (1 - opacity);
-        }
-      }
-
-      ctx.save();
-      ctx.globalAlpha = opacity;
-
-      // Apply blur filter for Apple Style
-      if (layout === "apple") {
-        const isSpoken = currentTime >= w.start;
-        if (isSpoken) {
-          ctx.filter = "none";
-          color = style.emphasisColor || emphasisColor;
-        } else {
-          ctx.filter = `blur(${3 * renderScale}px)`;
-          ctx.globalAlpha = 0.5;
-        }
-      }
-
-      // Configure Shadows / Glows
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-
-      if (isAccent && style.emphasisGlow) {
-        ctx.shadowColor = style.emphasisGlowColor || color;
-        ctx.shadowBlur = style.emphasisGlowIntensity * 4 * renderScale;
-      } else if (style.dropShadow) {
-        ctx.shadowColor = style.dropShadowColor || "rgba(0,0,0,0.5)";
-        ctx.shadowBlur = style.dropShadowOpacity * 10 * renderScale;
-        ctx.shadowOffsetX = 2 * renderScale;
-        ctx.shadowOffsetY = 2 * renderScale;
-      }
-
-      // Draw word background for Bubble style
-      if (layout === "bubble") {
-        const bgCol = isAccent
-          ? (w.isHighlighted ? highlightColor : (style.bubbleSecondaryColor || "#4ADE80"))
-          : "transparent";
-        
-        if (bgCol !== "transparent") {
-          ctx.save();
-          // Disable shadow for background drawing to prevent double-shadow
-          ctx.shadowColor = "transparent";
-          ctx.fillStyle = bgCol;
-          const padX = 8 * renderScale;
-          const padY = 4 * renderScale;
-          drawRoundedRect(
-            ctx,
-            startX - padX,
-            currentY + yOffset - w.fontSize / 2 - padY,
-            w.width + padX * 2,
-            w.fontSize + padY * 2,
-            999 // Pill shapes
-          );
-          ctx.fill();
-          ctx.restore();
-
-          color = isAccent
-            ? (w.isHighlighted ? "#000000" : (style.bubbleTertiaryColor || "#ffffff"))
-            : (style.bubblePrimaryColor || primaryColor);
-        }
-      }
-
-      // Draw word background for Ali Abdaal style
-      if (layout === "ali-abdaal") {
-        if (isAccent) {
-          ctx.save();
-          ctx.shadowColor = "transparent";
-          ctx.fillStyle = w.isHighlighted
-            ? highlightColor
-            : (w.isEmphasized || isActive ? emphasisColor : "transparent");
-          ctx.fillRect(startX - 2 * renderScale, currentY + yOffset - w.fontSize / 2, w.width + 4 * renderScale, w.fontSize);
-          ctx.restore();
-          
-          if (w.isHighlighted) {
-            color = "#000000";
-          }
-        }
-      }
-
-      ctx.fillStyle = color;
-
-      // Handle word casing cases
-      let displayWord = w.word;
-      if (layout === "hormozi") {
-        displayWord = w.word.toUpperCase();
-      } else if (layout === "gadzhi") {
-        displayWord = w.word.toLowerCase();
-      }
-
-      ctx.fillText(displayWord, startX, currentY + yOffset);
-      ctx.restore();
-      
-      startX += w.width + spaceWidth;
-    }
-
-    currentY += baseFontSize * (style.lineSpacing || 1.25);
-  }
-
-  ctx.restore();
 }
