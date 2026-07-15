@@ -508,7 +508,7 @@ export const CaptionOverlay: React.FC<{
   };
 
   // ── renderAppleText ───────────────────────────────────────────────────────
-  const renderAppleText = () => (
+  const renderAppleText = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => (
     <div style={{
       display: "flex",
       flexDirection: "row",
@@ -520,7 +520,7 @@ export const CaptionOverlay: React.FC<{
       <style>{`
         @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
       `}</style>
-      {activeCaption!.words.map((wordObj, i) => {
+      {seg.words.map((wordObj, i) => {
         const isSpoken = currentTime >= wordObj.start;
         const wordStartFrame = secToFrame(wordObj.start, fps);
         const blurAnim = interpolate(frame, [wordStartFrame, wordStartFrame + fps * 0.2], [4, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
@@ -551,8 +551,8 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderNxtgenGenZ ─────────────────────────────────────────────────────
   // Kalakar-style: Top(words) → Hero(1 word with shimmer) → Bottom(words)
-  const renderNxtgenGenZ = () => {
-    const words = activeCaption!.words;
+  const renderNxtgenGenZ = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     if (words.length === 0) return null;
 
     // Find the hero word - longest word in the segment not greater than 7 letters
@@ -736,8 +736,8 @@ export const CaptionOverlay: React.FC<{
 
   // ── renderNxtgenAlpha ─────────────────────────────────────────────────────
   // Cursive Style: Top('Aston Script') → Hero(1 word with shimmer) → Bottom('Aston Script')
-  const renderNxtgenAlpha = () => {
-    const words = activeCaption!.words;
+  const renderNxtgenAlpha = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     if (words.length === 0) return null;
 
     // Find the hero word - longest word in the segment not greater than 7 letters
@@ -925,8 +925,8 @@ export const CaptionOverlay: React.FC<{
   };
 
   // ── renderNxtgenHorror ───────────────────────────────────────────────────
-  const renderNxtgenHorror = () => {
-    const words = activeCaption!.words;
+  const renderNxtgenHorror = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     if (words.length === 0) return null;
 
     // Split logic exactly like Nxtgen GenZ
@@ -1111,8 +1111,8 @@ export const CaptionOverlay: React.FC<{
   };
 
   // ── renderNxtgenVengence ─────────────────────────────────────────────────
-  const renderNxtgenVengence = () => {
-    const words = activeCaption!.words;
+  const renderNxtgenVengence = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     if (words.length === 0) return null;
 
     let heroIndex = Math.floor(words.length / 2);
@@ -1271,8 +1271,8 @@ export const CaptionOverlay: React.FC<{
   };
 
   // ── renderNxtgenCinemaLine ─────────────────────────────────────────────
-  const renderNxtgenCinemaLine = () => {
-    const words = activeCaption!.words;
+  const renderNxtgenCinemaLine = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     if (words.length === 0) return null;
 
     let longestIndex = 0;
@@ -1381,8 +1381,8 @@ export const CaptionOverlay: React.FC<{
   };
 
   // ── renderNxtgenDirectorsEdition ─────────────────────────────────────────────
-  const renderNxtgenDirectorsEdition = () => {
-    const words = activeCaption!.words;
+  const renderNxtgenDirectorsEdition = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     if (words.length === 0) return null;
 
     let longestIndex = 0;
@@ -1488,8 +1488,8 @@ export const CaptionOverlay: React.FC<{
   };
 
   // ── renderNxtgenViralOrEnergetic ───────────────────────────────────────────
-  const renderNxtgenViralOrEnergetic = (isEnergetic: boolean) => {
-    const words = activeCaption!.words;
+  const renderNxtgenViralOrEnergetic = (isEnergetic: boolean, seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     if (words.length === 0) return null;
 
     let targetIndex = 0;
@@ -1622,8 +1622,8 @@ export const CaptionOverlay: React.FC<{
   };
 
   // ── renderMogrtShimmerStack ───────────────────────────────────────────────
-  const renderMogrtShimmerStack = () => {
-    const words = activeCaption!.words;
+  const renderMogrtShimmerStack = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     let focusIndex = Math.floor(words.length / 2);
     let maxLen = 0;
     for (let i = 0; i < words.length; i++) {
@@ -1726,8 +1726,8 @@ export const CaptionOverlay: React.FC<{
   };
 
   // ── renderHoloText ────────────────────────────────────────────────────────
-  const renderHoloText = () => {
-    const words = activeCaption!.words;
+  const renderHoloText = (seg: CaptionSegment = activeCaption ?? exitingCaption!) => {
+    const words = seg.words;
     if (words.length === 0) return null;
 
     const segmentStartFrame = secToFrame(words[0].start, fps);
@@ -1870,7 +1870,7 @@ export const CaptionOverlay: React.FC<{
         {effectiveLayout === "modern" ? (
           <ModernCaption caption={seg} style={segStyle as any} fps={fps} />
         ) : effectiveLayout === "holo" ? (
-          renderHoloText()
+          renderHoloText(seg)
         ) : (
           <div
             style={{
@@ -1885,16 +1885,16 @@ export const CaptionOverlay: React.FC<{
              effectiveLayout === "hormozi"             ? renderHormoziText(seg)                  :
              effectiveLayout === "ali-abdaal"          ? renderAliAbdaalText(seg)                :
              effectiveLayout === "gadzhi"              ? renderGadzhiText(seg)                   :
-             effectiveLayout === "apple"               ? renderAppleText()                       :
-             effectiveLayout === "mogrt-shimmer-stack" ? renderMogrtShimmerStack()               :
-             effectiveLayout === "nxtgen-genz"         ? renderNxtgenGenZ()                      :
-             effectiveLayout === "nxtgen-alpha"        ? renderNxtgenAlpha()                     :
-             effectiveLayout === "nxtgen-horror"       ? renderNxtgenHorror()                    :
-             effectiveLayout === "nxtgen-vengence"     ? renderNxtgenVengence()                  :
-             effectiveLayout === "nxtgen-cinemaline"   ? renderNxtgenCinemaLine()               :
-             effectiveLayout === "nxtgen-directors-edition" ? renderNxtgenDirectorsEdition()    :
-             effectiveLayout === "nxtgen-viral"        ? renderNxtgenViralOrEnergetic(false)     :
-             effectiveLayout === "nxtgen-energetic"    ? renderNxtgenViralOrEnergetic(true)      :
+             effectiveLayout === "apple"               ? renderAppleText(seg)                    :
+             effectiveLayout === "mogrt-shimmer-stack" ? renderMogrtShimmerStack(seg)            :
+             effectiveLayout === "nxtgen-genz"         ? renderNxtgenGenZ(seg)                   :
+             effectiveLayout === "nxtgen-alpha"        ? renderNxtgenAlpha(seg)                  :
+             effectiveLayout === "nxtgen-horror"       ? renderNxtgenHorror(seg)                 :
+             effectiveLayout === "nxtgen-vengence"     ? renderNxtgenVengence(seg)               :
+             effectiveLayout === "nxtgen-cinemaline"   ? renderNxtgenCinemaLine(seg)             :
+             effectiveLayout === "nxtgen-directors-edition" ? renderNxtgenDirectorsEdition(seg)  :
+             effectiveLayout === "nxtgen-viral"        ? renderNxtgenViralOrEnergetic(false, seg):
+             effectiveLayout === "nxtgen-energetic"    ? renderNxtgenViralOrEnergetic(true, seg) :
              <div style={{ lineHeight: 1.25, letterSpacing: "-0.025em" }}>{renderStyledText(seg)}</div>
             }
           </div>
