@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Video, useVideoConfig, Img } from "remotion";
+import { AbsoluteFill, OffthreadVideo, useVideoConfig, Img } from "remotion";
 import { CaptionVideoProps } from "../types";
 import { CaptionOverlay } from "./CaptionOverlay";
 import logoPng from "../assets/logo.png";
@@ -26,7 +26,7 @@ export const CaptionVideo: React.FC<CaptionVideoProps & { alphaChannel?: boolean
   return (
     <AbsoluteFill style={{ background: isAlpha ? "transparent" : "#000" }}>
       {!isAlpha && (
-        <Video
+        <OffthreadVideo
           src={src}
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
