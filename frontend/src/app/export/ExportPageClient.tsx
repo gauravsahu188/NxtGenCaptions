@@ -87,6 +87,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
   // Render state
   type Phase = "idle" | "rendering" | "done" | "error";
   const [phase,       setPhase]       = useState<Phase>("idle");
+  const isRenderingRef = useRef(false);
   const [progress,    setProgress]    = useState(0);
   const [stageLabel,  setStageLabel]  = useState("");
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
@@ -95,8 +96,12 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
 
   // Warning on navigation / close during render
   useEffect(() => {
+    isRenderingRef.current = phase === "rendering";
+  }, [phase]);
+
+  useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (phase === "rendering") {
+      if (isRenderingRef.current) {
         e.preventDefault();
         e.returnValue = "Render is in progress. Do not close this window or switch tabs.";
         return e.returnValue;
@@ -104,7 +109,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [phase]);
+  }, []);
 
   // Load context from sessionStorage
   useEffect(() => {
@@ -146,6 +151,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
   async function handleExport() {
     if (!ctx) return;
     setPhase("rendering");
+    isRenderingRef.current = true;
     setProgress(5);
     setStageLabel(PROGRESS_STAGES[0].label);
     setErrorMsg("");
@@ -215,6 +221,7 @@ export default function ExportPageClient({ user }: { user: ExportUser }) {
             setStageLabel("Export complete!");
             setDownloadUrl(pd.downloadUrl);
             setPhase("done");
+            isRenderingRef.current = false;
 
             // Auto-download video
             if (pd.downloadUrl) {
