@@ -72,11 +72,7 @@ export default function UploadDropzone({
       return;
     }
 
-    setIsProcessing(true);
-    setProcessingMessage("Checking video duration...");
     const duration = await getVideoDuration(file);
-    setIsProcessing(false);
-    setProcessingMessage("");
 
     const maxDuration = PLAN_MAX_DURATIONS[planType] || 30;
     if (duration > maxDuration) {
@@ -146,11 +142,37 @@ export default function UploadDropzone({
         body: formData,
       });
 
+      if (!res.ok) {
+        let errorMsg = `Server error (${res.status})`;
+        try {
+          const errText = await res.text();
+          try {
+            const parsed = JSON.parse(errText);
+            errorMsg = parsed.message || errorMsg;
+          } catch {
+            if (res.status === 413) errorMsg = "Video file is too large for the server (413 Request Entity Too Large).";
+            else if (res.status === 504) errorMsg = "Server timed out processing the video (504 Gateway Timeout).";
+            else if (res.status === 502) errorMsg = "Backend server is currently restarting or unreachable (502 Bad Gateway).";
+          }
+        } catch {
+          // ignore
+        }
+        showError(errorMsg);
+        setVideoUrl(null);
+        setIsProcessing(false);
+        return;
+      }
+
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
 
-      if (!reader) return;
+      if (!reader) {
+        showError("Failed to read server response stream.");
+        setVideoUrl(null);
+        setIsProcessing(false);
+        return;
+      }
 
       while (true) {
         const { done, value } = await reader.read();
@@ -225,6 +247,7 @@ export default function UploadDropzone({
                 } else {
                   showError(data.message || "An error occurred during processing.");
                 }
+                setVideoUrl(null);
                 setIsProcessing(false);
                 break;
             }
@@ -235,11 +258,11 @@ export default function UploadDropzone({
 
         if (done) break;
       }
-    } catch (error) {
-      console.error(error);
-      showError("Failed to connect to the server.");
+    } catch (error: any) {
+      console.error("[Upload error]", error);
+      showError(error?.message ? `Connection failed: ${error.message}` : "Failed to connect to the server.");
+      setVideoUrl(null);
     } finally {
-      // Always reset processing state when the stream ends, regardless of how
       setIsProcessing(false);
     }
   };

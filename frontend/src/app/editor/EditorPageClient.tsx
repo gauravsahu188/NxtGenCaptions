@@ -107,7 +107,7 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
     loadProject();
   }, [projectId]);
 
-  const showLoader = isProcessing && (isMobile || !videoUrl);
+  const showLoader = isProcessing;
 
   return (
     <div className="min-h-screen w-full">
@@ -116,7 +116,7 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
       <main className={`relative z-10 ${!videoUrl ? "flex flex-col items-center justify-center p-6 sm:p-12 md:p-24 min-h-[calc(100vh-64px)]" : ""}`}>
         <div className="aurora-bg" />
 
-        {showLoader ? (
+        {showLoader && (
           <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050505] p-6 text-center">
             <Loader text={processingMessage || "Generating captions..."} />
             <div className="mt-8 space-y-3 max-w-xs">
@@ -128,7 +128,9 @@ function EditorApp({ user, projectId }: { user: EditorUser | null; projectId?: s
               </div>
             </div>
           </div>
-        ) : !videoUrl ? (
+        )}
+
+        {!videoUrl ? (
           <div className="w-full flex flex-col items-center space-y-12">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
