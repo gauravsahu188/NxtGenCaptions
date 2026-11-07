@@ -48,6 +48,21 @@ export type Project = $Result.DefaultSelection<Prisma.$ProjectPayload>
  * 
  */
 export type Transaction = $Result.DefaultSelection<Prisma.$TransactionPayload>
+/**
+ * Model ApiKey
+ * 
+ */
+export type ApiKey = $Result.DefaultSelection<Prisma.$ApiKeyPayload>
+/**
+ * Model ApiUsageLog
+ * 
+ */
+export type ApiUsageLog = $Result.DefaultSelection<Prisma.$ApiUsageLogPayload>
+/**
+ * Model McpSession
+ * 
+ */
+export type McpSession = $Result.DefaultSelection<Prisma.$McpSessionPayload>
 
 /**
  * Enums
@@ -260,6 +275,36 @@ export class PrismaClient<
     * ```
     */
   get transaction(): Prisma.TransactionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.apiKey`: Exposes CRUD operations for the **ApiKey** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ApiKeys
+    * const apiKeys = await prisma.apiKey.findMany()
+    * ```
+    */
+  get apiKey(): Prisma.ApiKeyDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.apiUsageLog`: Exposes CRUD operations for the **ApiUsageLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ApiUsageLogs
+    * const apiUsageLogs = await prisma.apiUsageLog.findMany()
+    * ```
+    */
+  get apiUsageLog(): Prisma.ApiUsageLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mcpSession`: Exposes CRUD operations for the **McpSession** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more McpSessions
+    * const mcpSessions = await prisma.mcpSession.findMany()
+    * ```
+    */
+  get mcpSession(): Prisma.McpSessionDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -700,7 +745,10 @@ export namespace Prisma {
     Subscription: 'Subscription',
     User: 'User',
     Project: 'Project',
-    Transaction: 'Transaction'
+    Transaction: 'Transaction',
+    ApiKey: 'ApiKey',
+    ApiUsageLog: 'ApiUsageLog',
+    McpSession: 'McpSession'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -716,7 +764,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "account" | "session" | "verificationToken" | "subscription" | "user" | "project" | "transaction"
+      modelProps: "account" | "session" | "verificationToken" | "subscription" | "user" | "project" | "transaction" | "apiKey" | "apiUsageLog" | "mcpSession"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1238,6 +1286,228 @@ export namespace Prisma {
           }
         }
       }
+      ApiKey: {
+        payload: Prisma.$ApiKeyPayload<ExtArgs>
+        fields: Prisma.ApiKeyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ApiKeyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ApiKeyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
+          }
+          findFirst: {
+            args: Prisma.ApiKeyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ApiKeyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
+          }
+          findMany: {
+            args: Prisma.ApiKeyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>[]
+          }
+          create: {
+            args: Prisma.ApiKeyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
+          }
+          createMany: {
+            args: Prisma.ApiKeyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ApiKeyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>[]
+          }
+          delete: {
+            args: Prisma.ApiKeyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
+          }
+          update: {
+            args: Prisma.ApiKeyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
+          }
+          deleteMany: {
+            args: Prisma.ApiKeyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ApiKeyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ApiKeyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>[]
+          }
+          upsert: {
+            args: Prisma.ApiKeyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
+          }
+          aggregate: {
+            args: Prisma.ApiKeyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateApiKey>
+          }
+          groupBy: {
+            args: Prisma.ApiKeyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ApiKeyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ApiKeyCountArgs<ExtArgs>
+            result: $Utils.Optional<ApiKeyCountAggregateOutputType> | number
+          }
+        }
+      }
+      ApiUsageLog: {
+        payload: Prisma.$ApiUsageLogPayload<ExtArgs>
+        fields: Prisma.ApiUsageLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ApiUsageLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ApiUsageLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>
+          }
+          findFirst: {
+            args: Prisma.ApiUsageLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ApiUsageLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>
+          }
+          findMany: {
+            args: Prisma.ApiUsageLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>[]
+          }
+          create: {
+            args: Prisma.ApiUsageLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>
+          }
+          createMany: {
+            args: Prisma.ApiUsageLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ApiUsageLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>[]
+          }
+          delete: {
+            args: Prisma.ApiUsageLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>
+          }
+          update: {
+            args: Prisma.ApiUsageLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.ApiUsageLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ApiUsageLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ApiUsageLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.ApiUsageLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApiUsageLogPayload>
+          }
+          aggregate: {
+            args: Prisma.ApiUsageLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateApiUsageLog>
+          }
+          groupBy: {
+            args: Prisma.ApiUsageLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ApiUsageLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ApiUsageLogCountArgs<ExtArgs>
+            result: $Utils.Optional<ApiUsageLogCountAggregateOutputType> | number
+          }
+        }
+      }
+      McpSession: {
+        payload: Prisma.$McpSessionPayload<ExtArgs>
+        fields: Prisma.McpSessionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.McpSessionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.McpSessionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>
+          }
+          findFirst: {
+            args: Prisma.McpSessionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.McpSessionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>
+          }
+          findMany: {
+            args: Prisma.McpSessionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>[]
+          }
+          create: {
+            args: Prisma.McpSessionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>
+          }
+          createMany: {
+            args: Prisma.McpSessionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.McpSessionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>[]
+          }
+          delete: {
+            args: Prisma.McpSessionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>
+          }
+          update: {
+            args: Prisma.McpSessionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>
+          }
+          deleteMany: {
+            args: Prisma.McpSessionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.McpSessionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.McpSessionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>[]
+          }
+          upsert: {
+            args: Prisma.McpSessionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$McpSessionPayload>
+          }
+          aggregate: {
+            args: Prisma.McpSessionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMcpSession>
+          }
+          groupBy: {
+            args: Prisma.McpSessionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<McpSessionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.McpSessionCountArgs<ExtArgs>
+            result: $Utils.Optional<McpSessionCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1353,6 +1623,9 @@ export namespace Prisma {
     user?: UserOmit
     project?: ProjectOmit
     transaction?: TransactionOmit
+    apiKey?: ApiKeyOmit
+    apiUsageLog?: ApiUsageLogOmit
+    mcpSession?: McpSessionOmit
   }
 
   /* Types for Logging */
@@ -1437,6 +1710,8 @@ export namespace Prisma {
     projects: number
     sessions: number
     transactions: number
+    apiKeys: number
+    mcpSessions: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1444,6 +1719,8 @@ export namespace Prisma {
     projects?: boolean | UserCountOutputTypeCountProjectsArgs
     sessions?: boolean | UserCountOutputTypeCountSessionsArgs
     transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
+    apiKeys?: boolean | UserCountOutputTypeCountApiKeysArgs
+    mcpSessions?: boolean | UserCountOutputTypeCountMcpSessionsArgs
   }
 
   // Custom InputTypes
@@ -1483,6 +1760,51 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TransactionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountApiKeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ApiKeyWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountMcpSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: McpSessionWhereInput
+  }
+
+
+  /**
+   * Count Type ApiKeyCountOutputType
+   */
+
+  export type ApiKeyCountOutputType = {
+    usageLogs: number
+  }
+
+  export type ApiKeyCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    usageLogs?: boolean | ApiKeyCountOutputTypeCountUsageLogsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ApiKeyCountOutputType without action
+   */
+  export type ApiKeyCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKeyCountOutputType
+     */
+    select?: ApiKeyCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ApiKeyCountOutputType without action
+   */
+  export type ApiKeyCountOutputTypeCountUsageLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ApiUsageLogWhereInput
   }
 
 
@@ -6285,6 +6607,8 @@ export namespace Prisma {
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     subscription?: boolean | User$subscriptionArgs<ExtArgs>
     transactions?: boolean | User$transactionsArgs<ExtArgs>
+    apiKeys?: boolean | User$apiKeysArgs<ExtArgs>
+    mcpSessions?: boolean | User$mcpSessionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -6340,6 +6664,8 @@ export namespace Prisma {
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     subscription?: boolean | User$subscriptionArgs<ExtArgs>
     transactions?: boolean | User$transactionsArgs<ExtArgs>
+    apiKeys?: boolean | User$apiKeysArgs<ExtArgs>
+    mcpSessions?: boolean | User$mcpSessionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -6353,6 +6679,8 @@ export namespace Prisma {
       sessions: Prisma.$SessionPayload<ExtArgs>[]
       subscription: Prisma.$SubscriptionPayload<ExtArgs> | null
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
+      apiKeys: Prisma.$ApiKeyPayload<ExtArgs>[]
+      mcpSessions: Prisma.$McpSessionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6766,6 +7094,8 @@ export namespace Prisma {
     sessions<T extends User$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     subscription<T extends User$subscriptionArgs<ExtArgs> = {}>(args?: Subset<T, User$subscriptionArgs<ExtArgs>>): Prisma__SubscriptionClient<$Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     transactions<T extends User$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    apiKeys<T extends User$apiKeysArgs<ExtArgs> = {}>(args?: Subset<T, User$apiKeysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    mcpSessions<T extends User$mcpSessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$mcpSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7312,6 +7642,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
+  }
+
+  /**
+   * User.apiKeys
+   */
+  export type User$apiKeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    where?: ApiKeyWhereInput
+    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
+    cursor?: ApiKeyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ApiKeyScalarFieldEnum | ApiKeyScalarFieldEnum[]
+  }
+
+  /**
+   * User.mcpSessions
+   */
+  export type User$mcpSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    where?: McpSessionWhereInput
+    orderBy?: McpSessionOrderByWithRelationInput | McpSessionOrderByWithRelationInput[]
+    cursor?: McpSessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: McpSessionScalarFieldEnum | McpSessionScalarFieldEnum[]
   }
 
   /**
@@ -9615,6 +9993,3561 @@ export namespace Prisma {
 
 
   /**
+   * Model ApiKey
+   */
+
+  export type AggregateApiKey = {
+    _count: ApiKeyCountAggregateOutputType | null
+    _avg: ApiKeyAvgAggregateOutputType | null
+    _sum: ApiKeySumAggregateOutputType | null
+    _min: ApiKeyMinAggregateOutputType | null
+    _max: ApiKeyMaxAggregateOutputType | null
+  }
+
+  export type ApiKeyAvgAggregateOutputType = {
+    rateLimit: number | null
+  }
+
+  export type ApiKeySumAggregateOutputType = {
+    rateLimit: number | null
+  }
+
+  export type ApiKeyMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    key: string | null
+    keyPrefix: string | null
+    status: string | null
+    rateLimit: number | null
+    expiresAt: Date | null
+    lastUsedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ApiKeyMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    key: string | null
+    keyPrefix: string | null
+    status: string | null
+    rateLimit: number | null
+    expiresAt: Date | null
+    lastUsedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ApiKeyCountAggregateOutputType = {
+    id: number
+    userId: number
+    name: number
+    key: number
+    keyPrefix: number
+    status: number
+    rateLimit: number
+    expiresAt: number
+    lastUsedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ApiKeyAvgAggregateInputType = {
+    rateLimit?: true
+  }
+
+  export type ApiKeySumAggregateInputType = {
+    rateLimit?: true
+  }
+
+  export type ApiKeyMinAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    key?: true
+    keyPrefix?: true
+    status?: true
+    rateLimit?: true
+    expiresAt?: true
+    lastUsedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ApiKeyMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    key?: true
+    keyPrefix?: true
+    status?: true
+    rateLimit?: true
+    expiresAt?: true
+    lastUsedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ApiKeyCountAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    key?: true
+    keyPrefix?: true
+    status?: true
+    rateLimit?: true
+    expiresAt?: true
+    lastUsedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ApiKeyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ApiKey to aggregate.
+     */
+    where?: ApiKeyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApiKeys to fetch.
+     */
+    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ApiKeyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApiKeys from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApiKeys.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ApiKeys
+    **/
+    _count?: true | ApiKeyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ApiKeyAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ApiKeySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ApiKeyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ApiKeyMaxAggregateInputType
+  }
+
+  export type GetApiKeyAggregateType<T extends ApiKeyAggregateArgs> = {
+        [P in keyof T & keyof AggregateApiKey]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateApiKey[P]>
+      : GetScalarType<T[P], AggregateApiKey[P]>
+  }
+
+
+
+
+  export type ApiKeyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ApiKeyWhereInput
+    orderBy?: ApiKeyOrderByWithAggregationInput | ApiKeyOrderByWithAggregationInput[]
+    by: ApiKeyScalarFieldEnum[] | ApiKeyScalarFieldEnum
+    having?: ApiKeyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ApiKeyCountAggregateInputType | true
+    _avg?: ApiKeyAvgAggregateInputType
+    _sum?: ApiKeySumAggregateInputType
+    _min?: ApiKeyMinAggregateInputType
+    _max?: ApiKeyMaxAggregateInputType
+  }
+
+  export type ApiKeyGroupByOutputType = {
+    id: string
+    userId: string
+    name: string
+    key: string
+    keyPrefix: string
+    status: string
+    rateLimit: number
+    expiresAt: Date | null
+    lastUsedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ApiKeyCountAggregateOutputType | null
+    _avg: ApiKeyAvgAggregateOutputType | null
+    _sum: ApiKeySumAggregateOutputType | null
+    _min: ApiKeyMinAggregateOutputType | null
+    _max: ApiKeyMaxAggregateOutputType | null
+  }
+
+  type GetApiKeyGroupByPayload<T extends ApiKeyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ApiKeyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ApiKeyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ApiKeyGroupByOutputType[P]>
+            : GetScalarType<T[P], ApiKeyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ApiKeySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    key?: boolean
+    keyPrefix?: boolean
+    status?: boolean
+    rateLimit?: boolean
+    expiresAt?: boolean
+    lastUsedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    usageLogs?: boolean | ApiKey$usageLogsArgs<ExtArgs>
+    _count?: boolean | ApiKeyCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["apiKey"]>
+
+  export type ApiKeySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    key?: boolean
+    keyPrefix?: boolean
+    status?: boolean
+    rateLimit?: boolean
+    expiresAt?: boolean
+    lastUsedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["apiKey"]>
+
+  export type ApiKeySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    key?: boolean
+    keyPrefix?: boolean
+    status?: boolean
+    rateLimit?: boolean
+    expiresAt?: boolean
+    lastUsedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["apiKey"]>
+
+  export type ApiKeySelectScalar = {
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    key?: boolean
+    keyPrefix?: boolean
+    status?: boolean
+    rateLimit?: boolean
+    expiresAt?: boolean
+    lastUsedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ApiKeyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "key" | "keyPrefix" | "status" | "rateLimit" | "expiresAt" | "lastUsedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["apiKey"]>
+  export type ApiKeyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    usageLogs?: boolean | ApiKey$usageLogsArgs<ExtArgs>
+    _count?: boolean | ApiKeyCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ApiKeyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ApiKeyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $ApiKeyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ApiKey"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      usageLogs: Prisma.$ApiUsageLogPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      name: string
+      key: string
+      keyPrefix: string
+      status: string
+      rateLimit: number
+      expiresAt: Date | null
+      lastUsedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["apiKey"]>
+    composites: {}
+  }
+
+  type ApiKeyGetPayload<S extends boolean | null | undefined | ApiKeyDefaultArgs> = $Result.GetResult<Prisma.$ApiKeyPayload, S>
+
+  type ApiKeyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ApiKeyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ApiKeyCountAggregateInputType | true
+    }
+
+  export interface ApiKeyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ApiKey'], meta: { name: 'ApiKey' } }
+    /**
+     * Find zero or one ApiKey that matches the filter.
+     * @param {ApiKeyFindUniqueArgs} args - Arguments to find a ApiKey
+     * @example
+     * // Get one ApiKey
+     * const apiKey = await prisma.apiKey.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ApiKeyFindUniqueArgs>(args: SelectSubset<T, ApiKeyFindUniqueArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ApiKey that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ApiKeyFindUniqueOrThrowArgs} args - Arguments to find a ApiKey
+     * @example
+     * // Get one ApiKey
+     * const apiKey = await prisma.apiKey.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ApiKeyFindUniqueOrThrowArgs>(args: SelectSubset<T, ApiKeyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ApiKey that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiKeyFindFirstArgs} args - Arguments to find a ApiKey
+     * @example
+     * // Get one ApiKey
+     * const apiKey = await prisma.apiKey.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ApiKeyFindFirstArgs>(args?: SelectSubset<T, ApiKeyFindFirstArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ApiKey that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiKeyFindFirstOrThrowArgs} args - Arguments to find a ApiKey
+     * @example
+     * // Get one ApiKey
+     * const apiKey = await prisma.apiKey.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ApiKeyFindFirstOrThrowArgs>(args?: SelectSubset<T, ApiKeyFindFirstOrThrowArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ApiKeys that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiKeyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ApiKeys
+     * const apiKeys = await prisma.apiKey.findMany()
+     * 
+     * // Get first 10 ApiKeys
+     * const apiKeys = await prisma.apiKey.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const apiKeyWithIdOnly = await prisma.apiKey.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ApiKeyFindManyArgs>(args?: SelectSubset<T, ApiKeyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ApiKey.
+     * @param {ApiKeyCreateArgs} args - Arguments to create a ApiKey.
+     * @example
+     * // Create one ApiKey
+     * const ApiKey = await prisma.apiKey.create({
+     *   data: {
+     *     // ... data to create a ApiKey
+     *   }
+     * })
+     * 
+     */
+    create<T extends ApiKeyCreateArgs>(args: SelectSubset<T, ApiKeyCreateArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ApiKeys.
+     * @param {ApiKeyCreateManyArgs} args - Arguments to create many ApiKeys.
+     * @example
+     * // Create many ApiKeys
+     * const apiKey = await prisma.apiKey.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ApiKeyCreateManyArgs>(args?: SelectSubset<T, ApiKeyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ApiKeys and returns the data saved in the database.
+     * @param {ApiKeyCreateManyAndReturnArgs} args - Arguments to create many ApiKeys.
+     * @example
+     * // Create many ApiKeys
+     * const apiKey = await prisma.apiKey.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ApiKeys and only return the `id`
+     * const apiKeyWithIdOnly = await prisma.apiKey.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ApiKeyCreateManyAndReturnArgs>(args?: SelectSubset<T, ApiKeyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ApiKey.
+     * @param {ApiKeyDeleteArgs} args - Arguments to delete one ApiKey.
+     * @example
+     * // Delete one ApiKey
+     * const ApiKey = await prisma.apiKey.delete({
+     *   where: {
+     *     // ... filter to delete one ApiKey
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ApiKeyDeleteArgs>(args: SelectSubset<T, ApiKeyDeleteArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ApiKey.
+     * @param {ApiKeyUpdateArgs} args - Arguments to update one ApiKey.
+     * @example
+     * // Update one ApiKey
+     * const apiKey = await prisma.apiKey.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ApiKeyUpdateArgs>(args: SelectSubset<T, ApiKeyUpdateArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ApiKeys.
+     * @param {ApiKeyDeleteManyArgs} args - Arguments to filter ApiKeys to delete.
+     * @example
+     * // Delete a few ApiKeys
+     * const { count } = await prisma.apiKey.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ApiKeyDeleteManyArgs>(args?: SelectSubset<T, ApiKeyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ApiKeys.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiKeyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ApiKeys
+     * const apiKey = await prisma.apiKey.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ApiKeyUpdateManyArgs>(args: SelectSubset<T, ApiKeyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ApiKeys and returns the data updated in the database.
+     * @param {ApiKeyUpdateManyAndReturnArgs} args - Arguments to update many ApiKeys.
+     * @example
+     * // Update many ApiKeys
+     * const apiKey = await prisma.apiKey.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ApiKeys and only return the `id`
+     * const apiKeyWithIdOnly = await prisma.apiKey.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ApiKeyUpdateManyAndReturnArgs>(args: SelectSubset<T, ApiKeyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ApiKey.
+     * @param {ApiKeyUpsertArgs} args - Arguments to update or create a ApiKey.
+     * @example
+     * // Update or create a ApiKey
+     * const apiKey = await prisma.apiKey.upsert({
+     *   create: {
+     *     // ... data to create a ApiKey
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ApiKey we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ApiKeyUpsertArgs>(args: SelectSubset<T, ApiKeyUpsertArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ApiKeys.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiKeyCountArgs} args - Arguments to filter ApiKeys to count.
+     * @example
+     * // Count the number of ApiKeys
+     * const count = await prisma.apiKey.count({
+     *   where: {
+     *     // ... the filter for the ApiKeys we want to count
+     *   }
+     * })
+    **/
+    count<T extends ApiKeyCountArgs>(
+      args?: Subset<T, ApiKeyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ApiKeyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ApiKey.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiKeyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ApiKeyAggregateArgs>(args: Subset<T, ApiKeyAggregateArgs>): Prisma.PrismaPromise<GetApiKeyAggregateType<T>>
+
+    /**
+     * Group by ApiKey.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiKeyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ApiKeyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ApiKeyGroupByArgs['orderBy'] }
+        : { orderBy?: ApiKeyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ApiKeyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetApiKeyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ApiKey model
+   */
+  readonly fields: ApiKeyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ApiKey.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ApiKeyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    usageLogs<T extends ApiKey$usageLogsArgs<ExtArgs> = {}>(args?: Subset<T, ApiKey$usageLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ApiKey model
+   */
+  interface ApiKeyFieldRefs {
+    readonly id: FieldRef<"ApiKey", 'String'>
+    readonly userId: FieldRef<"ApiKey", 'String'>
+    readonly name: FieldRef<"ApiKey", 'String'>
+    readonly key: FieldRef<"ApiKey", 'String'>
+    readonly keyPrefix: FieldRef<"ApiKey", 'String'>
+    readonly status: FieldRef<"ApiKey", 'String'>
+    readonly rateLimit: FieldRef<"ApiKey", 'Int'>
+    readonly expiresAt: FieldRef<"ApiKey", 'DateTime'>
+    readonly lastUsedAt: FieldRef<"ApiKey", 'DateTime'>
+    readonly createdAt: FieldRef<"ApiKey", 'DateTime'>
+    readonly updatedAt: FieldRef<"ApiKey", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ApiKey findUnique
+   */
+  export type ApiKeyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiKey to fetch.
+     */
+    where: ApiKeyWhereUniqueInput
+  }
+
+  /**
+   * ApiKey findUniqueOrThrow
+   */
+  export type ApiKeyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiKey to fetch.
+     */
+    where: ApiKeyWhereUniqueInput
+  }
+
+  /**
+   * ApiKey findFirst
+   */
+  export type ApiKeyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiKey to fetch.
+     */
+    where?: ApiKeyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApiKeys to fetch.
+     */
+    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ApiKeys.
+     */
+    cursor?: ApiKeyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApiKeys from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApiKeys.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApiKeys.
+     */
+    distinct?: ApiKeyScalarFieldEnum | ApiKeyScalarFieldEnum[]
+  }
+
+  /**
+   * ApiKey findFirstOrThrow
+   */
+  export type ApiKeyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiKey to fetch.
+     */
+    where?: ApiKeyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApiKeys to fetch.
+     */
+    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ApiKeys.
+     */
+    cursor?: ApiKeyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApiKeys from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApiKeys.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApiKeys.
+     */
+    distinct?: ApiKeyScalarFieldEnum | ApiKeyScalarFieldEnum[]
+  }
+
+  /**
+   * ApiKey findMany
+   */
+  export type ApiKeyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiKeys to fetch.
+     */
+    where?: ApiKeyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApiKeys to fetch.
+     */
+    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ApiKeys.
+     */
+    cursor?: ApiKeyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApiKeys from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApiKeys.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApiKeys.
+     */
+    distinct?: ApiKeyScalarFieldEnum | ApiKeyScalarFieldEnum[]
+  }
+
+  /**
+   * ApiKey create
+   */
+  export type ApiKeyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ApiKey.
+     */
+    data: XOR<ApiKeyCreateInput, ApiKeyUncheckedCreateInput>
+  }
+
+  /**
+   * ApiKey createMany
+   */
+  export type ApiKeyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ApiKeys.
+     */
+    data: ApiKeyCreateManyInput | ApiKeyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ApiKey createManyAndReturn
+   */
+  export type ApiKeyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * The data used to create many ApiKeys.
+     */
+    data: ApiKeyCreateManyInput | ApiKeyCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ApiKey update
+   */
+  export type ApiKeyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ApiKey.
+     */
+    data: XOR<ApiKeyUpdateInput, ApiKeyUncheckedUpdateInput>
+    /**
+     * Choose, which ApiKey to update.
+     */
+    where: ApiKeyWhereUniqueInput
+  }
+
+  /**
+   * ApiKey updateMany
+   */
+  export type ApiKeyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ApiKeys.
+     */
+    data: XOR<ApiKeyUpdateManyMutationInput, ApiKeyUncheckedUpdateManyInput>
+    /**
+     * Filter which ApiKeys to update
+     */
+    where?: ApiKeyWhereInput
+    /**
+     * Limit how many ApiKeys to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ApiKey updateManyAndReturn
+   */
+  export type ApiKeyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * The data used to update ApiKeys.
+     */
+    data: XOR<ApiKeyUpdateManyMutationInput, ApiKeyUncheckedUpdateManyInput>
+    /**
+     * Filter which ApiKeys to update
+     */
+    where?: ApiKeyWhereInput
+    /**
+     * Limit how many ApiKeys to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ApiKey upsert
+   */
+  export type ApiKeyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ApiKey to update in case it exists.
+     */
+    where: ApiKeyWhereUniqueInput
+    /**
+     * In case the ApiKey found by the `where` argument doesn't exist, create a new ApiKey with this data.
+     */
+    create: XOR<ApiKeyCreateInput, ApiKeyUncheckedCreateInput>
+    /**
+     * In case the ApiKey was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ApiKeyUpdateInput, ApiKeyUncheckedUpdateInput>
+  }
+
+  /**
+   * ApiKey delete
+   */
+  export type ApiKeyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+    /**
+     * Filter which ApiKey to delete.
+     */
+    where: ApiKeyWhereUniqueInput
+  }
+
+  /**
+   * ApiKey deleteMany
+   */
+  export type ApiKeyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ApiKeys to delete
+     */
+    where?: ApiKeyWhereInput
+    /**
+     * Limit how many ApiKeys to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ApiKey.usageLogs
+   */
+  export type ApiKey$usageLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    where?: ApiUsageLogWhereInput
+    orderBy?: ApiUsageLogOrderByWithRelationInput | ApiUsageLogOrderByWithRelationInput[]
+    cursor?: ApiUsageLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ApiUsageLogScalarFieldEnum | ApiUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * ApiKey without action
+   */
+  export type ApiKeyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiKey
+     */
+    select?: ApiKeySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiKey
+     */
+    omit?: ApiKeyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiKeyInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ApiUsageLog
+   */
+
+  export type AggregateApiUsageLog = {
+    _count: ApiUsageLogCountAggregateOutputType | null
+    _avg: ApiUsageLogAvgAggregateOutputType | null
+    _sum: ApiUsageLogSumAggregateOutputType | null
+    _min: ApiUsageLogMinAggregateOutputType | null
+    _max: ApiUsageLogMaxAggregateOutputType | null
+  }
+
+  export type ApiUsageLogAvgAggregateOutputType = {
+    inputTokens: number | null
+    latencyMs: number | null
+  }
+
+  export type ApiUsageLogSumAggregateOutputType = {
+    inputTokens: number | null
+    latencyMs: number | null
+  }
+
+  export type ApiUsageLogMinAggregateOutputType = {
+    id: string | null
+    apiKeyId: string | null
+    tool: string | null
+    inputTokens: number | null
+    status: string | null
+    latencyMs: number | null
+    createdAt: Date | null
+  }
+
+  export type ApiUsageLogMaxAggregateOutputType = {
+    id: string | null
+    apiKeyId: string | null
+    tool: string | null
+    inputTokens: number | null
+    status: string | null
+    latencyMs: number | null
+    createdAt: Date | null
+  }
+
+  export type ApiUsageLogCountAggregateOutputType = {
+    id: number
+    apiKeyId: number
+    tool: number
+    inputTokens: number
+    status: number
+    latencyMs: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ApiUsageLogAvgAggregateInputType = {
+    inputTokens?: true
+    latencyMs?: true
+  }
+
+  export type ApiUsageLogSumAggregateInputType = {
+    inputTokens?: true
+    latencyMs?: true
+  }
+
+  export type ApiUsageLogMinAggregateInputType = {
+    id?: true
+    apiKeyId?: true
+    tool?: true
+    inputTokens?: true
+    status?: true
+    latencyMs?: true
+    createdAt?: true
+  }
+
+  export type ApiUsageLogMaxAggregateInputType = {
+    id?: true
+    apiKeyId?: true
+    tool?: true
+    inputTokens?: true
+    status?: true
+    latencyMs?: true
+    createdAt?: true
+  }
+
+  export type ApiUsageLogCountAggregateInputType = {
+    id?: true
+    apiKeyId?: true
+    tool?: true
+    inputTokens?: true
+    status?: true
+    latencyMs?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ApiUsageLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ApiUsageLog to aggregate.
+     */
+    where?: ApiUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApiUsageLogs to fetch.
+     */
+    orderBy?: ApiUsageLogOrderByWithRelationInput | ApiUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ApiUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApiUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApiUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ApiUsageLogs
+    **/
+    _count?: true | ApiUsageLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ApiUsageLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ApiUsageLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ApiUsageLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ApiUsageLogMaxAggregateInputType
+  }
+
+  export type GetApiUsageLogAggregateType<T extends ApiUsageLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateApiUsageLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateApiUsageLog[P]>
+      : GetScalarType<T[P], AggregateApiUsageLog[P]>
+  }
+
+
+
+
+  export type ApiUsageLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ApiUsageLogWhereInput
+    orderBy?: ApiUsageLogOrderByWithAggregationInput | ApiUsageLogOrderByWithAggregationInput[]
+    by: ApiUsageLogScalarFieldEnum[] | ApiUsageLogScalarFieldEnum
+    having?: ApiUsageLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ApiUsageLogCountAggregateInputType | true
+    _avg?: ApiUsageLogAvgAggregateInputType
+    _sum?: ApiUsageLogSumAggregateInputType
+    _min?: ApiUsageLogMinAggregateInputType
+    _max?: ApiUsageLogMaxAggregateInputType
+  }
+
+  export type ApiUsageLogGroupByOutputType = {
+    id: string
+    apiKeyId: string
+    tool: string
+    inputTokens: number
+    status: string
+    latencyMs: number
+    createdAt: Date
+    _count: ApiUsageLogCountAggregateOutputType | null
+    _avg: ApiUsageLogAvgAggregateOutputType | null
+    _sum: ApiUsageLogSumAggregateOutputType | null
+    _min: ApiUsageLogMinAggregateOutputType | null
+    _max: ApiUsageLogMaxAggregateOutputType | null
+  }
+
+  type GetApiUsageLogGroupByPayload<T extends ApiUsageLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ApiUsageLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ApiUsageLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ApiUsageLogGroupByOutputType[P]>
+            : GetScalarType<T[P], ApiUsageLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ApiUsageLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    apiKeyId?: boolean
+    tool?: boolean
+    inputTokens?: boolean
+    status?: boolean
+    latencyMs?: boolean
+    createdAt?: boolean
+    apiKey?: boolean | ApiKeyDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["apiUsageLog"]>
+
+  export type ApiUsageLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    apiKeyId?: boolean
+    tool?: boolean
+    inputTokens?: boolean
+    status?: boolean
+    latencyMs?: boolean
+    createdAt?: boolean
+    apiKey?: boolean | ApiKeyDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["apiUsageLog"]>
+
+  export type ApiUsageLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    apiKeyId?: boolean
+    tool?: boolean
+    inputTokens?: boolean
+    status?: boolean
+    latencyMs?: boolean
+    createdAt?: boolean
+    apiKey?: boolean | ApiKeyDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["apiUsageLog"]>
+
+  export type ApiUsageLogSelectScalar = {
+    id?: boolean
+    apiKeyId?: boolean
+    tool?: boolean
+    inputTokens?: boolean
+    status?: boolean
+    latencyMs?: boolean
+    createdAt?: boolean
+  }
+
+  export type ApiUsageLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "apiKeyId" | "tool" | "inputTokens" | "status" | "latencyMs" | "createdAt", ExtArgs["result"]["apiUsageLog"]>
+  export type ApiUsageLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    apiKey?: boolean | ApiKeyDefaultArgs<ExtArgs>
+  }
+  export type ApiUsageLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    apiKey?: boolean | ApiKeyDefaultArgs<ExtArgs>
+  }
+  export type ApiUsageLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    apiKey?: boolean | ApiKeyDefaultArgs<ExtArgs>
+  }
+
+  export type $ApiUsageLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ApiUsageLog"
+    objects: {
+      apiKey: Prisma.$ApiKeyPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      apiKeyId: string
+      tool: string
+      inputTokens: number
+      status: string
+      latencyMs: number
+      createdAt: Date
+    }, ExtArgs["result"]["apiUsageLog"]>
+    composites: {}
+  }
+
+  type ApiUsageLogGetPayload<S extends boolean | null | undefined | ApiUsageLogDefaultArgs> = $Result.GetResult<Prisma.$ApiUsageLogPayload, S>
+
+  type ApiUsageLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ApiUsageLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ApiUsageLogCountAggregateInputType | true
+    }
+
+  export interface ApiUsageLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ApiUsageLog'], meta: { name: 'ApiUsageLog' } }
+    /**
+     * Find zero or one ApiUsageLog that matches the filter.
+     * @param {ApiUsageLogFindUniqueArgs} args - Arguments to find a ApiUsageLog
+     * @example
+     * // Get one ApiUsageLog
+     * const apiUsageLog = await prisma.apiUsageLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ApiUsageLogFindUniqueArgs>(args: SelectSubset<T, ApiUsageLogFindUniqueArgs<ExtArgs>>): Prisma__ApiUsageLogClient<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ApiUsageLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ApiUsageLogFindUniqueOrThrowArgs} args - Arguments to find a ApiUsageLog
+     * @example
+     * // Get one ApiUsageLog
+     * const apiUsageLog = await prisma.apiUsageLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ApiUsageLogFindUniqueOrThrowArgs>(args: SelectSubset<T, ApiUsageLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ApiUsageLogClient<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ApiUsageLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiUsageLogFindFirstArgs} args - Arguments to find a ApiUsageLog
+     * @example
+     * // Get one ApiUsageLog
+     * const apiUsageLog = await prisma.apiUsageLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ApiUsageLogFindFirstArgs>(args?: SelectSubset<T, ApiUsageLogFindFirstArgs<ExtArgs>>): Prisma__ApiUsageLogClient<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ApiUsageLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiUsageLogFindFirstOrThrowArgs} args - Arguments to find a ApiUsageLog
+     * @example
+     * // Get one ApiUsageLog
+     * const apiUsageLog = await prisma.apiUsageLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ApiUsageLogFindFirstOrThrowArgs>(args?: SelectSubset<T, ApiUsageLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__ApiUsageLogClient<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ApiUsageLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiUsageLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ApiUsageLogs
+     * const apiUsageLogs = await prisma.apiUsageLog.findMany()
+     * 
+     * // Get first 10 ApiUsageLogs
+     * const apiUsageLogs = await prisma.apiUsageLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const apiUsageLogWithIdOnly = await prisma.apiUsageLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ApiUsageLogFindManyArgs>(args?: SelectSubset<T, ApiUsageLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ApiUsageLog.
+     * @param {ApiUsageLogCreateArgs} args - Arguments to create a ApiUsageLog.
+     * @example
+     * // Create one ApiUsageLog
+     * const ApiUsageLog = await prisma.apiUsageLog.create({
+     *   data: {
+     *     // ... data to create a ApiUsageLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends ApiUsageLogCreateArgs>(args: SelectSubset<T, ApiUsageLogCreateArgs<ExtArgs>>): Prisma__ApiUsageLogClient<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ApiUsageLogs.
+     * @param {ApiUsageLogCreateManyArgs} args - Arguments to create many ApiUsageLogs.
+     * @example
+     * // Create many ApiUsageLogs
+     * const apiUsageLog = await prisma.apiUsageLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ApiUsageLogCreateManyArgs>(args?: SelectSubset<T, ApiUsageLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ApiUsageLogs and returns the data saved in the database.
+     * @param {ApiUsageLogCreateManyAndReturnArgs} args - Arguments to create many ApiUsageLogs.
+     * @example
+     * // Create many ApiUsageLogs
+     * const apiUsageLog = await prisma.apiUsageLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ApiUsageLogs and only return the `id`
+     * const apiUsageLogWithIdOnly = await prisma.apiUsageLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ApiUsageLogCreateManyAndReturnArgs>(args?: SelectSubset<T, ApiUsageLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ApiUsageLog.
+     * @param {ApiUsageLogDeleteArgs} args - Arguments to delete one ApiUsageLog.
+     * @example
+     * // Delete one ApiUsageLog
+     * const ApiUsageLog = await prisma.apiUsageLog.delete({
+     *   where: {
+     *     // ... filter to delete one ApiUsageLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ApiUsageLogDeleteArgs>(args: SelectSubset<T, ApiUsageLogDeleteArgs<ExtArgs>>): Prisma__ApiUsageLogClient<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ApiUsageLog.
+     * @param {ApiUsageLogUpdateArgs} args - Arguments to update one ApiUsageLog.
+     * @example
+     * // Update one ApiUsageLog
+     * const apiUsageLog = await prisma.apiUsageLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ApiUsageLogUpdateArgs>(args: SelectSubset<T, ApiUsageLogUpdateArgs<ExtArgs>>): Prisma__ApiUsageLogClient<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ApiUsageLogs.
+     * @param {ApiUsageLogDeleteManyArgs} args - Arguments to filter ApiUsageLogs to delete.
+     * @example
+     * // Delete a few ApiUsageLogs
+     * const { count } = await prisma.apiUsageLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ApiUsageLogDeleteManyArgs>(args?: SelectSubset<T, ApiUsageLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ApiUsageLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiUsageLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ApiUsageLogs
+     * const apiUsageLog = await prisma.apiUsageLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ApiUsageLogUpdateManyArgs>(args: SelectSubset<T, ApiUsageLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ApiUsageLogs and returns the data updated in the database.
+     * @param {ApiUsageLogUpdateManyAndReturnArgs} args - Arguments to update many ApiUsageLogs.
+     * @example
+     * // Update many ApiUsageLogs
+     * const apiUsageLog = await prisma.apiUsageLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ApiUsageLogs and only return the `id`
+     * const apiUsageLogWithIdOnly = await prisma.apiUsageLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ApiUsageLogUpdateManyAndReturnArgs>(args: SelectSubset<T, ApiUsageLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ApiUsageLog.
+     * @param {ApiUsageLogUpsertArgs} args - Arguments to update or create a ApiUsageLog.
+     * @example
+     * // Update or create a ApiUsageLog
+     * const apiUsageLog = await prisma.apiUsageLog.upsert({
+     *   create: {
+     *     // ... data to create a ApiUsageLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ApiUsageLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ApiUsageLogUpsertArgs>(args: SelectSubset<T, ApiUsageLogUpsertArgs<ExtArgs>>): Prisma__ApiUsageLogClient<$Result.GetResult<Prisma.$ApiUsageLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ApiUsageLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiUsageLogCountArgs} args - Arguments to filter ApiUsageLogs to count.
+     * @example
+     * // Count the number of ApiUsageLogs
+     * const count = await prisma.apiUsageLog.count({
+     *   where: {
+     *     // ... the filter for the ApiUsageLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends ApiUsageLogCountArgs>(
+      args?: Subset<T, ApiUsageLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ApiUsageLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ApiUsageLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiUsageLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ApiUsageLogAggregateArgs>(args: Subset<T, ApiUsageLogAggregateArgs>): Prisma.PrismaPromise<GetApiUsageLogAggregateType<T>>
+
+    /**
+     * Group by ApiUsageLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApiUsageLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ApiUsageLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ApiUsageLogGroupByArgs['orderBy'] }
+        : { orderBy?: ApiUsageLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ApiUsageLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetApiUsageLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ApiUsageLog model
+   */
+  readonly fields: ApiUsageLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ApiUsageLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ApiUsageLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    apiKey<T extends ApiKeyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ApiKeyDefaultArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ApiUsageLog model
+   */
+  interface ApiUsageLogFieldRefs {
+    readonly id: FieldRef<"ApiUsageLog", 'String'>
+    readonly apiKeyId: FieldRef<"ApiUsageLog", 'String'>
+    readonly tool: FieldRef<"ApiUsageLog", 'String'>
+    readonly inputTokens: FieldRef<"ApiUsageLog", 'Int'>
+    readonly status: FieldRef<"ApiUsageLog", 'String'>
+    readonly latencyMs: FieldRef<"ApiUsageLog", 'Int'>
+    readonly createdAt: FieldRef<"ApiUsageLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ApiUsageLog findUnique
+   */
+  export type ApiUsageLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiUsageLog to fetch.
+     */
+    where: ApiUsageLogWhereUniqueInput
+  }
+
+  /**
+   * ApiUsageLog findUniqueOrThrow
+   */
+  export type ApiUsageLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiUsageLog to fetch.
+     */
+    where: ApiUsageLogWhereUniqueInput
+  }
+
+  /**
+   * ApiUsageLog findFirst
+   */
+  export type ApiUsageLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiUsageLog to fetch.
+     */
+    where?: ApiUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApiUsageLogs to fetch.
+     */
+    orderBy?: ApiUsageLogOrderByWithRelationInput | ApiUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ApiUsageLogs.
+     */
+    cursor?: ApiUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApiUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApiUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApiUsageLogs.
+     */
+    distinct?: ApiUsageLogScalarFieldEnum | ApiUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * ApiUsageLog findFirstOrThrow
+   */
+  export type ApiUsageLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiUsageLog to fetch.
+     */
+    where?: ApiUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApiUsageLogs to fetch.
+     */
+    orderBy?: ApiUsageLogOrderByWithRelationInput | ApiUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ApiUsageLogs.
+     */
+    cursor?: ApiUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApiUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApiUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApiUsageLogs.
+     */
+    distinct?: ApiUsageLogScalarFieldEnum | ApiUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * ApiUsageLog findMany
+   */
+  export type ApiUsageLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which ApiUsageLogs to fetch.
+     */
+    where?: ApiUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ApiUsageLogs to fetch.
+     */
+    orderBy?: ApiUsageLogOrderByWithRelationInput | ApiUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ApiUsageLogs.
+     */
+    cursor?: ApiUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ApiUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ApiUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ApiUsageLogs.
+     */
+    distinct?: ApiUsageLogScalarFieldEnum | ApiUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * ApiUsageLog create
+   */
+  export type ApiUsageLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ApiUsageLog.
+     */
+    data: XOR<ApiUsageLogCreateInput, ApiUsageLogUncheckedCreateInput>
+  }
+
+  /**
+   * ApiUsageLog createMany
+   */
+  export type ApiUsageLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ApiUsageLogs.
+     */
+    data: ApiUsageLogCreateManyInput | ApiUsageLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ApiUsageLog createManyAndReturn
+   */
+  export type ApiUsageLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many ApiUsageLogs.
+     */
+    data: ApiUsageLogCreateManyInput | ApiUsageLogCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ApiUsageLog update
+   */
+  export type ApiUsageLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ApiUsageLog.
+     */
+    data: XOR<ApiUsageLogUpdateInput, ApiUsageLogUncheckedUpdateInput>
+    /**
+     * Choose, which ApiUsageLog to update.
+     */
+    where: ApiUsageLogWhereUniqueInput
+  }
+
+  /**
+   * ApiUsageLog updateMany
+   */
+  export type ApiUsageLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ApiUsageLogs.
+     */
+    data: XOR<ApiUsageLogUpdateManyMutationInput, ApiUsageLogUncheckedUpdateManyInput>
+    /**
+     * Filter which ApiUsageLogs to update
+     */
+    where?: ApiUsageLogWhereInput
+    /**
+     * Limit how many ApiUsageLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ApiUsageLog updateManyAndReturn
+   */
+  export type ApiUsageLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * The data used to update ApiUsageLogs.
+     */
+    data: XOR<ApiUsageLogUpdateManyMutationInput, ApiUsageLogUncheckedUpdateManyInput>
+    /**
+     * Filter which ApiUsageLogs to update
+     */
+    where?: ApiUsageLogWhereInput
+    /**
+     * Limit how many ApiUsageLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ApiUsageLog upsert
+   */
+  export type ApiUsageLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ApiUsageLog to update in case it exists.
+     */
+    where: ApiUsageLogWhereUniqueInput
+    /**
+     * In case the ApiUsageLog found by the `where` argument doesn't exist, create a new ApiUsageLog with this data.
+     */
+    create: XOR<ApiUsageLogCreateInput, ApiUsageLogUncheckedCreateInput>
+    /**
+     * In case the ApiUsageLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ApiUsageLogUpdateInput, ApiUsageLogUncheckedUpdateInput>
+  }
+
+  /**
+   * ApiUsageLog delete
+   */
+  export type ApiUsageLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter which ApiUsageLog to delete.
+     */
+    where: ApiUsageLogWhereUniqueInput
+  }
+
+  /**
+   * ApiUsageLog deleteMany
+   */
+  export type ApiUsageLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ApiUsageLogs to delete
+     */
+    where?: ApiUsageLogWhereInput
+    /**
+     * Limit how many ApiUsageLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ApiUsageLog without action
+   */
+  export type ApiUsageLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ApiUsageLog
+     */
+    select?: ApiUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ApiUsageLog
+     */
+    omit?: ApiUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApiUsageLogInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model McpSession
+   */
+
+  export type AggregateMcpSession = {
+    _count: McpSessionCountAggregateOutputType | null
+    _avg: McpSessionAvgAggregateOutputType | null
+    _sum: McpSessionSumAggregateOutputType | null
+    _min: McpSessionMinAggregateOutputType | null
+    _max: McpSessionMaxAggregateOutputType | null
+  }
+
+  export type McpSessionAvgAggregateOutputType = {
+    duration: number | null
+    requestedRes: number | null
+  }
+
+  export type McpSessionSumAggregateOutputType = {
+    duration: number | null
+    requestedRes: number | null
+  }
+
+  export type McpSessionMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    s3Key: string | null
+    language: string | null
+    script: string | null
+    duration: number | null
+    requestedRes: number | null
+    bitrate: string | null
+    renderId: string | null
+    status: string | null
+    expiresAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type McpSessionMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    s3Key: string | null
+    language: string | null
+    script: string | null
+    duration: number | null
+    requestedRes: number | null
+    bitrate: string | null
+    renderId: string | null
+    status: string | null
+    expiresAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type McpSessionCountAggregateOutputType = {
+    id: number
+    userId: number
+    s3Key: number
+    language: number
+    script: number
+    duration: number
+    captions: number
+    style: number
+    requestedRes: number
+    bitrate: number
+    renderId: number
+    status: number
+    expiresAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type McpSessionAvgAggregateInputType = {
+    duration?: true
+    requestedRes?: true
+  }
+
+  export type McpSessionSumAggregateInputType = {
+    duration?: true
+    requestedRes?: true
+  }
+
+  export type McpSessionMinAggregateInputType = {
+    id?: true
+    userId?: true
+    s3Key?: true
+    language?: true
+    script?: true
+    duration?: true
+    requestedRes?: true
+    bitrate?: true
+    renderId?: true
+    status?: true
+    expiresAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type McpSessionMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    s3Key?: true
+    language?: true
+    script?: true
+    duration?: true
+    requestedRes?: true
+    bitrate?: true
+    renderId?: true
+    status?: true
+    expiresAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type McpSessionCountAggregateInputType = {
+    id?: true
+    userId?: true
+    s3Key?: true
+    language?: true
+    script?: true
+    duration?: true
+    captions?: true
+    style?: true
+    requestedRes?: true
+    bitrate?: true
+    renderId?: true
+    status?: true
+    expiresAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type McpSessionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which McpSession to aggregate.
+     */
+    where?: McpSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of McpSessions to fetch.
+     */
+    orderBy?: McpSessionOrderByWithRelationInput | McpSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: McpSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` McpSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` McpSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned McpSessions
+    **/
+    _count?: true | McpSessionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: McpSessionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: McpSessionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: McpSessionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: McpSessionMaxAggregateInputType
+  }
+
+  export type GetMcpSessionAggregateType<T extends McpSessionAggregateArgs> = {
+        [P in keyof T & keyof AggregateMcpSession]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMcpSession[P]>
+      : GetScalarType<T[P], AggregateMcpSession[P]>
+  }
+
+
+
+
+  export type McpSessionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: McpSessionWhereInput
+    orderBy?: McpSessionOrderByWithAggregationInput | McpSessionOrderByWithAggregationInput[]
+    by: McpSessionScalarFieldEnum[] | McpSessionScalarFieldEnum
+    having?: McpSessionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: McpSessionCountAggregateInputType | true
+    _avg?: McpSessionAvgAggregateInputType
+    _sum?: McpSessionSumAggregateInputType
+    _min?: McpSessionMinAggregateInputType
+    _max?: McpSessionMaxAggregateInputType
+  }
+
+  export type McpSessionGroupByOutputType = {
+    id: string
+    userId: string
+    s3Key: string | null
+    language: string
+    script: string
+    duration: number | null
+    captions: JsonValue | null
+    style: JsonValue | null
+    requestedRes: number | null
+    bitrate: string | null
+    renderId: string | null
+    status: string
+    expiresAt: Date
+    createdAt: Date
+    updatedAt: Date
+    _count: McpSessionCountAggregateOutputType | null
+    _avg: McpSessionAvgAggregateOutputType | null
+    _sum: McpSessionSumAggregateOutputType | null
+    _min: McpSessionMinAggregateOutputType | null
+    _max: McpSessionMaxAggregateOutputType | null
+  }
+
+  type GetMcpSessionGroupByPayload<T extends McpSessionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<McpSessionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof McpSessionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], McpSessionGroupByOutputType[P]>
+            : GetScalarType<T[P], McpSessionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type McpSessionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    s3Key?: boolean
+    language?: boolean
+    script?: boolean
+    duration?: boolean
+    captions?: boolean
+    style?: boolean
+    requestedRes?: boolean
+    bitrate?: boolean
+    renderId?: boolean
+    status?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mcpSession"]>
+
+  export type McpSessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    s3Key?: boolean
+    language?: boolean
+    script?: boolean
+    duration?: boolean
+    captions?: boolean
+    style?: boolean
+    requestedRes?: boolean
+    bitrate?: boolean
+    renderId?: boolean
+    status?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mcpSession"]>
+
+  export type McpSessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    s3Key?: boolean
+    language?: boolean
+    script?: boolean
+    duration?: boolean
+    captions?: boolean
+    style?: boolean
+    requestedRes?: boolean
+    bitrate?: boolean
+    renderId?: boolean
+    status?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mcpSession"]>
+
+  export type McpSessionSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    s3Key?: boolean
+    language?: boolean
+    script?: boolean
+    duration?: boolean
+    captions?: boolean
+    style?: boolean
+    requestedRes?: boolean
+    bitrate?: boolean
+    renderId?: boolean
+    status?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type McpSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "s3Key" | "language" | "script" | "duration" | "captions" | "style" | "requestedRes" | "bitrate" | "renderId" | "status" | "expiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["mcpSession"]>
+  export type McpSessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type McpSessionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type McpSessionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $McpSessionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "McpSession"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      s3Key: string | null
+      language: string
+      script: string
+      duration: number | null
+      captions: Prisma.JsonValue | null
+      style: Prisma.JsonValue | null
+      requestedRes: number | null
+      bitrate: string | null
+      renderId: string | null
+      status: string
+      expiresAt: Date
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["mcpSession"]>
+    composites: {}
+  }
+
+  type McpSessionGetPayload<S extends boolean | null | undefined | McpSessionDefaultArgs> = $Result.GetResult<Prisma.$McpSessionPayload, S>
+
+  type McpSessionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<McpSessionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: McpSessionCountAggregateInputType | true
+    }
+
+  export interface McpSessionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['McpSession'], meta: { name: 'McpSession' } }
+    /**
+     * Find zero or one McpSession that matches the filter.
+     * @param {McpSessionFindUniqueArgs} args - Arguments to find a McpSession
+     * @example
+     * // Get one McpSession
+     * const mcpSession = await prisma.mcpSession.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends McpSessionFindUniqueArgs>(args: SelectSubset<T, McpSessionFindUniqueArgs<ExtArgs>>): Prisma__McpSessionClient<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one McpSession that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {McpSessionFindUniqueOrThrowArgs} args - Arguments to find a McpSession
+     * @example
+     * // Get one McpSession
+     * const mcpSession = await prisma.mcpSession.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends McpSessionFindUniqueOrThrowArgs>(args: SelectSubset<T, McpSessionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__McpSessionClient<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first McpSession that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {McpSessionFindFirstArgs} args - Arguments to find a McpSession
+     * @example
+     * // Get one McpSession
+     * const mcpSession = await prisma.mcpSession.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends McpSessionFindFirstArgs>(args?: SelectSubset<T, McpSessionFindFirstArgs<ExtArgs>>): Prisma__McpSessionClient<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first McpSession that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {McpSessionFindFirstOrThrowArgs} args - Arguments to find a McpSession
+     * @example
+     * // Get one McpSession
+     * const mcpSession = await prisma.mcpSession.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends McpSessionFindFirstOrThrowArgs>(args?: SelectSubset<T, McpSessionFindFirstOrThrowArgs<ExtArgs>>): Prisma__McpSessionClient<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more McpSessions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {McpSessionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all McpSessions
+     * const mcpSessions = await prisma.mcpSession.findMany()
+     * 
+     * // Get first 10 McpSessions
+     * const mcpSessions = await prisma.mcpSession.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mcpSessionWithIdOnly = await prisma.mcpSession.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends McpSessionFindManyArgs>(args?: SelectSubset<T, McpSessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a McpSession.
+     * @param {McpSessionCreateArgs} args - Arguments to create a McpSession.
+     * @example
+     * // Create one McpSession
+     * const McpSession = await prisma.mcpSession.create({
+     *   data: {
+     *     // ... data to create a McpSession
+     *   }
+     * })
+     * 
+     */
+    create<T extends McpSessionCreateArgs>(args: SelectSubset<T, McpSessionCreateArgs<ExtArgs>>): Prisma__McpSessionClient<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many McpSessions.
+     * @param {McpSessionCreateManyArgs} args - Arguments to create many McpSessions.
+     * @example
+     * // Create many McpSessions
+     * const mcpSession = await prisma.mcpSession.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends McpSessionCreateManyArgs>(args?: SelectSubset<T, McpSessionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many McpSessions and returns the data saved in the database.
+     * @param {McpSessionCreateManyAndReturnArgs} args - Arguments to create many McpSessions.
+     * @example
+     * // Create many McpSessions
+     * const mcpSession = await prisma.mcpSession.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many McpSessions and only return the `id`
+     * const mcpSessionWithIdOnly = await prisma.mcpSession.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends McpSessionCreateManyAndReturnArgs>(args?: SelectSubset<T, McpSessionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a McpSession.
+     * @param {McpSessionDeleteArgs} args - Arguments to delete one McpSession.
+     * @example
+     * // Delete one McpSession
+     * const McpSession = await prisma.mcpSession.delete({
+     *   where: {
+     *     // ... filter to delete one McpSession
+     *   }
+     * })
+     * 
+     */
+    delete<T extends McpSessionDeleteArgs>(args: SelectSubset<T, McpSessionDeleteArgs<ExtArgs>>): Prisma__McpSessionClient<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one McpSession.
+     * @param {McpSessionUpdateArgs} args - Arguments to update one McpSession.
+     * @example
+     * // Update one McpSession
+     * const mcpSession = await prisma.mcpSession.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends McpSessionUpdateArgs>(args: SelectSubset<T, McpSessionUpdateArgs<ExtArgs>>): Prisma__McpSessionClient<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more McpSessions.
+     * @param {McpSessionDeleteManyArgs} args - Arguments to filter McpSessions to delete.
+     * @example
+     * // Delete a few McpSessions
+     * const { count } = await prisma.mcpSession.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends McpSessionDeleteManyArgs>(args?: SelectSubset<T, McpSessionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more McpSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {McpSessionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many McpSessions
+     * const mcpSession = await prisma.mcpSession.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends McpSessionUpdateManyArgs>(args: SelectSubset<T, McpSessionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more McpSessions and returns the data updated in the database.
+     * @param {McpSessionUpdateManyAndReturnArgs} args - Arguments to update many McpSessions.
+     * @example
+     * // Update many McpSessions
+     * const mcpSession = await prisma.mcpSession.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more McpSessions and only return the `id`
+     * const mcpSessionWithIdOnly = await prisma.mcpSession.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends McpSessionUpdateManyAndReturnArgs>(args: SelectSubset<T, McpSessionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one McpSession.
+     * @param {McpSessionUpsertArgs} args - Arguments to update or create a McpSession.
+     * @example
+     * // Update or create a McpSession
+     * const mcpSession = await prisma.mcpSession.upsert({
+     *   create: {
+     *     // ... data to create a McpSession
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the McpSession we want to update
+     *   }
+     * })
+     */
+    upsert<T extends McpSessionUpsertArgs>(args: SelectSubset<T, McpSessionUpsertArgs<ExtArgs>>): Prisma__McpSessionClient<$Result.GetResult<Prisma.$McpSessionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of McpSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {McpSessionCountArgs} args - Arguments to filter McpSessions to count.
+     * @example
+     * // Count the number of McpSessions
+     * const count = await prisma.mcpSession.count({
+     *   where: {
+     *     // ... the filter for the McpSessions we want to count
+     *   }
+     * })
+    **/
+    count<T extends McpSessionCountArgs>(
+      args?: Subset<T, McpSessionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], McpSessionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a McpSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {McpSessionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends McpSessionAggregateArgs>(args: Subset<T, McpSessionAggregateArgs>): Prisma.PrismaPromise<GetMcpSessionAggregateType<T>>
+
+    /**
+     * Group by McpSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {McpSessionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends McpSessionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: McpSessionGroupByArgs['orderBy'] }
+        : { orderBy?: McpSessionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, McpSessionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMcpSessionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the McpSession model
+   */
+  readonly fields: McpSessionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for McpSession.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__McpSessionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the McpSession model
+   */
+  interface McpSessionFieldRefs {
+    readonly id: FieldRef<"McpSession", 'String'>
+    readonly userId: FieldRef<"McpSession", 'String'>
+    readonly s3Key: FieldRef<"McpSession", 'String'>
+    readonly language: FieldRef<"McpSession", 'String'>
+    readonly script: FieldRef<"McpSession", 'String'>
+    readonly duration: FieldRef<"McpSession", 'Float'>
+    readonly captions: FieldRef<"McpSession", 'Json'>
+    readonly style: FieldRef<"McpSession", 'Json'>
+    readonly requestedRes: FieldRef<"McpSession", 'Int'>
+    readonly bitrate: FieldRef<"McpSession", 'String'>
+    readonly renderId: FieldRef<"McpSession", 'String'>
+    readonly status: FieldRef<"McpSession", 'String'>
+    readonly expiresAt: FieldRef<"McpSession", 'DateTime'>
+    readonly createdAt: FieldRef<"McpSession", 'DateTime'>
+    readonly updatedAt: FieldRef<"McpSession", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * McpSession findUnique
+   */
+  export type McpSessionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which McpSession to fetch.
+     */
+    where: McpSessionWhereUniqueInput
+  }
+
+  /**
+   * McpSession findUniqueOrThrow
+   */
+  export type McpSessionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which McpSession to fetch.
+     */
+    where: McpSessionWhereUniqueInput
+  }
+
+  /**
+   * McpSession findFirst
+   */
+  export type McpSessionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which McpSession to fetch.
+     */
+    where?: McpSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of McpSessions to fetch.
+     */
+    orderBy?: McpSessionOrderByWithRelationInput | McpSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for McpSessions.
+     */
+    cursor?: McpSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` McpSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` McpSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of McpSessions.
+     */
+    distinct?: McpSessionScalarFieldEnum | McpSessionScalarFieldEnum[]
+  }
+
+  /**
+   * McpSession findFirstOrThrow
+   */
+  export type McpSessionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which McpSession to fetch.
+     */
+    where?: McpSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of McpSessions to fetch.
+     */
+    orderBy?: McpSessionOrderByWithRelationInput | McpSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for McpSessions.
+     */
+    cursor?: McpSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` McpSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` McpSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of McpSessions.
+     */
+    distinct?: McpSessionScalarFieldEnum | McpSessionScalarFieldEnum[]
+  }
+
+  /**
+   * McpSession findMany
+   */
+  export type McpSessionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which McpSessions to fetch.
+     */
+    where?: McpSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of McpSessions to fetch.
+     */
+    orderBy?: McpSessionOrderByWithRelationInput | McpSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing McpSessions.
+     */
+    cursor?: McpSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` McpSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` McpSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of McpSessions.
+     */
+    distinct?: McpSessionScalarFieldEnum | McpSessionScalarFieldEnum[]
+  }
+
+  /**
+   * McpSession create
+   */
+  export type McpSessionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a McpSession.
+     */
+    data: XOR<McpSessionCreateInput, McpSessionUncheckedCreateInput>
+  }
+
+  /**
+   * McpSession createMany
+   */
+  export type McpSessionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many McpSessions.
+     */
+    data: McpSessionCreateManyInput | McpSessionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * McpSession createManyAndReturn
+   */
+  export type McpSessionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * The data used to create many McpSessions.
+     */
+    data: McpSessionCreateManyInput | McpSessionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * McpSession update
+   */
+  export type McpSessionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a McpSession.
+     */
+    data: XOR<McpSessionUpdateInput, McpSessionUncheckedUpdateInput>
+    /**
+     * Choose, which McpSession to update.
+     */
+    where: McpSessionWhereUniqueInput
+  }
+
+  /**
+   * McpSession updateMany
+   */
+  export type McpSessionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update McpSessions.
+     */
+    data: XOR<McpSessionUpdateManyMutationInput, McpSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which McpSessions to update
+     */
+    where?: McpSessionWhereInput
+    /**
+     * Limit how many McpSessions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * McpSession updateManyAndReturn
+   */
+  export type McpSessionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * The data used to update McpSessions.
+     */
+    data: XOR<McpSessionUpdateManyMutationInput, McpSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which McpSessions to update
+     */
+    where?: McpSessionWhereInput
+    /**
+     * Limit how many McpSessions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * McpSession upsert
+   */
+  export type McpSessionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the McpSession to update in case it exists.
+     */
+    where: McpSessionWhereUniqueInput
+    /**
+     * In case the McpSession found by the `where` argument doesn't exist, create a new McpSession with this data.
+     */
+    create: XOR<McpSessionCreateInput, McpSessionUncheckedCreateInput>
+    /**
+     * In case the McpSession was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<McpSessionUpdateInput, McpSessionUncheckedUpdateInput>
+  }
+
+  /**
+   * McpSession delete
+   */
+  export type McpSessionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+    /**
+     * Filter which McpSession to delete.
+     */
+    where: McpSessionWhereUniqueInput
+  }
+
+  /**
+   * McpSession deleteMany
+   */
+  export type McpSessionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which McpSessions to delete
+     */
+    where?: McpSessionWhereInput
+    /**
+     * Limit how many McpSessions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * McpSession without action
+   */
+  export type McpSessionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the McpSession
+     */
+    select?: McpSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the McpSession
+     */
+    omit?: McpSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: McpSessionInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -9736,6 +13669,57 @@ export namespace Prisma {
   };
 
   export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+  export const ApiKeyScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    name: 'name',
+    key: 'key',
+    keyPrefix: 'keyPrefix',
+    status: 'status',
+    rateLimit: 'rateLimit',
+    expiresAt: 'expiresAt',
+    lastUsedAt: 'lastUsedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
+
+
+  export const ApiUsageLogScalarFieldEnum: {
+    id: 'id',
+    apiKeyId: 'apiKeyId',
+    tool: 'tool',
+    inputTokens: 'inputTokens',
+    status: 'status',
+    latencyMs: 'latencyMs',
+    createdAt: 'createdAt'
+  };
+
+  export type ApiUsageLogScalarFieldEnum = (typeof ApiUsageLogScalarFieldEnum)[keyof typeof ApiUsageLogScalarFieldEnum]
+
+
+  export const McpSessionScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    s3Key: 's3Key',
+    language: 'language',
+    script: 'script',
+    duration: 'duration',
+    captions: 'captions',
+    style: 'style',
+    requestedRes: 'requestedRes',
+    bitrate: 'bitrate',
+    renderId: 'renderId',
+    status: 'status',
+    expiresAt: 'expiresAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type McpSessionScalarFieldEnum = (typeof McpSessionScalarFieldEnum)[keyof typeof McpSessionScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -10231,6 +14215,8 @@ export namespace Prisma {
     sessions?: SessionListRelationFilter
     subscription?: XOR<SubscriptionNullableScalarRelationFilter, SubscriptionWhereInput> | null
     transactions?: TransactionListRelationFilter
+    apiKeys?: ApiKeyListRelationFilter
+    mcpSessions?: McpSessionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -10251,6 +14237,8 @@ export namespace Prisma {
     sessions?: SessionOrderByRelationAggregateInput
     subscription?: SubscriptionOrderByWithRelationInput
     transactions?: TransactionOrderByRelationAggregateInput
+    apiKeys?: ApiKeyOrderByRelationAggregateInput
+    mcpSessions?: McpSessionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -10274,6 +14262,8 @@ export namespace Prisma {
     sessions?: SessionListRelationFilter
     subscription?: XOR<SubscriptionNullableScalarRelationFilter, SubscriptionWhereInput> | null
     transactions?: TransactionListRelationFilter
+    apiKeys?: ApiKeyListRelationFilter
+    mcpSessions?: McpSessionListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -10461,6 +14451,270 @@ export namespace Prisma {
     razorpayOrderId?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
     razorpayPaymentId?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Transaction"> | Date | string
+  }
+
+  export type ApiKeyWhereInput = {
+    AND?: ApiKeyWhereInput | ApiKeyWhereInput[]
+    OR?: ApiKeyWhereInput[]
+    NOT?: ApiKeyWhereInput | ApiKeyWhereInput[]
+    id?: StringFilter<"ApiKey"> | string
+    userId?: StringFilter<"ApiKey"> | string
+    name?: StringFilter<"ApiKey"> | string
+    key?: StringFilter<"ApiKey"> | string
+    keyPrefix?: StringFilter<"ApiKey"> | string
+    status?: StringFilter<"ApiKey"> | string
+    rateLimit?: IntFilter<"ApiKey"> | number
+    expiresAt?: DateTimeNullableFilter<"ApiKey"> | Date | string | null
+    lastUsedAt?: DateTimeNullableFilter<"ApiKey"> | Date | string | null
+    createdAt?: DateTimeFilter<"ApiKey"> | Date | string
+    updatedAt?: DateTimeFilter<"ApiKey"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    usageLogs?: ApiUsageLogListRelationFilter
+  }
+
+  export type ApiKeyOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    key?: SortOrder
+    keyPrefix?: SortOrder
+    status?: SortOrder
+    rateLimit?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    lastUsedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    usageLogs?: ApiUsageLogOrderByRelationAggregateInput
+  }
+
+  export type ApiKeyWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    key?: string
+    AND?: ApiKeyWhereInput | ApiKeyWhereInput[]
+    OR?: ApiKeyWhereInput[]
+    NOT?: ApiKeyWhereInput | ApiKeyWhereInput[]
+    userId?: StringFilter<"ApiKey"> | string
+    name?: StringFilter<"ApiKey"> | string
+    keyPrefix?: StringFilter<"ApiKey"> | string
+    status?: StringFilter<"ApiKey"> | string
+    rateLimit?: IntFilter<"ApiKey"> | number
+    expiresAt?: DateTimeNullableFilter<"ApiKey"> | Date | string | null
+    lastUsedAt?: DateTimeNullableFilter<"ApiKey"> | Date | string | null
+    createdAt?: DateTimeFilter<"ApiKey"> | Date | string
+    updatedAt?: DateTimeFilter<"ApiKey"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    usageLogs?: ApiUsageLogListRelationFilter
+  }, "id" | "key">
+
+  export type ApiKeyOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    key?: SortOrder
+    keyPrefix?: SortOrder
+    status?: SortOrder
+    rateLimit?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    lastUsedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ApiKeyCountOrderByAggregateInput
+    _avg?: ApiKeyAvgOrderByAggregateInput
+    _max?: ApiKeyMaxOrderByAggregateInput
+    _min?: ApiKeyMinOrderByAggregateInput
+    _sum?: ApiKeySumOrderByAggregateInput
+  }
+
+  export type ApiKeyScalarWhereWithAggregatesInput = {
+    AND?: ApiKeyScalarWhereWithAggregatesInput | ApiKeyScalarWhereWithAggregatesInput[]
+    OR?: ApiKeyScalarWhereWithAggregatesInput[]
+    NOT?: ApiKeyScalarWhereWithAggregatesInput | ApiKeyScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ApiKey"> | string
+    userId?: StringWithAggregatesFilter<"ApiKey"> | string
+    name?: StringWithAggregatesFilter<"ApiKey"> | string
+    key?: StringWithAggregatesFilter<"ApiKey"> | string
+    keyPrefix?: StringWithAggregatesFilter<"ApiKey"> | string
+    status?: StringWithAggregatesFilter<"ApiKey"> | string
+    rateLimit?: IntWithAggregatesFilter<"ApiKey"> | number
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"ApiKey"> | Date | string | null
+    lastUsedAt?: DateTimeNullableWithAggregatesFilter<"ApiKey"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ApiKey"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ApiKey"> | Date | string
+  }
+
+  export type ApiUsageLogWhereInput = {
+    AND?: ApiUsageLogWhereInput | ApiUsageLogWhereInput[]
+    OR?: ApiUsageLogWhereInput[]
+    NOT?: ApiUsageLogWhereInput | ApiUsageLogWhereInput[]
+    id?: StringFilter<"ApiUsageLog"> | string
+    apiKeyId?: StringFilter<"ApiUsageLog"> | string
+    tool?: StringFilter<"ApiUsageLog"> | string
+    inputTokens?: IntFilter<"ApiUsageLog"> | number
+    status?: StringFilter<"ApiUsageLog"> | string
+    latencyMs?: IntFilter<"ApiUsageLog"> | number
+    createdAt?: DateTimeFilter<"ApiUsageLog"> | Date | string
+    apiKey?: XOR<ApiKeyScalarRelationFilter, ApiKeyWhereInput>
+  }
+
+  export type ApiUsageLogOrderByWithRelationInput = {
+    id?: SortOrder
+    apiKeyId?: SortOrder
+    tool?: SortOrder
+    inputTokens?: SortOrder
+    status?: SortOrder
+    latencyMs?: SortOrder
+    createdAt?: SortOrder
+    apiKey?: ApiKeyOrderByWithRelationInput
+  }
+
+  export type ApiUsageLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ApiUsageLogWhereInput | ApiUsageLogWhereInput[]
+    OR?: ApiUsageLogWhereInput[]
+    NOT?: ApiUsageLogWhereInput | ApiUsageLogWhereInput[]
+    apiKeyId?: StringFilter<"ApiUsageLog"> | string
+    tool?: StringFilter<"ApiUsageLog"> | string
+    inputTokens?: IntFilter<"ApiUsageLog"> | number
+    status?: StringFilter<"ApiUsageLog"> | string
+    latencyMs?: IntFilter<"ApiUsageLog"> | number
+    createdAt?: DateTimeFilter<"ApiUsageLog"> | Date | string
+    apiKey?: XOR<ApiKeyScalarRelationFilter, ApiKeyWhereInput>
+  }, "id">
+
+  export type ApiUsageLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    apiKeyId?: SortOrder
+    tool?: SortOrder
+    inputTokens?: SortOrder
+    status?: SortOrder
+    latencyMs?: SortOrder
+    createdAt?: SortOrder
+    _count?: ApiUsageLogCountOrderByAggregateInput
+    _avg?: ApiUsageLogAvgOrderByAggregateInput
+    _max?: ApiUsageLogMaxOrderByAggregateInput
+    _min?: ApiUsageLogMinOrderByAggregateInput
+    _sum?: ApiUsageLogSumOrderByAggregateInput
+  }
+
+  export type ApiUsageLogScalarWhereWithAggregatesInput = {
+    AND?: ApiUsageLogScalarWhereWithAggregatesInput | ApiUsageLogScalarWhereWithAggregatesInput[]
+    OR?: ApiUsageLogScalarWhereWithAggregatesInput[]
+    NOT?: ApiUsageLogScalarWhereWithAggregatesInput | ApiUsageLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ApiUsageLog"> | string
+    apiKeyId?: StringWithAggregatesFilter<"ApiUsageLog"> | string
+    tool?: StringWithAggregatesFilter<"ApiUsageLog"> | string
+    inputTokens?: IntWithAggregatesFilter<"ApiUsageLog"> | number
+    status?: StringWithAggregatesFilter<"ApiUsageLog"> | string
+    latencyMs?: IntWithAggregatesFilter<"ApiUsageLog"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"ApiUsageLog"> | Date | string
+  }
+
+  export type McpSessionWhereInput = {
+    AND?: McpSessionWhereInput | McpSessionWhereInput[]
+    OR?: McpSessionWhereInput[]
+    NOT?: McpSessionWhereInput | McpSessionWhereInput[]
+    id?: StringFilter<"McpSession"> | string
+    userId?: StringFilter<"McpSession"> | string
+    s3Key?: StringNullableFilter<"McpSession"> | string | null
+    language?: StringFilter<"McpSession"> | string
+    script?: StringFilter<"McpSession"> | string
+    duration?: FloatNullableFilter<"McpSession"> | number | null
+    captions?: JsonNullableFilter<"McpSession">
+    style?: JsonNullableFilter<"McpSession">
+    requestedRes?: IntNullableFilter<"McpSession"> | number | null
+    bitrate?: StringNullableFilter<"McpSession"> | string | null
+    renderId?: StringNullableFilter<"McpSession"> | string | null
+    status?: StringFilter<"McpSession"> | string
+    expiresAt?: DateTimeFilter<"McpSession"> | Date | string
+    createdAt?: DateTimeFilter<"McpSession"> | Date | string
+    updatedAt?: DateTimeFilter<"McpSession"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type McpSessionOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    s3Key?: SortOrderInput | SortOrder
+    language?: SortOrder
+    script?: SortOrder
+    duration?: SortOrderInput | SortOrder
+    captions?: SortOrderInput | SortOrder
+    style?: SortOrderInput | SortOrder
+    requestedRes?: SortOrderInput | SortOrder
+    bitrate?: SortOrderInput | SortOrder
+    renderId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type McpSessionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: McpSessionWhereInput | McpSessionWhereInput[]
+    OR?: McpSessionWhereInput[]
+    NOT?: McpSessionWhereInput | McpSessionWhereInput[]
+    userId?: StringFilter<"McpSession"> | string
+    s3Key?: StringNullableFilter<"McpSession"> | string | null
+    language?: StringFilter<"McpSession"> | string
+    script?: StringFilter<"McpSession"> | string
+    duration?: FloatNullableFilter<"McpSession"> | number | null
+    captions?: JsonNullableFilter<"McpSession">
+    style?: JsonNullableFilter<"McpSession">
+    requestedRes?: IntNullableFilter<"McpSession"> | number | null
+    bitrate?: StringNullableFilter<"McpSession"> | string | null
+    renderId?: StringNullableFilter<"McpSession"> | string | null
+    status?: StringFilter<"McpSession"> | string
+    expiresAt?: DateTimeFilter<"McpSession"> | Date | string
+    createdAt?: DateTimeFilter<"McpSession"> | Date | string
+    updatedAt?: DateTimeFilter<"McpSession"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type McpSessionOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    s3Key?: SortOrderInput | SortOrder
+    language?: SortOrder
+    script?: SortOrder
+    duration?: SortOrderInput | SortOrder
+    captions?: SortOrderInput | SortOrder
+    style?: SortOrderInput | SortOrder
+    requestedRes?: SortOrderInput | SortOrder
+    bitrate?: SortOrderInput | SortOrder
+    renderId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: McpSessionCountOrderByAggregateInput
+    _avg?: McpSessionAvgOrderByAggregateInput
+    _max?: McpSessionMaxOrderByAggregateInput
+    _min?: McpSessionMinOrderByAggregateInput
+    _sum?: McpSessionSumOrderByAggregateInput
+  }
+
+  export type McpSessionScalarWhereWithAggregatesInput = {
+    AND?: McpSessionScalarWhereWithAggregatesInput | McpSessionScalarWhereWithAggregatesInput[]
+    OR?: McpSessionScalarWhereWithAggregatesInput[]
+    NOT?: McpSessionScalarWhereWithAggregatesInput | McpSessionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"McpSession"> | string
+    userId?: StringWithAggregatesFilter<"McpSession"> | string
+    s3Key?: StringNullableWithAggregatesFilter<"McpSession"> | string | null
+    language?: StringWithAggregatesFilter<"McpSession"> | string
+    script?: StringWithAggregatesFilter<"McpSession"> | string
+    duration?: FloatNullableWithAggregatesFilter<"McpSession"> | number | null
+    captions?: JsonNullableWithAggregatesFilter<"McpSession">
+    style?: JsonNullableWithAggregatesFilter<"McpSession">
+    requestedRes?: IntNullableWithAggregatesFilter<"McpSession"> | number | null
+    bitrate?: StringNullableWithAggregatesFilter<"McpSession"> | string | null
+    renderId?: StringNullableWithAggregatesFilter<"McpSession"> | string | null
+    status?: StringWithAggregatesFilter<"McpSession"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"McpSession"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"McpSession"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"McpSession"> | Date | string
   }
 
   export type AccountCreateInput = {
@@ -10835,6 +15089,8 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -10855,6 +15111,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -10875,6 +15133,8 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -10895,6 +15155,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -11099,6 +15361,301 @@ export namespace Prisma {
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiKeyCreateInput = {
+    id?: string
+    name?: string
+    key: string
+    keyPrefix: string
+    status?: string
+    rateLimit?: number
+    expiresAt?: Date | string | null
+    lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutApiKeysInput
+    usageLogs?: ApiUsageLogCreateNestedManyWithoutApiKeyInput
+  }
+
+  export type ApiKeyUncheckedCreateInput = {
+    id?: string
+    userId: string
+    name?: string
+    key: string
+    keyPrefix: string
+    status?: string
+    rateLimit?: number
+    expiresAt?: Date | string | null
+    lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    usageLogs?: ApiUsageLogUncheckedCreateNestedManyWithoutApiKeyInput
+  }
+
+  export type ApiKeyUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutApiKeysNestedInput
+    usageLogs?: ApiUsageLogUpdateManyWithoutApiKeyNestedInput
+  }
+
+  export type ApiKeyUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usageLogs?: ApiUsageLogUncheckedUpdateManyWithoutApiKeyNestedInput
+  }
+
+  export type ApiKeyCreateManyInput = {
+    id?: string
+    userId: string
+    name?: string
+    key: string
+    keyPrefix: string
+    status?: string
+    rateLimit?: number
+    expiresAt?: Date | string | null
+    lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ApiKeyUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiKeyUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiUsageLogCreateInput = {
+    id?: string
+    tool: string
+    inputTokens?: number
+    status?: string
+    latencyMs?: number
+    createdAt?: Date | string
+    apiKey: ApiKeyCreateNestedOneWithoutUsageLogsInput
+  }
+
+  export type ApiUsageLogUncheckedCreateInput = {
+    id?: string
+    apiKeyId: string
+    tool: string
+    inputTokens?: number
+    status?: string
+    latencyMs?: number
+    createdAt?: Date | string
+  }
+
+  export type ApiUsageLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tool?: StringFieldUpdateOperationsInput | string
+    inputTokens?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    latencyMs?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    apiKey?: ApiKeyUpdateOneRequiredWithoutUsageLogsNestedInput
+  }
+
+  export type ApiUsageLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    apiKeyId?: StringFieldUpdateOperationsInput | string
+    tool?: StringFieldUpdateOperationsInput | string
+    inputTokens?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    latencyMs?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiUsageLogCreateManyInput = {
+    id?: string
+    apiKeyId: string
+    tool: string
+    inputTokens?: number
+    status?: string
+    latencyMs?: number
+    createdAt?: Date | string
+  }
+
+  export type ApiUsageLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tool?: StringFieldUpdateOperationsInput | string
+    inputTokens?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    latencyMs?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiUsageLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    apiKeyId?: StringFieldUpdateOperationsInput | string
+    tool?: StringFieldUpdateOperationsInput | string
+    inputTokens?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    latencyMs?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type McpSessionCreateInput = {
+    id?: string
+    s3Key?: string | null
+    language?: string
+    script?: string
+    duration?: number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: number | null
+    bitrate?: string | null
+    renderId?: string | null
+    status?: string
+    expiresAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutMcpSessionsInput
+  }
+
+  export type McpSessionUncheckedCreateInput = {
+    id?: string
+    userId: string
+    s3Key?: string | null
+    language?: string
+    script?: string
+    duration?: number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: number | null
+    bitrate?: string | null
+    renderId?: string | null
+    status?: string
+    expiresAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type McpSessionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    script?: StringFieldUpdateOperationsInput | string
+    duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: NullableIntFieldUpdateOperationsInput | number | null
+    bitrate?: NullableStringFieldUpdateOperationsInput | string | null
+    renderId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutMcpSessionsNestedInput
+  }
+
+  export type McpSessionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    script?: StringFieldUpdateOperationsInput | string
+    duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: NullableIntFieldUpdateOperationsInput | number | null
+    bitrate?: NullableStringFieldUpdateOperationsInput | string | null
+    renderId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type McpSessionCreateManyInput = {
+    id?: string
+    userId: string
+    s3Key?: string | null
+    language?: string
+    script?: string
+    duration?: number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: number | null
+    bitrate?: string | null
+    renderId?: string | null
+    status?: string
+    expiresAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type McpSessionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    script?: StringFieldUpdateOperationsInput | string
+    duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: NullableIntFieldUpdateOperationsInput | number | null
+    bitrate?: NullableStringFieldUpdateOperationsInput | string | null
+    renderId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type McpSessionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    script?: StringFieldUpdateOperationsInput | string
+    duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: NullableIntFieldUpdateOperationsInput | number | null
+    bitrate?: NullableStringFieldUpdateOperationsInput | string | null
+    renderId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -11585,6 +16142,18 @@ export namespace Prisma {
     none?: TransactionWhereInput
   }
 
+  export type ApiKeyListRelationFilter = {
+    every?: ApiKeyWhereInput
+    some?: ApiKeyWhereInput
+    none?: ApiKeyWhereInput
+  }
+
+  export type McpSessionListRelationFilter = {
+    every?: McpSessionWhereInput
+    some?: McpSessionWhereInput
+    none?: McpSessionWhereInput
+  }
+
   export type AccountOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -11598,6 +16167,14 @@ export namespace Prisma {
   }
 
   export type TransactionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ApiKeyOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type McpSessionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -11790,6 +16367,198 @@ export namespace Prisma {
     amount?: SortOrder
   }
 
+  export type ApiUsageLogListRelationFilter = {
+    every?: ApiUsageLogWhereInput
+    some?: ApiUsageLogWhereInput
+    none?: ApiUsageLogWhereInput
+  }
+
+  export type ApiUsageLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ApiKeyCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    key?: SortOrder
+    keyPrefix?: SortOrder
+    status?: SortOrder
+    rateLimit?: SortOrder
+    expiresAt?: SortOrder
+    lastUsedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ApiKeyAvgOrderByAggregateInput = {
+    rateLimit?: SortOrder
+  }
+
+  export type ApiKeyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    key?: SortOrder
+    keyPrefix?: SortOrder
+    status?: SortOrder
+    rateLimit?: SortOrder
+    expiresAt?: SortOrder
+    lastUsedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ApiKeyMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    key?: SortOrder
+    keyPrefix?: SortOrder
+    status?: SortOrder
+    rateLimit?: SortOrder
+    expiresAt?: SortOrder
+    lastUsedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ApiKeySumOrderByAggregateInput = {
+    rateLimit?: SortOrder
+  }
+
+  export type ApiKeyScalarRelationFilter = {
+    is?: ApiKeyWhereInput
+    isNot?: ApiKeyWhereInput
+  }
+
+  export type ApiUsageLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    apiKeyId?: SortOrder
+    tool?: SortOrder
+    inputTokens?: SortOrder
+    status?: SortOrder
+    latencyMs?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ApiUsageLogAvgOrderByAggregateInput = {
+    inputTokens?: SortOrder
+    latencyMs?: SortOrder
+  }
+
+  export type ApiUsageLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    apiKeyId?: SortOrder
+    tool?: SortOrder
+    inputTokens?: SortOrder
+    status?: SortOrder
+    latencyMs?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ApiUsageLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    apiKeyId?: SortOrder
+    tool?: SortOrder
+    inputTokens?: SortOrder
+    status?: SortOrder
+    latencyMs?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ApiUsageLogSumOrderByAggregateInput = {
+    inputTokens?: SortOrder
+    latencyMs?: SortOrder
+  }
+
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type McpSessionCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    s3Key?: SortOrder
+    language?: SortOrder
+    script?: SortOrder
+    duration?: SortOrder
+    captions?: SortOrder
+    style?: SortOrder
+    requestedRes?: SortOrder
+    bitrate?: SortOrder
+    renderId?: SortOrder
+    status?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type McpSessionAvgOrderByAggregateInput = {
+    duration?: SortOrder
+    requestedRes?: SortOrder
+  }
+
+  export type McpSessionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    s3Key?: SortOrder
+    language?: SortOrder
+    script?: SortOrder
+    duration?: SortOrder
+    requestedRes?: SortOrder
+    bitrate?: SortOrder
+    renderId?: SortOrder
+    status?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type McpSessionMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    s3Key?: SortOrder
+    language?: SortOrder
+    script?: SortOrder
+    duration?: SortOrder
+    requestedRes?: SortOrder
+    bitrate?: SortOrder
+    renderId?: SortOrder
+    status?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type McpSessionSumOrderByAggregateInput = {
+    duration?: SortOrder
+    requestedRes?: SortOrder
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type UserCreateNestedOneWithoutAccountsInput = {
     create?: XOR<UserCreateWithoutAccountsInput, UserUncheckedCreateWithoutAccountsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAccountsInput
@@ -11922,6 +16691,20 @@ export namespace Prisma {
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
   }
 
+  export type ApiKeyCreateNestedManyWithoutUserInput = {
+    create?: XOR<ApiKeyCreateWithoutUserInput, ApiKeyUncheckedCreateWithoutUserInput> | ApiKeyCreateWithoutUserInput[] | ApiKeyUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ApiKeyCreateOrConnectWithoutUserInput | ApiKeyCreateOrConnectWithoutUserInput[]
+    createMany?: ApiKeyCreateManyUserInputEnvelope
+    connect?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+  }
+
+  export type McpSessionCreateNestedManyWithoutUserInput = {
+    create?: XOR<McpSessionCreateWithoutUserInput, McpSessionUncheckedCreateWithoutUserInput> | McpSessionCreateWithoutUserInput[] | McpSessionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: McpSessionCreateOrConnectWithoutUserInput | McpSessionCreateOrConnectWithoutUserInput[]
+    createMany?: McpSessionCreateManyUserInputEnvelope
+    connect?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -11954,6 +16737,20 @@ export namespace Prisma {
     connectOrCreate?: TransactionCreateOrConnectWithoutUserInput | TransactionCreateOrConnectWithoutUserInput[]
     createMany?: TransactionCreateManyUserInputEnvelope
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+  }
+
+  export type ApiKeyUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<ApiKeyCreateWithoutUserInput, ApiKeyUncheckedCreateWithoutUserInput> | ApiKeyCreateWithoutUserInput[] | ApiKeyUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ApiKeyCreateOrConnectWithoutUserInput | ApiKeyCreateOrConnectWithoutUserInput[]
+    createMany?: ApiKeyCreateManyUserInputEnvelope
+    connect?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+  }
+
+  export type McpSessionUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<McpSessionCreateWithoutUserInput, McpSessionUncheckedCreateWithoutUserInput> | McpSessionCreateWithoutUserInput[] | McpSessionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: McpSessionCreateOrConnectWithoutUserInput | McpSessionCreateOrConnectWithoutUserInput[]
+    createMany?: McpSessionCreateManyUserInputEnvelope
+    connect?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
   }
 
   export type AccountUpdateManyWithoutUserNestedInput = {
@@ -12022,6 +16819,34 @@ export namespace Prisma {
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
+  export type ApiKeyUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ApiKeyCreateWithoutUserInput, ApiKeyUncheckedCreateWithoutUserInput> | ApiKeyCreateWithoutUserInput[] | ApiKeyUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ApiKeyCreateOrConnectWithoutUserInput | ApiKeyCreateOrConnectWithoutUserInput[]
+    upsert?: ApiKeyUpsertWithWhereUniqueWithoutUserInput | ApiKeyUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ApiKeyCreateManyUserInputEnvelope
+    set?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+    disconnect?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+    delete?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+    connect?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+    update?: ApiKeyUpdateWithWhereUniqueWithoutUserInput | ApiKeyUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ApiKeyUpdateManyWithWhereWithoutUserInput | ApiKeyUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ApiKeyScalarWhereInput | ApiKeyScalarWhereInput[]
+  }
+
+  export type McpSessionUpdateManyWithoutUserNestedInput = {
+    create?: XOR<McpSessionCreateWithoutUserInput, McpSessionUncheckedCreateWithoutUserInput> | McpSessionCreateWithoutUserInput[] | McpSessionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: McpSessionCreateOrConnectWithoutUserInput | McpSessionCreateOrConnectWithoutUserInput[]
+    upsert?: McpSessionUpsertWithWhereUniqueWithoutUserInput | McpSessionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: McpSessionCreateManyUserInputEnvelope
+    set?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+    disconnect?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+    delete?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+    connect?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+    update?: McpSessionUpdateWithWhereUniqueWithoutUserInput | McpSessionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: McpSessionUpdateManyWithWhereWithoutUserInput | McpSessionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: McpSessionScalarWhereInput | McpSessionScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -12088,6 +16913,34 @@ export namespace Prisma {
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
+  export type ApiKeyUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ApiKeyCreateWithoutUserInput, ApiKeyUncheckedCreateWithoutUserInput> | ApiKeyCreateWithoutUserInput[] | ApiKeyUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ApiKeyCreateOrConnectWithoutUserInput | ApiKeyCreateOrConnectWithoutUserInput[]
+    upsert?: ApiKeyUpsertWithWhereUniqueWithoutUserInput | ApiKeyUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ApiKeyCreateManyUserInputEnvelope
+    set?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+    disconnect?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+    delete?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+    connect?: ApiKeyWhereUniqueInput | ApiKeyWhereUniqueInput[]
+    update?: ApiKeyUpdateWithWhereUniqueWithoutUserInput | ApiKeyUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ApiKeyUpdateManyWithWhereWithoutUserInput | ApiKeyUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ApiKeyScalarWhereInput | ApiKeyScalarWhereInput[]
+  }
+
+  export type McpSessionUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<McpSessionCreateWithoutUserInput, McpSessionUncheckedCreateWithoutUserInput> | McpSessionCreateWithoutUserInput[] | McpSessionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: McpSessionCreateOrConnectWithoutUserInput | McpSessionCreateOrConnectWithoutUserInput[]
+    upsert?: McpSessionUpsertWithWhereUniqueWithoutUserInput | McpSessionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: McpSessionCreateManyUserInputEnvelope
+    set?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+    disconnect?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+    delete?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+    connect?: McpSessionWhereUniqueInput | McpSessionWhereUniqueInput[]
+    update?: McpSessionUpdateWithWhereUniqueWithoutUserInput | McpSessionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: McpSessionUpdateManyWithWhereWithoutUserInput | McpSessionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: McpSessionScalarWhereInput | McpSessionScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutProjectsInput = {
     create?: XOR<UserCreateWithoutProjectsInput, UserUncheckedCreateWithoutProjectsInput>
     connectOrCreate?: UserCreateOrConnectWithoutProjectsInput
@@ -12114,6 +16967,98 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutTransactionsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutTransactionsInput, UserUpdateWithoutTransactionsInput>, UserUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type UserCreateNestedOneWithoutApiKeysInput = {
+    create?: XOR<UserCreateWithoutApiKeysInput, UserUncheckedCreateWithoutApiKeysInput>
+    connectOrCreate?: UserCreateOrConnectWithoutApiKeysInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type ApiUsageLogCreateNestedManyWithoutApiKeyInput = {
+    create?: XOR<ApiUsageLogCreateWithoutApiKeyInput, ApiUsageLogUncheckedCreateWithoutApiKeyInput> | ApiUsageLogCreateWithoutApiKeyInput[] | ApiUsageLogUncheckedCreateWithoutApiKeyInput[]
+    connectOrCreate?: ApiUsageLogCreateOrConnectWithoutApiKeyInput | ApiUsageLogCreateOrConnectWithoutApiKeyInput[]
+    createMany?: ApiUsageLogCreateManyApiKeyInputEnvelope
+    connect?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+  }
+
+  export type ApiUsageLogUncheckedCreateNestedManyWithoutApiKeyInput = {
+    create?: XOR<ApiUsageLogCreateWithoutApiKeyInput, ApiUsageLogUncheckedCreateWithoutApiKeyInput> | ApiUsageLogCreateWithoutApiKeyInput[] | ApiUsageLogUncheckedCreateWithoutApiKeyInput[]
+    connectOrCreate?: ApiUsageLogCreateOrConnectWithoutApiKeyInput | ApiUsageLogCreateOrConnectWithoutApiKeyInput[]
+    createMany?: ApiUsageLogCreateManyApiKeyInputEnvelope
+    connect?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+  }
+
+  export type UserUpdateOneRequiredWithoutApiKeysNestedInput = {
+    create?: XOR<UserCreateWithoutApiKeysInput, UserUncheckedCreateWithoutApiKeysInput>
+    connectOrCreate?: UserCreateOrConnectWithoutApiKeysInput
+    upsert?: UserUpsertWithoutApiKeysInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutApiKeysInput, UserUpdateWithoutApiKeysInput>, UserUncheckedUpdateWithoutApiKeysInput>
+  }
+
+  export type ApiUsageLogUpdateManyWithoutApiKeyNestedInput = {
+    create?: XOR<ApiUsageLogCreateWithoutApiKeyInput, ApiUsageLogUncheckedCreateWithoutApiKeyInput> | ApiUsageLogCreateWithoutApiKeyInput[] | ApiUsageLogUncheckedCreateWithoutApiKeyInput[]
+    connectOrCreate?: ApiUsageLogCreateOrConnectWithoutApiKeyInput | ApiUsageLogCreateOrConnectWithoutApiKeyInput[]
+    upsert?: ApiUsageLogUpsertWithWhereUniqueWithoutApiKeyInput | ApiUsageLogUpsertWithWhereUniqueWithoutApiKeyInput[]
+    createMany?: ApiUsageLogCreateManyApiKeyInputEnvelope
+    set?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+    disconnect?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+    delete?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+    connect?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+    update?: ApiUsageLogUpdateWithWhereUniqueWithoutApiKeyInput | ApiUsageLogUpdateWithWhereUniqueWithoutApiKeyInput[]
+    updateMany?: ApiUsageLogUpdateManyWithWhereWithoutApiKeyInput | ApiUsageLogUpdateManyWithWhereWithoutApiKeyInput[]
+    deleteMany?: ApiUsageLogScalarWhereInput | ApiUsageLogScalarWhereInput[]
+  }
+
+  export type ApiUsageLogUncheckedUpdateManyWithoutApiKeyNestedInput = {
+    create?: XOR<ApiUsageLogCreateWithoutApiKeyInput, ApiUsageLogUncheckedCreateWithoutApiKeyInput> | ApiUsageLogCreateWithoutApiKeyInput[] | ApiUsageLogUncheckedCreateWithoutApiKeyInput[]
+    connectOrCreate?: ApiUsageLogCreateOrConnectWithoutApiKeyInput | ApiUsageLogCreateOrConnectWithoutApiKeyInput[]
+    upsert?: ApiUsageLogUpsertWithWhereUniqueWithoutApiKeyInput | ApiUsageLogUpsertWithWhereUniqueWithoutApiKeyInput[]
+    createMany?: ApiUsageLogCreateManyApiKeyInputEnvelope
+    set?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+    disconnect?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+    delete?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+    connect?: ApiUsageLogWhereUniqueInput | ApiUsageLogWhereUniqueInput[]
+    update?: ApiUsageLogUpdateWithWhereUniqueWithoutApiKeyInput | ApiUsageLogUpdateWithWhereUniqueWithoutApiKeyInput[]
+    updateMany?: ApiUsageLogUpdateManyWithWhereWithoutApiKeyInput | ApiUsageLogUpdateManyWithWhereWithoutApiKeyInput[]
+    deleteMany?: ApiUsageLogScalarWhereInput | ApiUsageLogScalarWhereInput[]
+  }
+
+  export type ApiKeyCreateNestedOneWithoutUsageLogsInput = {
+    create?: XOR<ApiKeyCreateWithoutUsageLogsInput, ApiKeyUncheckedCreateWithoutUsageLogsInput>
+    connectOrCreate?: ApiKeyCreateOrConnectWithoutUsageLogsInput
+    connect?: ApiKeyWhereUniqueInput
+  }
+
+  export type ApiKeyUpdateOneRequiredWithoutUsageLogsNestedInput = {
+    create?: XOR<ApiKeyCreateWithoutUsageLogsInput, ApiKeyUncheckedCreateWithoutUsageLogsInput>
+    connectOrCreate?: ApiKeyCreateOrConnectWithoutUsageLogsInput
+    upsert?: ApiKeyUpsertWithoutUsageLogsInput
+    connect?: ApiKeyWhereUniqueInput
+    update?: XOR<XOR<ApiKeyUpdateToOneWithWhereWithoutUsageLogsInput, ApiKeyUpdateWithoutUsageLogsInput>, ApiKeyUncheckedUpdateWithoutUsageLogsInput>
+  }
+
+  export type UserCreateNestedOneWithoutMcpSessionsInput = {
+    create?: XOR<UserCreateWithoutMcpSessionsInput, UserUncheckedCreateWithoutMcpSessionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutMcpSessionsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type UserUpdateOneRequiredWithoutMcpSessionsNestedInput = {
+    create?: XOR<UserCreateWithoutMcpSessionsInput, UserUncheckedCreateWithoutMcpSessionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutMcpSessionsInput
+    upsert?: UserUpsertWithoutMcpSessionsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutMcpSessionsInput, UserUpdateWithoutMcpSessionsInput>, UserUncheckedUpdateWithoutMcpSessionsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -12400,6 +17345,22 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type UserCreateWithoutAccountsInput = {
     id?: string
     name?: string | null
@@ -12417,6 +17378,8 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -12436,6 +17399,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -12471,6 +17436,8 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -12490,6 +17457,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -12509,6 +17478,8 @@ export namespace Prisma {
     projects?: ProjectCreateNestedManyWithoutUserInput
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -12528,6 +17499,8 @@ export namespace Prisma {
     projects?: ProjectUncheckedCreateNestedManyWithoutUserInput
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -12563,6 +17536,8 @@ export namespace Prisma {
     projects?: ProjectUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -12582,6 +17557,8 @@ export namespace Prisma {
     projects?: ProjectUncheckedUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSubscriptionInput = {
@@ -12601,6 +17578,8 @@ export namespace Prisma {
     projects?: ProjectCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSubscriptionInput = {
@@ -12620,6 +17599,8 @@ export namespace Prisma {
     projects?: ProjectUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSubscriptionInput = {
@@ -12655,6 +17636,8 @@ export namespace Prisma {
     projects?: ProjectUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubscriptionInput = {
@@ -12674,6 +17657,8 @@ export namespace Prisma {
     projects?: ProjectUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AccountCreateWithoutUserInput = {
@@ -12844,6 +17829,88 @@ export namespace Prisma {
 
   export type TransactionCreateManyUserInputEnvelope = {
     data: TransactionCreateManyUserInput | TransactionCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ApiKeyCreateWithoutUserInput = {
+    id?: string
+    name?: string
+    key: string
+    keyPrefix: string
+    status?: string
+    rateLimit?: number
+    expiresAt?: Date | string | null
+    lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    usageLogs?: ApiUsageLogCreateNestedManyWithoutApiKeyInput
+  }
+
+  export type ApiKeyUncheckedCreateWithoutUserInput = {
+    id?: string
+    name?: string
+    key: string
+    keyPrefix: string
+    status?: string
+    rateLimit?: number
+    expiresAt?: Date | string | null
+    lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    usageLogs?: ApiUsageLogUncheckedCreateNestedManyWithoutApiKeyInput
+  }
+
+  export type ApiKeyCreateOrConnectWithoutUserInput = {
+    where: ApiKeyWhereUniqueInput
+    create: XOR<ApiKeyCreateWithoutUserInput, ApiKeyUncheckedCreateWithoutUserInput>
+  }
+
+  export type ApiKeyCreateManyUserInputEnvelope = {
+    data: ApiKeyCreateManyUserInput | ApiKeyCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type McpSessionCreateWithoutUserInput = {
+    id?: string
+    s3Key?: string | null
+    language?: string
+    script?: string
+    duration?: number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: number | null
+    bitrate?: string | null
+    renderId?: string | null
+    status?: string
+    expiresAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type McpSessionUncheckedCreateWithoutUserInput = {
+    id?: string
+    s3Key?: string | null
+    language?: string
+    script?: string
+    duration?: number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: number | null
+    bitrate?: string | null
+    renderId?: string | null
+    status?: string
+    expiresAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type McpSessionCreateOrConnectWithoutUserInput = {
+    where: McpSessionWhereUniqueInput
+    create: XOR<McpSessionCreateWithoutUserInput, McpSessionUncheckedCreateWithoutUserInput>
+  }
+
+  export type McpSessionCreateManyUserInputEnvelope = {
+    data: McpSessionCreateManyUserInput | McpSessionCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -13023,6 +18090,76 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Transaction"> | Date | string
   }
 
+  export type ApiKeyUpsertWithWhereUniqueWithoutUserInput = {
+    where: ApiKeyWhereUniqueInput
+    update: XOR<ApiKeyUpdateWithoutUserInput, ApiKeyUncheckedUpdateWithoutUserInput>
+    create: XOR<ApiKeyCreateWithoutUserInput, ApiKeyUncheckedCreateWithoutUserInput>
+  }
+
+  export type ApiKeyUpdateWithWhereUniqueWithoutUserInput = {
+    where: ApiKeyWhereUniqueInput
+    data: XOR<ApiKeyUpdateWithoutUserInput, ApiKeyUncheckedUpdateWithoutUserInput>
+  }
+
+  export type ApiKeyUpdateManyWithWhereWithoutUserInput = {
+    where: ApiKeyScalarWhereInput
+    data: XOR<ApiKeyUpdateManyMutationInput, ApiKeyUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type ApiKeyScalarWhereInput = {
+    AND?: ApiKeyScalarWhereInput | ApiKeyScalarWhereInput[]
+    OR?: ApiKeyScalarWhereInput[]
+    NOT?: ApiKeyScalarWhereInput | ApiKeyScalarWhereInput[]
+    id?: StringFilter<"ApiKey"> | string
+    userId?: StringFilter<"ApiKey"> | string
+    name?: StringFilter<"ApiKey"> | string
+    key?: StringFilter<"ApiKey"> | string
+    keyPrefix?: StringFilter<"ApiKey"> | string
+    status?: StringFilter<"ApiKey"> | string
+    rateLimit?: IntFilter<"ApiKey"> | number
+    expiresAt?: DateTimeNullableFilter<"ApiKey"> | Date | string | null
+    lastUsedAt?: DateTimeNullableFilter<"ApiKey"> | Date | string | null
+    createdAt?: DateTimeFilter<"ApiKey"> | Date | string
+    updatedAt?: DateTimeFilter<"ApiKey"> | Date | string
+  }
+
+  export type McpSessionUpsertWithWhereUniqueWithoutUserInput = {
+    where: McpSessionWhereUniqueInput
+    update: XOR<McpSessionUpdateWithoutUserInput, McpSessionUncheckedUpdateWithoutUserInput>
+    create: XOR<McpSessionCreateWithoutUserInput, McpSessionUncheckedCreateWithoutUserInput>
+  }
+
+  export type McpSessionUpdateWithWhereUniqueWithoutUserInput = {
+    where: McpSessionWhereUniqueInput
+    data: XOR<McpSessionUpdateWithoutUserInput, McpSessionUncheckedUpdateWithoutUserInput>
+  }
+
+  export type McpSessionUpdateManyWithWhereWithoutUserInput = {
+    where: McpSessionScalarWhereInput
+    data: XOR<McpSessionUpdateManyMutationInput, McpSessionUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type McpSessionScalarWhereInput = {
+    AND?: McpSessionScalarWhereInput | McpSessionScalarWhereInput[]
+    OR?: McpSessionScalarWhereInput[]
+    NOT?: McpSessionScalarWhereInput | McpSessionScalarWhereInput[]
+    id?: StringFilter<"McpSession"> | string
+    userId?: StringFilter<"McpSession"> | string
+    s3Key?: StringNullableFilter<"McpSession"> | string | null
+    language?: StringFilter<"McpSession"> | string
+    script?: StringFilter<"McpSession"> | string
+    duration?: FloatNullableFilter<"McpSession"> | number | null
+    captions?: JsonNullableFilter<"McpSession">
+    style?: JsonNullableFilter<"McpSession">
+    requestedRes?: IntNullableFilter<"McpSession"> | number | null
+    bitrate?: StringNullableFilter<"McpSession"> | string | null
+    renderId?: StringNullableFilter<"McpSession"> | string | null
+    status?: StringFilter<"McpSession"> | string
+    expiresAt?: DateTimeFilter<"McpSession"> | Date | string
+    createdAt?: DateTimeFilter<"McpSession"> | Date | string
+    updatedAt?: DateTimeFilter<"McpSession"> | Date | string
+  }
+
   export type UserCreateWithoutProjectsInput = {
     id?: string
     name?: string | null
@@ -13040,6 +18177,8 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutProjectsInput = {
@@ -13059,6 +18198,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutProjectsInput = {
@@ -13094,6 +18235,8 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutProjectsInput = {
@@ -13113,6 +18256,8 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutTransactionsInput = {
@@ -13132,6 +18277,8 @@ export namespace Prisma {
     projects?: ProjectCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     subscription?: SubscriptionCreateNestedOneWithoutUserInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -13151,6 +18298,8 @@ export namespace Prisma {
     projects?: ProjectUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -13186,6 +18335,8 @@ export namespace Prisma {
     projects?: ProjectUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUpdateOneWithoutUserNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -13205,6 +18356,337 @@ export namespace Prisma {
     projects?: ProjectUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutApiKeysInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    password?: string | null
+    image?: string | null
+    planType?: $Enums.PlanType
+    transcriptionBalance?: number
+    audioCredits?: number
+    storageUsed?: bigint | number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    projects?: ProjectCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionCreateNestedOneWithoutUserInput
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutApiKeysInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    password?: string | null
+    image?: string | null
+    planType?: $Enums.PlanType
+    transcriptionBalance?: number
+    audioCredits?: number
+    storageUsed?: bigint | number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    projects?: ProjectUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    mcpSessions?: McpSessionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutApiKeysInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutApiKeysInput, UserUncheckedCreateWithoutApiKeysInput>
+  }
+
+  export type ApiUsageLogCreateWithoutApiKeyInput = {
+    id?: string
+    tool: string
+    inputTokens?: number
+    status?: string
+    latencyMs?: number
+    createdAt?: Date | string
+  }
+
+  export type ApiUsageLogUncheckedCreateWithoutApiKeyInput = {
+    id?: string
+    tool: string
+    inputTokens?: number
+    status?: string
+    latencyMs?: number
+    createdAt?: Date | string
+  }
+
+  export type ApiUsageLogCreateOrConnectWithoutApiKeyInput = {
+    where: ApiUsageLogWhereUniqueInput
+    create: XOR<ApiUsageLogCreateWithoutApiKeyInput, ApiUsageLogUncheckedCreateWithoutApiKeyInput>
+  }
+
+  export type ApiUsageLogCreateManyApiKeyInputEnvelope = {
+    data: ApiUsageLogCreateManyApiKeyInput | ApiUsageLogCreateManyApiKeyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserUpsertWithoutApiKeysInput = {
+    update: XOR<UserUpdateWithoutApiKeysInput, UserUncheckedUpdateWithoutApiKeysInput>
+    create: XOR<UserCreateWithoutApiKeysInput, UserUncheckedCreateWithoutApiKeysInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutApiKeysInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutApiKeysInput, UserUncheckedUpdateWithoutApiKeysInput>
+  }
+
+  export type UserUpdateWithoutApiKeysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
+    audioCredits?: IntFieldUpdateOperationsInput | number
+    storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    projects?: ProjectUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUpdateOneWithoutUserNestedInput
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutApiKeysInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
+    audioCredits?: IntFieldUpdateOperationsInput | number
+    storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    projects?: ProjectUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    mcpSessions?: McpSessionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ApiUsageLogUpsertWithWhereUniqueWithoutApiKeyInput = {
+    where: ApiUsageLogWhereUniqueInput
+    update: XOR<ApiUsageLogUpdateWithoutApiKeyInput, ApiUsageLogUncheckedUpdateWithoutApiKeyInput>
+    create: XOR<ApiUsageLogCreateWithoutApiKeyInput, ApiUsageLogUncheckedCreateWithoutApiKeyInput>
+  }
+
+  export type ApiUsageLogUpdateWithWhereUniqueWithoutApiKeyInput = {
+    where: ApiUsageLogWhereUniqueInput
+    data: XOR<ApiUsageLogUpdateWithoutApiKeyInput, ApiUsageLogUncheckedUpdateWithoutApiKeyInput>
+  }
+
+  export type ApiUsageLogUpdateManyWithWhereWithoutApiKeyInput = {
+    where: ApiUsageLogScalarWhereInput
+    data: XOR<ApiUsageLogUpdateManyMutationInput, ApiUsageLogUncheckedUpdateManyWithoutApiKeyInput>
+  }
+
+  export type ApiUsageLogScalarWhereInput = {
+    AND?: ApiUsageLogScalarWhereInput | ApiUsageLogScalarWhereInput[]
+    OR?: ApiUsageLogScalarWhereInput[]
+    NOT?: ApiUsageLogScalarWhereInput | ApiUsageLogScalarWhereInput[]
+    id?: StringFilter<"ApiUsageLog"> | string
+    apiKeyId?: StringFilter<"ApiUsageLog"> | string
+    tool?: StringFilter<"ApiUsageLog"> | string
+    inputTokens?: IntFilter<"ApiUsageLog"> | number
+    status?: StringFilter<"ApiUsageLog"> | string
+    latencyMs?: IntFilter<"ApiUsageLog"> | number
+    createdAt?: DateTimeFilter<"ApiUsageLog"> | Date | string
+  }
+
+  export type ApiKeyCreateWithoutUsageLogsInput = {
+    id?: string
+    name?: string
+    key: string
+    keyPrefix: string
+    status?: string
+    rateLimit?: number
+    expiresAt?: Date | string | null
+    lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutApiKeysInput
+  }
+
+  export type ApiKeyUncheckedCreateWithoutUsageLogsInput = {
+    id?: string
+    userId: string
+    name?: string
+    key: string
+    keyPrefix: string
+    status?: string
+    rateLimit?: number
+    expiresAt?: Date | string | null
+    lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ApiKeyCreateOrConnectWithoutUsageLogsInput = {
+    where: ApiKeyWhereUniqueInput
+    create: XOR<ApiKeyCreateWithoutUsageLogsInput, ApiKeyUncheckedCreateWithoutUsageLogsInput>
+  }
+
+  export type ApiKeyUpsertWithoutUsageLogsInput = {
+    update: XOR<ApiKeyUpdateWithoutUsageLogsInput, ApiKeyUncheckedUpdateWithoutUsageLogsInput>
+    create: XOR<ApiKeyCreateWithoutUsageLogsInput, ApiKeyUncheckedCreateWithoutUsageLogsInput>
+    where?: ApiKeyWhereInput
+  }
+
+  export type ApiKeyUpdateToOneWithWhereWithoutUsageLogsInput = {
+    where?: ApiKeyWhereInput
+    data: XOR<ApiKeyUpdateWithoutUsageLogsInput, ApiKeyUncheckedUpdateWithoutUsageLogsInput>
+  }
+
+  export type ApiKeyUpdateWithoutUsageLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutApiKeysNestedInput
+  }
+
+  export type ApiKeyUncheckedUpdateWithoutUsageLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserCreateWithoutMcpSessionsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    password?: string | null
+    image?: string | null
+    planType?: $Enums.PlanType
+    transcriptionBalance?: number
+    audioCredits?: number
+    storageUsed?: bigint | number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    projects?: ProjectCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionCreateNestedOneWithoutUserInput
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutMcpSessionsInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    emailVerified?: Date | string | null
+    password?: string | null
+    image?: string | null
+    planType?: $Enums.PlanType
+    transcriptionBalance?: number
+    audioCredits?: number
+    storageUsed?: bigint | number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    projects?: ProjectUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutUserInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutMcpSessionsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutMcpSessionsInput, UserUncheckedCreateWithoutMcpSessionsInput>
+  }
+
+  export type UserUpsertWithoutMcpSessionsInput = {
+    update: XOR<UserUpdateWithoutMcpSessionsInput, UserUncheckedUpdateWithoutMcpSessionsInput>
+    create: XOR<UserCreateWithoutMcpSessionsInput, UserUncheckedCreateWithoutMcpSessionsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutMcpSessionsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutMcpSessionsInput, UserUncheckedUpdateWithoutMcpSessionsInput>
+  }
+
+  export type UserUpdateWithoutMcpSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
+    audioCredits?: IntFieldUpdateOperationsInput | number
+    storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    projects?: ProjectUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUpdateOneWithoutUserNestedInput
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutMcpSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    transcriptionBalance?: FloatFieldUpdateOperationsInput | number
+    audioCredits?: IntFieldUpdateOperationsInput | number
+    storageUsed?: BigIntFieldUpdateOperationsInput | bigint | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    projects?: ProjectUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    subscription?: SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -13246,6 +18728,36 @@ export namespace Prisma {
     razorpayOrderId?: string | null
     razorpayPaymentId?: string | null
     createdAt?: Date | string
+  }
+
+  export type ApiKeyCreateManyUserInput = {
+    id?: string
+    name?: string
+    key: string
+    keyPrefix: string
+    status?: string
+    rateLimit?: number
+    expiresAt?: Date | string | null
+    lastUsedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type McpSessionCreateManyUserInput = {
+    id?: string
+    s3Key?: string | null
+    language?: string
+    script?: string
+    duration?: number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: number | null
+    bitrate?: string | null
+    renderId?: string | null
+    status?: string
+    expiresAt: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -13368,6 +18880,134 @@ export namespace Prisma {
     planType?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiKeyUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usageLogs?: ApiUsageLogUpdateManyWithoutApiKeyNestedInput
+  }
+
+  export type ApiKeyUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    usageLogs?: ApiUsageLogUncheckedUpdateManyWithoutApiKeyNestedInput
+  }
+
+  export type ApiKeyUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyPrefix?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    rateLimit?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastUsedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type McpSessionUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    script?: StringFieldUpdateOperationsInput | string
+    duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: NullableIntFieldUpdateOperationsInput | number | null
+    bitrate?: NullableStringFieldUpdateOperationsInput | string | null
+    renderId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type McpSessionUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    script?: StringFieldUpdateOperationsInput | string
+    duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: NullableIntFieldUpdateOperationsInput | number | null
+    bitrate?: NullableStringFieldUpdateOperationsInput | string | null
+    renderId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type McpSessionUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    s3Key?: NullableStringFieldUpdateOperationsInput | string | null
+    language?: StringFieldUpdateOperationsInput | string
+    script?: StringFieldUpdateOperationsInput | string
+    duration?: NullableFloatFieldUpdateOperationsInput | number | null
+    captions?: NullableJsonNullValueInput | InputJsonValue
+    style?: NullableJsonNullValueInput | InputJsonValue
+    requestedRes?: NullableIntFieldUpdateOperationsInput | number | null
+    bitrate?: NullableStringFieldUpdateOperationsInput | string | null
+    renderId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiUsageLogCreateManyApiKeyInput = {
+    id?: string
+    tool: string
+    inputTokens?: number
+    status?: string
+    latencyMs?: number
+    createdAt?: Date | string
+  }
+
+  export type ApiUsageLogUpdateWithoutApiKeyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tool?: StringFieldUpdateOperationsInput | string
+    inputTokens?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    latencyMs?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiUsageLogUncheckedUpdateWithoutApiKeyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tool?: StringFieldUpdateOperationsInput | string
+    inputTokens?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    latencyMs?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApiUsageLogUncheckedUpdateManyWithoutApiKeyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tool?: StringFieldUpdateOperationsInput | string
+    inputTokens?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    latencyMs?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, User, LayoutDashboard, Crown, Zap, Star, Building2, ChevronDown, Receipt } from "lucide-react";
+import { LogOut, User, LayoutDashboard, Crown, Zap, Star, Building2, ChevronDown, Receipt, Terminal } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -126,6 +126,12 @@ export default function ProfileMenu({ user }: ProfileMenuProps) {
                 <button id="btn-go-subscription" className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors text-left">
                   <Receipt className="w-4 h-4 text-zinc-400" />
                   Subscription & Billing
+                </button>
+              </Link>
+              <Link href="/dashboard/api-keys" onClick={() => setOpen(false)}>
+                <button id="btn-go-api" className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors text-left">
+                  <Terminal className="w-4 h-4 text-zinc-400" />
+                  Developer API & MCP
                 </button>
               </Link>
               <Link href="/#pricing" onClick={() => setOpen(false)}>

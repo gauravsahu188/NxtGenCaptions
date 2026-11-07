@@ -157,16 +157,16 @@ exports.Prisma.SubscriptionScalarFieldEnum = {
   maxExportRes: 'maxExportRes',
   transcriptionUsedMins: 'transcriptionUsedMins',
   storageUsedBytes: 'storageUsedBytes',
-  audioCredits: 'audioCredits',
-  maxVideoLengthMinutes: 'maxVideoLengthMinutes',
-  alphaChannelEnabled: 'alphaChannelEnabled',
-  srtRenderEnabled: 'srtRenderEnabled',
-  customFontEnabled: 'customFontEnabled',
-  prioritySupport: 'prioritySupport',
   billingCycleStart: 'billingCycleStart',
   billingCycleEnd: 'billingCycleEnd',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  audioCredits: 'audioCredits',
+  alphaChannelEnabled: 'alphaChannelEnabled',
+  customFontEnabled: 'customFontEnabled',
+  maxVideoLengthMinutes: 'maxVideoLengthMinutes',
+  prioritySupport: 'prioritySupport',
+  srtRenderEnabled: 'srtRenderEnabled',
   hasUsed1RupeeTrial: 'hasUsed1RupeeTrial',
   hasUsed9RupeeTrial: 'hasUsed9RupeeTrial'
 };
@@ -195,6 +195,42 @@ exports.Prisma.ProjectScalarFieldEnum = {
   duration: 'duration',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TransactionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  planType: 'planType',
+  razorpayOrderId: 'razorpayOrderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ApiKeyScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  key: 'key',
+  keyPrefix: 'keyPrefix',
+  status: 'status',
+  rateLimit: 'rateLimit',
+  expiresAt: 'expiresAt',
+  lastUsedAt: 'lastUsedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ApiUsageLogScalarFieldEnum = {
+  id: 'id',
+  apiKeyId: 'apiKeyId',
+  tool: 'tool',
+  inputTokens: 'inputTokens',
+  status: 'status',
+  latencyMs: 'latencyMs',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -237,7 +273,10 @@ exports.Prisma.ModelName = {
   VerificationToken: 'VerificationToken',
   Subscription: 'Subscription',
   User: 'User',
-  Project: 'Project'
+  Project: 'Project',
+  Transaction: 'Transaction',
+  ApiKey: 'ApiKey',
+  ApiUsageLog: 'ApiUsageLog'
 };
 
 /**

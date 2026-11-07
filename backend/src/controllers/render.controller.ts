@@ -13,7 +13,7 @@ const EXPORTS_BUCKET = process.env.AWS_EXPORTS_BUCKET ?? "nxtgen-completed-expor
 const SOURCE_BUCKET = process.env.AWS_S3_BUCKET ?? "nxtgencaption-export";
 
 const REMOTION_REGION = (process.env.REMOTION_AWS_REGION || process.env.REMOTION_REGION || "ap-south-1") as any;
-const REMOTION_FUNCTION_NAME = process.env.REMOTION_FUNCTION_NAME ?? "remotion-render-4-0-457-mem2048mb-disk2048mb-120sec";
+const REMOTION_FUNCTION_NAME = process.env.REMOTION_FUNCTION_NAME;
 const REMOTION_SITE_URL = process.env.REMOTION_SITE_URL ?? "https://remotionlambda-useast1-4vs6zydhbr.s3.us-east-1.amazonaws.com/sites/xxiv6xm77x/index.html";
 
 const VALID_ASPECT_RATIOS = ["16:9", "9:16"] as const;
@@ -79,8 +79,12 @@ async function getRemotionFunction(): Promise<FunctionInfo> {
   if (functions.length === 0) {
     throw new Error("No Remotion Lambda function found");
   }
-  const fn = functions.find((f) => f.functionName === REMOTION_FUNCTION_NAME);
-  return fn ?? functions[0];
+  if (REMOTION_FUNCTION_NAME) {
+    const fn = functions.find((f) => f.functionName === REMOTION_FUNCTION_NAME);
+    if (fn) return fn;
+  }
+  // Automatically select the function with the largest disk size (e.g. 10240MB)
+  return functions.sort((a, b) => (b.diskSizeInMb || 0) - (a.diskSizeInMb || 0))[0];
 }
 
 export class RenderController {
@@ -167,7 +171,8 @@ export class RenderController {
           bucketName: EXPORTS_BUCKET,
           key: `${userId}/exports/${timestamp}-rendered.mp4`,
         },
-      });
+        offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
+      } as any);
 
       console.log(`[Render] Lambda render started: ${renderResult.renderId}`);
 

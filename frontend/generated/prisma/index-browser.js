@@ -209,6 +209,48 @@ exports.Prisma.TransactionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ApiKeyScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  key: 'key',
+  keyPrefix: 'keyPrefix',
+  status: 'status',
+  rateLimit: 'rateLimit',
+  expiresAt: 'expiresAt',
+  lastUsedAt: 'lastUsedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ApiUsageLogScalarFieldEnum = {
+  id: 'id',
+  apiKeyId: 'apiKeyId',
+  tool: 'tool',
+  inputTokens: 'inputTokens',
+  status: 'status',
+  latencyMs: 'latencyMs',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.McpSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  s3Key: 's3Key',
+  language: 'language',
+  script: 'script',
+  duration: 'duration',
+  captions: 'captions',
+  style: 'style',
+  requestedRes: 'requestedRes',
+  bitrate: 'bitrate',
+  renderId: 'renderId',
+  status: 'status',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -250,7 +292,10 @@ exports.Prisma.ModelName = {
   Subscription: 'Subscription',
   User: 'User',
   Project: 'Project',
-  Transaction: 'Transaction'
+  Transaction: 'Transaction',
+  ApiKey: 'ApiKey',
+  ApiUsageLog: 'ApiUsageLog',
+  McpSession: 'McpSession'
 };
 
 /**

@@ -1,32 +1,26 @@
 generator client {
-  provider   = "prisma-client-js"
-  output     = "../generated/prisma"
-  engineType = "library"
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-// ---------------------------------------------
-// Auth.js Required Models
-// ---------------------------------------------
-
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -47,9 +41,62 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ---------------------------------------------
-// NxtGen Core Models
-// ---------------------------------------------
+model Subscription {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  planType               PlanType  @default(FREE)
+  storageLimitGb         Int       @default(1)
+  transcriptionLimitMins Float     @default(5)
+  maxExportRes           Int       @default(720)
+  transcriptionUsedMins  Float     @default(0)
+  storageUsedBytes       BigInt    @default(0)
+  billingCycleStart      DateTime  @default(now())
+  billingCycleEnd        DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  audioCredits           Int       @default(3)
+  alphaChannelEnabled    Boolean   @default(false)
+  customFontEnabled      Boolean   @default(false)
+  maxVideoLengthMinutes  Int       @default(2)
+  prioritySupport        Boolean   @default(false)
+  srtRenderEnabled       Boolean   @default(false)
+  hasUsed1RupeeTrial     Boolean   @default(false)
+  hasUsed9RupeeTrial     Boolean   @default(false)
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                   String        @id @default(cuid())
+  name                 String?
+  email                String?       @unique
+  emailVerified        DateTime?
+  password             String?
+  image                String?
+  planType             PlanType      @default(FREE)
+  transcriptionBalance Float         @default(5)
+  audioCredits         Int           @default(3)
+  storageUsed          BigInt        @default(0)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  accounts             Account[]
+  projects             Project[]
+  sessions             Session[]
+  subscription         Subscription?
+  transactions         Transaction[]
+  apiKeys              ApiKey[]
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  metadata  Json?
+  s3Url     String?
+  duration  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
 enum PlanType {
   FREE
@@ -60,65 +107,42 @@ enum PlanType {
   TRIAL_9_INR
 }
 
-model Subscription {
-  id                       String    @id @default(cuid())
-  userId                   String    @unique
-  planType                 PlanType  @default(FREE)
-  storageLimitGb           Int       @default(1)
-  transcriptionLimitMins   Float     @default(2.0)
-  maxExportRes             Int       @default(720)
-  transcriptionUsedMins    Float     @default(0.0)
-  storageUsedBytes         BigInt    @default(0)
-  audioCredits             Int       @default(3)
-  maxVideoLengthMinutes    Int       @default(2) // Max video length in minutes
-  alphaChannelEnabled      Boolean   @default(false)
-  srtRenderEnabled         Boolean   @default(false)
-  customFontEnabled        Boolean   @default(false)
-  prioritySupport          Boolean   @default(false)
-  billingCycleStart        DateTime  @default(now())
-  billingCycleEnd         DateTime?
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  hasUsed1RupeeTrial      Boolean   @default(false)
-  hasUsed9RupeeTrial      Boolean   @default(false)
-  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Transaction {
+  id                String   @id @default(cuid())
+  userId            String
+  amount            Float
+  currency          String   @default("INR")
+  status            String
+  planType          PlanType
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-
-  // App-Specific Fields (deprecated - use Subscription instead)
-  planType             PlanType @default(FREE)
-  transcriptionBalance Float    @default(2.0)
-  audioCredits         Int      @default(3)
-  storageUsed          BigInt   @default(0)
-
-  // Timestamps
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  // Relations
-  accounts      Account[]
-  sessions      Session[]
-  projects      Project[]
-  subscription  Subscription?
-}
-
-model Project {
-  id          String   @id @default(cuid())
+model ApiKey {
+  id          String    @id @default(cuid())
   userId      String
-  title       String
-  metadata    Json?    // Stores settings like caption layout, target language, etc.
-  s3Url       String?  // Reference to the source video in S3
-  duration    Int?     // Video duration in seconds
-  
+  name        String    @default("Default Key")
+  key         String    @unique              // The actual API key (hashed prefix + random)
+  keyPrefix   String                         // First 8 chars for display (ngc_xxxx...)
+  status      String    @default("active")   // active | revoked | expired
+  rateLimit   Int       @default(100)        // Requests per day
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageLogs   ApiUsageLog[]
+}
+
+model ApiUsageLog {
+  id          String   @id @default(cuid())
+  apiKeyId    String
+  tool        String                         // Which MCP tool was called
+  inputTokens Int      @default(0)           // For future billing
+  status      String   @default("success")   // success | error | rate_limited
+  latencyMs   Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKey      ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
 }

@@ -83,6 +83,8 @@ model User {
   sessions             Session[]
   subscription         Subscription?
   transactions         Transaction[]
+  apiKeys              ApiKey[]
+  mcpSessions          McpSession[]
 }
 
 model Project {
@@ -117,4 +119,51 @@ model Transaction {
   razorpayPaymentId String?
   createdAt         DateTime @default(now())
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id         String        @id @default(cuid())
+  userId     String
+  name       String        @default("Default Key")
+  key        String        @unique // The actual API key (hashed prefix + random)
+  keyPrefix  String // First 8 chars for display (ngc_xxxx...)
+  status     String        @default("active") // active | revoked | expired
+  rateLimit  Int           @default(100) // Requests per day
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageLogs  ApiUsageLog[]
+}
+
+model ApiUsageLog {
+  id          String   @id @default(cuid())
+  apiKeyId    String
+  tool        String // Which MCP tool was called
+  inputTokens Int      @default(0) // For future billing
+  status      String   @default("success") // success | error | rate_limited
+  latencyMs   Int      @default(0)
+  createdAt   DateTime @default(now())
+  apiKey      ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+}
+
+// Tracks an in-progress MCP caption workflow session
+model McpSession {
+  id           String   @id @default(cuid())
+  userId       String
+  s3Key        String? // S3 key of uploaded video
+  language     String   @default("auto")
+  script       String   @default("native")
+  duration     Float? // Video duration in seconds
+  captions     Json? // Generated caption segments
+  style        Json? // CaptionStyleProps as JSON
+  requestedRes Int? // Export resolution (720, 1080, etc.)
+  bitrate      String? // Export bitrate ("auto", "4M", etc.)
+  renderId     String? // Remotion render ID
+  status       String   @default("UPLOADING") // UPLOADING | TRANSCRIBING | READY | RENDERING | DONE | ERROR
+  expiresAt    DateTime // Sessions expire after 24h
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

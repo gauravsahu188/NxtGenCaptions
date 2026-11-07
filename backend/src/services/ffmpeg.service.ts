@@ -34,6 +34,19 @@ export class FFmpegService {
     });
   }
 
+  async getVideoDimensions(videoPath: string): Promise<{ width: number; height: number }> {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(videoPath, (err, metadata) => {
+        if (err) return reject(err);
+        const stream = metadata.streams.find((s) => s.codec_type === "video");
+        resolve({
+          width: stream?.width ?? 0,
+          height: stream?.height ?? 0,
+        });
+      });
+    });
+  }
+
   async getSpeechBounds(audioPath: string, duration?: number): Promise<{start: number, end: number}> {
     if (!duration) {
       duration = await this.getVideoDuration(audioPath);

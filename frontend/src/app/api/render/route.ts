@@ -118,8 +118,12 @@ async function getRemotionFunction(): Promise<FunctionInfo> {
     );
   }
 
-  const fn = functions.find((f) => f.functionName === REMOTION_FUNCTION_NAME);
-  return fn ?? functions[0];
+  if (REMOTION_FUNCTION_NAME) {
+    const fn = functions.find((f) => f.functionName === REMOTION_FUNCTION_NAME);
+    if (fn) return fn;
+  }
+  // Automatically select the function with the largest disk size (e.g. 10240MB)
+  return functions.sort((a, b) => (b.diskSizeInMb || 0) - (a.diskSizeInMb || 0))[0];
 }
 
 import { s3Client } from "@/lib/s3";
@@ -250,7 +254,8 @@ export async function POST(request: NextRequest) {
       downloadBehavior: {
         type: "download" as const,
         fileName: "NxtGenExport.mp4"
-      }
+      },
+      offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

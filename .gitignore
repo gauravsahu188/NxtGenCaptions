@@ -17,6 +17,8 @@ out/
 # Production builds
 build/
 **/build/
+dist/
+**/dist/
 
 # OS-specific files
 .DS_Store

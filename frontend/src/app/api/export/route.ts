@@ -49,7 +49,12 @@ import { s3Client } from "@/lib/s3";
 async function getRemotionFunction(): Promise<FunctionInfo> {
   const fns = await getFunctions({ region: REMOTION_REGION, compatibleOnly: true });
   if (!fns.length) throw new Error("No Remotion Lambda function found. Deploy one first.");
-  return fns.find((f) => f.functionName === REMOTION_FUNCTION_NAME) ?? fns[0];
+  if (REMOTION_FUNCTION_NAME) {
+    const fn = fns.find((f) => f.functionName === REMOTION_FUNCTION_NAME);
+    if (fn) return fn;
+  }
+  // Automatically select the function with the largest disk size (e.g. 10240MB)
+  return fns.sort((a, b) => (b.diskSizeInMb || 0) - (a.diskSizeInMb || 0))[0];
 }
 
 async function getPresignedSourceUrl(key: string): Promise<string> {
@@ -207,6 +212,7 @@ export async function POST(request: NextRequest) {
         bucketName: EXPORTS_BUCKET,
         key:        outKey,
       },
+      offthreadVideoCacheSizeInBytes: 512 * 1024 * 1024,
     };
 
     if (finalAlphaChannel) {

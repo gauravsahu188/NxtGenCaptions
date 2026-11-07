@@ -45,6 +45,7 @@ export default function Navbar({ initialSession }: NavbarProps) {
         { label: "Dashboard", href: "/dashboard", active: pathname === "/dashboard" || pathname === "/dashboard/profile" },
         { label: "Editor", href: "/editor", active: pathname === "/editor" },
         { label: "Subscription", href: "/dashboard/subscription", active: pathname === "/dashboard/subscription" },
+        { label: "Developer API", href: "/dashboard/api-keys", active: pathname === "/dashboard/api-keys" },
       ]
     : [
         { label: "About", href: "/about", active: pathname === "/about" },
