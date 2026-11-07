@@ -1,6 +1,6 @@
 import { DefaultSession, DefaultUser } from "next-auth"
-import { JWT, DefaultJWT } from "next-auth/jwt"
-import { PlanType } from "@prisma/client"
+import { DefaultJWT } from "next-auth/jwt"
+import { PlanType } from "../../generated/prisma"
 
 declare module "next-auth" {
   interface Session {

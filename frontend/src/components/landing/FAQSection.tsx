@@ -1,14 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Shield, Zap, FileCode2, Globe } from 'lucide-react';
-
-interface FAQItem {
-  question: string;
-  answer: string;
-  icon?: React.ReactNode;
-}
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, Shield, Zap, Globe } from "lucide-react";
 
 const faqCategories = [
   {
@@ -75,7 +69,7 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="w-full py-24 px-4 relative">
+    <section className="w-full py-28 md:py-36 px-4 sm:px-6 relative border-t border-white/[0.06]">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -84,15 +78,18 @@ export default function FAQSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-semibold text-white mb-4 tracking-tight">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 text-[11px] font-mono tracking-widest uppercase mb-4">
+            <span>Knowledge Base</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-bold tracking-[-0.03em] text-white mb-4 text-balance">
             Frequently Asked Questions
           </h2>
-          <p className="text-lg text-(--color-fg-muted) max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto font-normal leading-relaxed text-pretty">
             To help you feel confident in NxtGen Captions, here are answers to address technical, security, and performance concerns.
           </p>
         </motion.div>
 
-        <div className="space-y-8">
+        <div className="space-y-10">
           {faqCategories.map((category, categoryIndex) => (
             <motion.div
               key={category.title}
@@ -102,10 +99,10 @@ export default function FAQSection() {
               transition={{ duration: 0.5, delay: categoryIndex * 0.1 }}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <category.icon className="w-4 h-4 text-(--color-accent)" />
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                  <category.icon className="w-4 h-4 text-cyan-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-white">{category.title}</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">{category.title}</h3>
               </div>
 
               <div className="space-y-3">
@@ -114,40 +111,41 @@ export default function FAQSection() {
                   const isOpen = openItems.has(itemId);
 
                   return (
-                    <motion.div
+                    <div
                       key={itemId}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.4, delay: 0.1 }}
-                      className="rounded-xl border border-(--color-border-default) bg-(--color-surface) overflow-hidden"
+                      className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+                        isOpen
+                          ? "border-cyan-500/40 bg-[#090912] shadow-[0_4px_25px_rgba(6,182,212,0.08)]"
+                          : "border-white/[0.07] bg-[#06060a]/80 hover:border-white/15 hover:bg-[#07070d]"
+                      }`}
                     >
                       <button
                         onClick={() => toggleItem(itemId)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-(--color-surface-hover) transition-colors duration-200"
+                        className="w-full flex items-center justify-between p-5 text-left transition-colors duration-200 cursor-pointer"
                       >
-                        <span className="font-medium text-white pr-4">{item.question}</span>
+                        <span className="font-semibold text-sm sm:text-base text-white pr-4 leading-snug">{item.question}</span>
                         <ChevronDown
-                          className={`w-5 h-5 text-(--color-fg-muted) shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
-                            }`}
+                          className={`w-4 h-4 text-zinc-400 shrink-0 transition-transform duration-300 ${
+                            isOpen ? "rotate-180 text-cyan-400" : ""
+                          }`}
                         />
                       </button>
                       <AnimatePresence>
                         {isOpen && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
+                            animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
                             className="overflow-hidden"
                           >
-                            <div className="px-4 pb-4 pt-2 text-(--color-fg-muted) leading-relaxed border-t border-(--color-border-default)">
+                            <div className="px-5 pb-5 pt-1 text-zinc-300 text-sm leading-relaxed border-t border-white/[0.05]">
                               {item.answer}
                             </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>

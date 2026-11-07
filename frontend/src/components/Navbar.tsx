@@ -31,15 +31,12 @@ export default function Navbar({ initialSession }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Check if we are on dashboard or editor
   const isAppPage = pathname.startsWith("/dashboard") || pathname.startsWith("/editor");
 
-  // Close mobile menu on path changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  // Determine navbar links based on current path and login status
   const navLinks = isAppPage
     ? [
         { label: "Dashboard", href: "/dashboard", active: pathname === "/dashboard" || pathname === "/dashboard/profile" },
@@ -55,75 +52,105 @@ export default function Navbar({ initialSession }: NavbarProps) {
         ...(user ? [{ label: "Dashboard", href: "/dashboard", active: false }] : []),
       ];
 
-  // Styles depending on page scroll and app status
-  let outerStyles = "z-50 transition-all duration-500 ease-in-out ";
-  let innerStyles = "flex items-center justify-between transition-all duration-500 ease-in-out ";
-
-  if (isAppPage) {
-    // App pages: standard sticky full-width header
-    outerStyles += "sticky top-0 w-full";
-    const isEditor = pathname.startsWith("/editor");
-    innerStyles += isEditor 
-      ? "w-full px-6 md:px-8 py-2 bg-[#050505] border-b border-white/5" 
-      : "w-full px-6 md:px-12 py-3.5 bg-[#050505] border-b border-white/5";
-  } else {
-    // Landing/legal pages: fixed at the top, centering the floating dock when scrolled
-    outerStyles += `fixed top-0 left-0 w-full pointer-events-none flex justify-center ${
-      isScrolled ? "pt-4" : "pt-0"
-    }`;
-    
-    innerStyles += "pointer-events-auto ";
-    if (isScrolled) {
-      innerStyles += "w-[92%] max-w-6xl bg-black/60 border border-white/8 backdrop-blur-xl rounded-2xl px-6 md:px-8 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)]";
-    } else {
-      innerStyles += "w-full bg-transparent border border-transparent rounded-none px-6 md:px-12 py-6 shadow-none";
-    }
-  }
-
   const logoHref = "/";
 
-  return (
-    <>
-      <div className={outerStyles}>
-        <nav className={innerStyles}>
-          {/* Logo */}
-          <Link href={logoHref} className="flex items-center gap-2 group">
+  if (isAppPage) {
+    const isEditor = pathname.startsWith("/editor");
+    return (
+      <header className="sticky top-0 z-50 w-full bg-[#050505] border-b border-white/5">
+        <nav className={`w-full flex items-center justify-between mx-auto ${
+          isEditor ? "px-6 md:px-8 py-2.5" : "px-6 md:px-12 py-3.5"
+        }`}>
+          <Link href={logoHref} className="flex items-center gap-2.5 group">
             <Image 
               src="/logo.png" 
               alt="NxtGen Logo" 
-              width={pathname.startsWith("/editor") ? 28 : 32}
-              height={pathname.startsWith("/editor") ? 28 : 32}
-              className={`rounded-md group-hover:scale-105 transition-transform duration-300 ${
-                pathname.startsWith("/editor") ? "w-7 h-7" : "w-8 h-8"
-              }`} 
+              width={28}
+              height={28}
+              className="w-7 h-7 rounded-lg group-hover:scale-105 transition-transform duration-200" 
             />
-            <span className={`font-bold tracking-tight text-white ${
-              pathname.startsWith("/editor") ? "text-lg" : "text-xl"
-            }`}>
-              NxtGen<span className="text-accent group-hover:animate-pulse">.</span>
+            <span className="font-bold tracking-tight text-white text-lg">
+              NxtGen<span className="text-cyan-400">.</span>
+            </span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                  link.active ? "text-white bg-white/10" : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-3">
+            {user && (
+              <ProfileMenu
+                user={{
+                  name: user.name ?? null,
+                  email: user.email ?? null,
+                  image: user.image ?? null,
+                  planType: user.planType ?? "FREE",
+                }}
+              />
+            )}
+          </div>
+
+          <button
+            className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </nav>
+      </header>
+    );
+  }
+
+  return (
+    <header className="fixed top-0 left-0 w-full z-50 pointer-events-none flex flex-col items-center">
+      {/* Floating Centered Navigation Dock */}
+      <div className="w-full pointer-events-auto flex justify-center px-4 sm:px-6 pt-3 md:pt-4">
+        <nav className={`w-full max-w-6xl flex items-center justify-between transition-all duration-300 ${
+          isScrolled
+            ? "bg-[#07070b]/90 border border-white/10 backdrop-blur-2xl rounded-full px-6 py-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.7)]"
+            : "bg-[#07070b]/60 border border-white/[0.08] backdrop-blur-xl rounded-full px-6 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+        }`}>
+          {/* Logo */}
+          <Link href={logoHref} className="flex items-center gap-2.5 group">
+            <Image 
+              src="/logo.png" 
+              alt="NxtGen Logo" 
+              width={30}
+              height={30}
+              className="w-7 h-7 rounded-lg group-hover:scale-105 transition-transform duration-200" 
+            />
+            <span className="font-bold tracking-tight text-white text-lg">
+              NxtGen<span className="text-cyan-400">.</span>
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-1.5 p-1 rounded-full border border-white/0 bg-white/0">
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
               const isActive = link.active;
               return (
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`relative transition-colors duration-200 rounded-full ${
-                    pathname.startsWith("/editor") 
-                      ? "px-3 py-1 text-xs font-medium" 
-                      : "px-4 py-1.5 text-sm font-medium"
-                  } ${
-                    isActive ? "text-white" : "text-(--color-fg-muted) hover:text-white"
+                  className={`relative px-4 py-1.5 text-sm font-medium transition-colors rounded-full ${
+                    isActive ? "text-white" : "text-zinc-400 hover:text-white"
                   }`}
                 >
                   {isActive && (
                     <motion.span
                       layoutId="active-pill"
-                      className="absolute inset-0 bg-white/5 border border-white/8 rounded-full z-0"
+                      className="absolute inset-0 bg-white/10 border border-white/10 rounded-full z-0"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -134,7 +161,7 @@ export default function Navbar({ initialSession }: NavbarProps) {
           </div>
 
           {/* Actions */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             {user ? (
               <ProfileMenu
                 user={{
@@ -148,10 +175,10 @@ export default function Navbar({ initialSession }: NavbarProps) {
               <Link href="/sign-in">
                 <button
                   id="btn-navbar-signin"
-                  className="group px-4 py-2 bg-white/5 hover:bg-white/8 text-white font-medium rounded-lg flex items-center gap-2 transition-all duration-300 text-sm border border-transparent hover:border-(--color-border-hover) shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)] active:scale-[0.98]"
+                  className="px-5 py-2 bg-white text-black font-semibold rounded-full flex items-center gap-1.5 transition-all text-sm hover:bg-neutral-100 shadow-[0_2px_15px_rgba(255,255,255,0.15)] active:scale-[0.98] cursor-pointer"
                 >
-                  Sign In
-                  <ArrowUpRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  <span>Sign In</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
                 </button>
               </Link>
             )}
@@ -159,8 +186,9 @@ export default function Navbar({ initialSession }: NavbarProps) {
 
           {/* Mobile Menu Toggle */}
           <button
-            className="md:hidden p-2 text-(--color-fg-muted) hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-white/5 cursor-pointer"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Navigation Menu"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -175,16 +203,16 @@ export default function Navbar({ initialSession }: NavbarProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-40 bg-bg-base/95 backdrop-blur-xl flex flex-col pt-24 px-6 md:hidden"
+            className="fixed inset-0 z-40 bg-[#050508]/98 backdrop-blur-2xl flex flex-col pt-28 px-6 md:hidden pointer-events-auto"
           >
-            <div className="flex flex-col gap-5 text-lg font-medium">
+            <div className="flex flex-col gap-4 text-base font-medium">
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`hover:text-white transition-colors border-b border-white/5 pb-4 ${
-                    link.active ? "text-white font-semibold" : "text-(--color-fg-muted)"
+                  className={`hover:text-white transition-colors border-b border-white/5 pb-3 ${
+                    link.active ? "text-white font-semibold" : "text-zinc-400"
                   }`}
                 >
                   {link.label}
@@ -197,13 +225,13 @@ export default function Navbar({ initialSession }: NavbarProps) {
                 <div className="flex items-center justify-between border-t border-white/5 pt-6">
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-white">{user.name ?? "User"}</span>
-                    <span className="text-xs text-(--color-fg-muted)">{user.email}</span>
+                    <span className="text-xs text-zinc-400">{user.email}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Link
                       href="/dashboard"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="px-4 py-2 bg-accent/20 text-accent hover:bg-accent/30 border border-accent/20 rounded-lg text-sm font-medium transition-all"
+                      className="px-4 py-2 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-sm font-medium transition-all"
                     >
                       Dashboard
                     </Link>
@@ -220,7 +248,7 @@ export default function Navbar({ initialSession }: NavbarProps) {
                 </div>
               ) : (
                 <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)}>
-                  <button className="w-full py-3 bg-(--color-accent) hover:bg-(--color-accent-bright) rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all shadow-[0_0_0_1px_rgba(94,106,210,0.5),0_4px_12px_rgba(94,106,210,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)]">
+                  <button className="w-full py-3 bg-white text-black rounded-full font-semibold flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]">
                     Sign In <ArrowUpRight className="w-4 h-4" />
                   </button>
                 </Link>
@@ -229,6 +257,6 @@ export default function Navbar({ initialSession }: NavbarProps) {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </header>
   );
 }

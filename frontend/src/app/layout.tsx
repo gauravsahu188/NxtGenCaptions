@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
-import { Syne, Manrope } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import Script from "next/script";
 import NextTopLoader from "nextjs-toploader";
 
-const syne = Syne({
-  variable: "--font-syne",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -69,7 +71,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${syne.variable} ${manrope.variable} antialiased`}>
+      <body suppressHydrationWarning className={`${inter.variable} ${manrope.variable} antialiased`}>
         <Providers>
           <NextTopLoader
             color="#22c55e"

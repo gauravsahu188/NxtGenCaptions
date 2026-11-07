@@ -24,6 +24,39 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Variable.woff2') format('woff2');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Satoshi-Bold';
+  src: url('/fonts/Satoshi-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Satoshi-Medium';
+  src: url('/fonts/Satoshi-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-connect {
+  font-family: 'Satoshi', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.font-display-headline {
+  font-family: 'Satoshi', var(--font-inter, 'Inter'), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.04em;
+}
+
 /*
  * Caption preview font stack — ensures Indian script characters from Sarvam AI
  * (Devanagari, Tamil, Bengali, etc.) display correctly in the editor.
@@ -59,9 +92,9 @@
   --color-accent: var(--accent);
   --color-accent-bright: var(--accent-bright);
   
-  --font-sans: var(--font-manrope), sans-serif;
-  --font-display: var(--font-syne), sans-serif;
-  --font-mono: monospace;
+  --font-sans: var(--font-inter), var(--font-manrope), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-inter), var(--font-manrope), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Linear/Modern Theme Colors */
   --color-bg-deep: #020203;
@@ -83,6 +116,18 @@ body {
   font-family: var(--font-sans);
   overflow-x: hidden;
   background-color: var(--color-bg-deep); /* Fallback */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+  letter-spacing: -0.025em;
+}
+
+p {
+  text-wrap: pretty;
+  line-height: 1.6;
 }
 
 /* Linear-style animations */

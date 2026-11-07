@@ -1,9 +1,9 @@
 "use client";
 
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Heart, ArrowUpRight } from 'lucide-react';
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Heart, ArrowRight } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -38,76 +38,96 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full border-t border-(--color-border-default) bg-(--color-bg-deep)">
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+    <footer className="w-full relative overflow-hidden bg-[#040407] border-t border-white/[0.08] pt-16 pb-12">
+      
+      {/* Sundown-Style Ambient Sunset/Ember Radiance at Base */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[110vw] max-w-7xl h-[320px] bg-[radial-gradient(ellipse_at_bottom,rgba(249,115,22,0.1)_0%,rgba(239,68,68,0.05)_35%,transparent_70%)] pointer-events-none -z-10 blur-[90px]" />
+
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        
+        {/* Top Grid: Brand, Links & Newsletter */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-white/[0.07]">
+          
           {/* Brand Column */}
-          <div className="lg:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-2 mb-4">
-              <Image src="/logo.png" alt="NxtGen Logo" width={40} height={40} className="w-10 h-10 rounded-xl" />
-              <span className="text-xl font-semibold text-white">NxtGen Captions</span>
+          <div className="lg:col-span-5 space-y-3.5">
+            <Link href="/" className="inline-flex items-center gap-2.5 group">
+              <Image 
+                src="/logo.png" 
+                alt="NxtGen Logo" 
+                width={32} 
+                height={32} 
+                className="w-8 h-8 rounded-lg group-hover:scale-105 transition-transform" 
+              />
+              <span className="text-lg font-bold tracking-tight text-white">
+                NxtGen Captions
+              </span>
             </Link>
-            <p className="text-(--color-fg-muted) mb-6 max-w-sm leading-relaxed">
+            <p className="text-zinc-400 text-sm max-w-sm leading-relaxed text-pretty font-normal">
               Production-grade, AI-driven storytelling platform for the next generation of content creators.
             </p>
           </div>
 
-          {/* Link Columns */}
-          {Object.values(footerLinks).map((section) => (
-            <div key={section.title}>
-              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
-                {section.title}
-              </h4>
-              <ul className="space-y-3">
-                {section.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-(--color-fg-muted) hover:text-white transition-colors duration-200 text-sm"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+          {/* Navigation Links Columns */}
+          <div className="lg:col-span-4 grid grid-cols-3 gap-6">
+            {Object.values(footerLinks).map((section) => (
+              <div key={section.title} className="space-y-3">
+                <h4 className="text-xs font-semibold text-zinc-300 uppercase tracking-[0.08em]">
+                  {section.title}
+                </h4>
+                <ul className="space-y-2.5">
+                  {section.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="text-zinc-400 hover:text-white transition-colors duration-150 text-sm font-normal"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
 
-        {/* Newsletter Section */}
-        <div className="mt-12 pt-8 border-t border-(--color-border-default)">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-              <h4 className="text-white font-semibold mb-2">Stay Updated</h4>
-              <p className="text-(--color-fg-muted) text-sm">
-                Get notified about new features and updates.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 w-full md:w-auto">
+          {/* Clean Editorial Newsletter Column */}
+          <div className="lg:col-span-3 space-y-3.5">
+            <h4 className="text-sm font-semibold text-white tracking-tight">Stay Updated</h4>
+            <p className="text-zinc-400 text-xs leading-relaxed text-pretty">
+              Get notified about new features and updates.
+            </p>
+            
+            <form onSubmit={(e) => e.preventDefault()} className="relative flex items-center mt-2">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 md:flex-initial md:w-72 px-4 py-2.5 rounded-xl bg-(--color-surface) border border-(--color-border-default) text-white placeholder-(--color-fg-muted) focus:outline-none focus:border-(--color-accent) transition-colors text-sm"
+                className="w-full pl-4 pr-11 py-2.5 rounded-full bg-white/[0.04] border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors text-xs"
               />
-              <button className="px-4 py-2.5 rounded-xl bg-(--color-accent) text-white font-medium hover:bg-(--color-accent-bright) transition-colors text-sm flex items-center gap-2 whitespace-nowrap">
-                Subscribe
-                <ArrowUpRight className="w-4 h-4" />
+              <button
+                type="submit"
+                aria-label="Subscribe"
+                className="absolute right-1.5 w-7 h-7 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-colors cursor-pointer"
+              >
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
-            </div>
+            </form>
           </div>
+
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-8 pt-8 border-t border-(--color-border-default) flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-(--color-fg-muted) text-sm">
-            &copy; {currentYear} NxtGen Captions. All rights reserved.
-          </p>
-          <div className="flex items-center gap-2 text-(--color-fg-muted) text-sm">
+        {/* Bottom Metadata Bar */}
+        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
+          <div className="flex items-center gap-3">
+            <span>&copy; {currentYear} NxtGen Captions. All rights reserved.</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-zinc-400">
             <span>Made with</span>
-            <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
             <span>for creators worldwide</span>
           </div>
         </div>
+
       </div>
     </footer>
   );

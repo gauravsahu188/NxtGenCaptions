@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateMcpKey } from "@/lib/mcp-auth";
 
-export const TEMPLATES = [
+const TEMPLATES = [
   {
     id: "bottom",
     name: "Classic Bottom",

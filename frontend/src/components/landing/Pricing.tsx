@@ -1,14 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Check } from 'lucide-react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import PaymentModal from '@/components/PaymentModal';
+import React, { useState, useEffect, useRef } from "react";
+import { Check, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import PaymentModal from "@/components/PaymentModal";
 
-const trialPlansINR = [
+interface PlanItem {
+  name: string;
+  price: string;
+  originalPrice: string | null;
+  badge?: string;
+  features: string[];
+  highlight: boolean;
+  internalPlan: string;
+}
+
+const trialPlansINR: PlanItem[] = [
   {
     name: "1 Rupee Trial",
     price: "1.00",
@@ -42,7 +52,7 @@ const trialPlansINR = [
   }
 ];
 
-const pricingPlansINR = [
+const pricingPlansINR: PlanItem[] = [
   {
     name: "Free",
     price: "0.00",
@@ -114,7 +124,7 @@ const pricingPlansINR = [
   }
 ];
 
-const trialPlansUSD = [
+const trialPlansUSD: PlanItem[] = [
   {
     name: "1st Render Trial",
     price: "0.29",
@@ -148,7 +158,7 @@ const trialPlansUSD = [
   }
 ];
 
-const pricingPlansUSD = [
+const pricingPlansUSD: PlanItem[] = [
   {
     name: "Free",
     price: "0.00",
@@ -224,17 +234,20 @@ export default function Pricing() {
   const { data: session } = useSession();
   const router = useRouter();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
+  const [currency, setCurrency] = useState<"INR" | "USD">("INR");
 
-  // Mobile Snap Carousel State & Scroll Handlers
-  const [activeMobileIndex, setActiveMobileIndex] = useState(2); // Creator as default (index 2)
+  const [activeMobileIndex, setActiveMobileIndex] = useState(2);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const activePlans = currency === "USD" ? pricingPlansUSD : pricingPlansINR;
+  const activeTrialPlans = currency === "USD" ? trialPlansUSD : trialPlansINR;
+  const currencySymbol = currency === "USD" ? "$" : "₹";
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
     const scrollLeft = container.scrollLeft;
     const width = container.offsetWidth;
-    const index = Math.round(scrollLeft / (width * 0.82)); // Align with 84vw width card
+    const index = Math.round(scrollLeft / (width * 0.82));
     const finalIndex = Math.max(0, Math.min(activePlans.length - 1, index));
     setActiveMobileIndex(finalIndex);
   };
@@ -245,65 +258,61 @@ export default function Pricing() {
       const cardWidth = container.scrollWidth / activePlans.length;
       container.scrollTo({
         left: cardWidth * index,
-        behavior: 'smooth'
+        behavior: "smooth"
       });
       setActiveMobileIndex(index);
     }
   };
 
   useEffect(() => {
-    const savedCurrency = localStorage.getItem('currency_preference') as 'INR' | 'USD';
-    if (savedCurrency === 'INR' || savedCurrency === 'USD') {
+    const savedCurrency = localStorage.getItem("currency_preference") as "INR" | "USD";
+    if (savedCurrency === "INR" || savedCurrency === "USD") {
       setCurrency(savedCurrency);
       return;
     }
 
-    let detectedCurrency: 'INR' | 'USD' = 'INR';
+    let detectedCurrency: "INR" | "USD" = "INR";
 
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (tz) {
-        const isIndiaTz = tz.includes('Kolkata') || tz.includes('Calcutta') || tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta';
+        const isIndiaTz = tz.includes("Kolkata") || tz.includes("Calcutta") || tz === "Asia/Kolkata" || tz === "Asia/Calcutta";
         if (!isIndiaTz) {
-          detectedCurrency = 'USD';
+          detectedCurrency = "USD";
         }
       }
-    } catch (e) {
+    } catch {
       try {
-        const locale = navigator.language || (navigator.languages && navigator.languages[0]) || '';
-        if (locale && !locale.toLowerCase().endsWith('-in') && locale.toLowerCase() !== 'hi') {
-          detectedCurrency = 'USD';
+        const locale = navigator.language || (navigator.languages && navigator.languages[0]) || "";
+        if (locale && !locale.toLowerCase().endsWith("-in") && locale.toLowerCase() !== "hi") {
+          detectedCurrency = "USD";
         }
-      } catch (err) {}
+      } catch {}
     }
 
     setCurrency(detectedCurrency);
 
-    fetch('https://ipapi.co/json/')
-      .then(res => res.json())
-      .then(data => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
         if (data && data.country_code) {
-          const isIndiaIp = data.country_code === 'IN';
-          const newCurrency = isIndiaIp ? 'INR' : 'USD';
+          const isIndiaIp = data.country_code === "IN";
+          const newCurrency = isIndiaIp ? "INR" : "USD";
           setCurrency(newCurrency);
-          localStorage.setItem('currency_preference', newCurrency);
+          localStorage.setItem("currency_preference", newCurrency);
         }
       })
       .catch(() => {});
   }, []);
 
-  const handleCurrencyChange = (newCurrency: 'INR' | 'USD') => {
+  const handleCurrencyChange = (newCurrency: "INR" | "USD") => {
     setCurrency(newCurrency);
-    localStorage.setItem('currency_preference', newCurrency);
+    localStorage.setItem("currency_preference", newCurrency);
   };
 
-  const activePlans = currency === 'USD' ? pricingPlansUSD : pricingPlansINR;
-  const activeTrialPlans = currency === 'USD' ? trialPlansUSD : trialPlansINR;
-  const currencySymbol = currency === 'USD' ? '$' : '₹';
-
-  const handlePlanClick = (e: React.MouseEvent, planName: string, internalPlan?: string) => {
+  const handlePlanClick = (e: React.MouseEvent, planName: string) => {
     if (planName === "Free") {
-      return; // Let the link navigate normally
+      return;
     }
 
     e.preventDefault();
@@ -311,84 +320,87 @@ export default function Pricing() {
     if (!session?.user) {
       router.push("/sign-in");
     } else {
-      // Pass standard URL param to open payment modal pre-selected if we implemented it, 
-      // but opening it is good enough
       setIsPaymentModalOpen(true);
     }
   };
 
-  const renderCard = (plan: any, i: number, isCurrentMobile: boolean, isMobileView: boolean) => {
+  const renderCard = (plan: PlanItem, i: number, isCurrentMobile: boolean, isMobileView: boolean) => {
     const isHighlighted = isMobileView ? (isCurrentMobile || plan.highlight) : plan.highlight;
     return (
       <motion.div
-        initial={isMobileView ? undefined : { opacity: 0, y: 30, rotateX: 10 }}
-        whileInView={isMobileView ? undefined : { opacity: 1, y: 0, rotateX: 0 }}
-        whileHover={isMobileView ? undefined : { 
-          scale: 1.02, 
-          rotateX: 2, 
-          rotateY: -2,
-          z: 20
-        }}
+        initial={isMobileView ? undefined : { opacity: 0, y: 30 }}
+        whileInView={isMobileView ? undefined : { opacity: 1, y: 0 }}
+        whileHover={isMobileView ? undefined : { y: -4 }}
         animate={isMobileView ? {
           scale: isCurrentMobile ? 1.02 : 0.96,
           opacity: isCurrentMobile ? 1 : 0.75,
         } : undefined}
         viewport={isMobileView ? undefined : { once: true, margin: "-50px" }}
         transition={isMobileView ? { duration: 0.3 } : { 
-          duration: 0.6, 
-          delay: i * 0.1, 
+          duration: 0.5, 
+          delay: i * 0.08, 
           ease: [0.16, 1, 0.3, 1] 
         }}
-        style={{ transformStyle: 'preserve-3d' }}
-        className={`relative rounded-3xl p-8 flex flex-col cursor-pointer transition-colors duration-500 h-full ${
+        className={`relative rounded-3xl p-7 flex flex-col transition-all duration-300 h-full ${
           isHighlighted
-            ? 'bg-[#0b0b12] border border-accent/40 shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_80px_rgba(94,106,210,0.15)] z-20'
-            : 'bg-black/40 border border-white/5 hover:bg-white/2 hover:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] z-10'
-        } ${isMobileView ? 'min-h-[520px]' : ''}`}
+            ? "bg-[#090912] border-2 border-cyan-500/50 shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_50px_rgba(6,182,212,0.18)] z-20"
+            : "bg-[#06060a]/80 border border-white/10 hover:border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.4)] z-10"
+        } ${isMobileView ? "min-h-[520px]" : ""}`}
       >
-        {plan.highlight && (
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(94,106,210,0.1),transparent_70%)] rounded-3xl pointer-events-none" />
+        {isHighlighted && (
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.12),transparent_70%)] rounded-3xl pointer-events-none" />
         )}
 
-        <div className="flex justify-between items-start mb-6 relative z-10" style={{ transform: 'translateZ(10px)' }}>
-          <h3 className="text-xl font-display font-bold text-white tracking-tight">{plan.name}</h3>
+        <div className="flex justify-between items-start mb-5 relative z-10">
+          <h3 className="text-xl font-bold text-white tracking-tight">{plan.name}</h3>
           {plan.badge && (
-            <span className="bg-accent/20 border border-accent/40 text-(--color-accent-bright) text-[10px] font-mono tracking-widest px-3 py-1 rounded-full uppercase shadow-[0_0_10px_rgba(94,106,210,0.2)]">
+            <span className="bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-[10px] font-mono tracking-widest px-3 py-1 rounded-full uppercase shadow-[0_0_12px_rgba(6,182,212,0.25)]">
               {plan.badge}
             </span>
           )}
         </div>
 
-        <div className="flex items-baseline gap-2 mb-2 flex-wrap relative z-10" style={{ transform: 'translateZ(20px)' }}>
-          <span className="text-5xl font-sans font-bold tracking-[-0.03em] text-white">{currencySymbol}{plan.price}</span>
+        <div className="flex items-baseline gap-2 mb-1 flex-wrap relative z-10">
+          <span className="text-4xl md:text-5xl font-sans font-extrabold tracking-[-0.03em] text-white tabular-nums">
+            {currencySymbol}{plan.price}
+          </span>
           {plan.originalPrice && (
-            <span className="text-white/40 font-medium font-sans line-through text-sm decoration-white/20">{currencySymbol}{plan.originalPrice}</span>
+            <span className="text-zinc-500 font-medium font-sans line-through text-sm decoration-zinc-500 tabular-nums">
+              {currencySymbol}{plan.originalPrice}
+            </span>
           )}
         </div>
-        <div className="w-full mb-8 relative z-10" style={{ transform: 'translateZ(10px)' }}>
-          <span className="text-(--color-fg-muted) font-medium text-sm">/ month</span>
+        <div className="w-full mb-6 relative z-10">
+          <span className="text-zinc-400 font-normal text-xs uppercase tracking-wider font-mono">/ month</span>
         </div>
 
-        <Link href="/editor" onClick={(e) => handlePlanClick(e, plan.name, plan.internalPlan)} className="w-full relative z-20" style={{ transform: 'translateZ(30px)' }}>
-          <button className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-[0.98] ${isHighlighted
-              ? 'bg-(--color-accent) hover:bg-(--color-accent-bright) text-white shadow-[0_0_20px_rgba(94,106,210,0.3)]'
-              : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
-            }`}>
+        <Link 
+          href="/editor" 
+          onClick={(e) => handlePlanClick(e, plan.name)} 
+          className="w-full relative z-20"
+        >
+          <button 
+            className={`w-full py-3 rounded-full font-semibold text-sm transition-all duration-300 active:scale-[0.98] ${
+              isHighlighted
+                ? "bg-white text-black hover:bg-neutral-100 shadow-[0_4px_25px_rgba(255,255,255,0.22)]"
+                : "bg-white/[0.05] hover:bg-white/[0.1] text-white border border-white/10"
+            }`}
+          >
             {plan.name === "Free" ? "Get Started" : "Upgrade Plan"}
           </button>
         </Link>
 
-        <div className="mt-8 space-y-4 flex-1 relative z-10" style={{ transform: 'translateZ(10px)' }}>
+        <div className="mt-7 space-y-3.5 flex-1 relative z-10 border-t border-white/[0.06] pt-6">
           {plan.features.map((feature: string, idx: number) => {
-            const isHeading = feature.includes('EVERYTHING IN');
+            const isHeading = feature.includes("EVERYTHING IN");
             return (
-              <div key={idx} className={`flex items-start gap-3 ${isHeading ? 'mb-6 mt-6' : ''}`}>
+              <div key={idx} className={`flex items-start gap-2.5 ${isHeading ? "mb-4 mt-4" : ""}`}>
                 {!isHeading && (
-                  <div className={`mt-0.5 rounded-full p-1 ${isHighlighted ? 'text-(--color-accent-bright) bg-accent/10' : 'text-white/50 bg-white/5'}`}>
-                    <Check className="w-3 h-3" />
+                  <div className={`mt-0.5 rounded-full p-1 ${isHighlighted ? "text-cyan-400 bg-cyan-950/60" : "text-zinc-400 bg-white/5"}`}>
+                    <Check className="w-3 h-3 stroke-[2.5]" />
                   </div>
                 )}
-                <span className={`text-sm font-medium text-left ${isHeading ? 'font-mono text-(--color-accent-bright) text-xs uppercase tracking-widest' : 'text-(--color-fg-muted)'}`}>
+                <span className={`text-xs md:text-sm font-medium text-left leading-snug ${isHeading ? "font-mono text-cyan-300 text-xs uppercase tracking-widest" : "text-zinc-300"}`}>
                   {feature}
                 </span>
               </div>
@@ -400,37 +412,37 @@ export default function Pricing() {
   };
 
   return (
-    <section id="pricing" className="w-full max-w-[1400px] mx-auto py-32 px-6 relative z-10 border-t border-white/3">
+    <section id="pricing" className="w-full max-w-[1400px] mx-auto py-28 md:py-36 px-6 relative z-10 border-t border-white/[0.06]">
 
       {/* Header */}
-      <div className="flex flex-col items-center mb-20 space-y-4 text-center">
-        <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-white">
-          Flexible plans for every <span className="text-gradient-accent">creator</span>
+      <div className="flex flex-col items-center mb-16 space-y-4 text-center">
+        <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-[-0.03em] text-white text-balance">
+          Flexible plans for every creator
         </h2>
-        <p className="text-(--color-fg-muted) text-lg max-w-xl font-medium">
+        <p className="text-zinc-400 text-base md:text-lg max-w-xl font-normal leading-relaxed text-pretty">
           Scale your content creation with plans designed for solo creators and post-production houses.
         </p>
       </div>
 
       {/* Currency Switcher */}
-      <div className="flex justify-center mb-12">
-        <div className="relative flex p-1 bg-white/5 border border-white/10 rounded-2xl">
+      <div className="flex justify-center mb-16">
+        <div className="relative flex p-1 bg-[#09090f] border border-white/10 rounded-full backdrop-blur-md shadow-lg">
           <button
-            onClick={() => handleCurrencyChange('INR')}
-            className={`relative px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-              currency === 'INR'
-                ? 'bg-(--color-accent) text-white shadow-[0_0_15px_rgba(94,106,210,0.3)]'
-                : 'text-white/60 hover:text-white'
+            onClick={() => handleCurrencyChange("INR")}
+            className={`relative px-6 py-2 rounded-full text-xs font-semibold tracking-wider transition-all duration-300 ${
+              currency === "INR"
+                ? "bg-white text-black shadow-md font-bold"
+                : "text-zinc-400 hover:text-white"
             }`}
           >
             INR (₹)
           </button>
           <button
-            onClick={() => handleCurrencyChange('USD')}
-            className={`relative px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-              currency === 'USD'
-                ? 'bg-(--color-accent) text-white shadow-[0_0_15px_rgba(94,106,210,0.3)]'
-                : 'text-white/60 hover:text-white'
+            onClick={() => handleCurrencyChange("USD")}
+            className={`relative px-6 py-2 rounded-full text-xs font-semibold tracking-wider transition-all duration-300 ${
+              currency === "USD"
+                ? "bg-white text-black shadow-md font-bold"
+                : "text-zinc-400 hover:text-white"
             }`}
           >
             USD ($)
@@ -439,10 +451,14 @@ export default function Pricing() {
       </div>
 
       {/* Eye-catching Trial Plans Section */}
-      <div className="mb-16 md:mb-24 relative max-w-4xl mx-auto">
-        <div className="absolute inset-0 bg-linear-to-r from-accent/20 via-purple-500/20 to-accent/20 blur-3xl opacity-30 rounded-[3rem] -z-10" />
+      <div className="mb-20 md:mb-28 relative max-w-4xl mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-sky-500/10 to-indigo-500/10 blur-3xl opacity-50 rounded-[3rem] -z-10" />
         <div className="text-center mb-8">
-          <h3 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-white/60 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/30 text-cyan-300 text-[11px] font-mono tracking-widest uppercase mb-3">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Limited Offer</span>
+          </div>
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-white mb-2">
             First Time Offers 🎁
           </h3>
           <p className="text-zinc-400 text-sm md:text-base">One-time exclusive trials to experience our full power.</p>
@@ -451,14 +467,14 @@ export default function Pricing() {
         {/* Desktop Trial Cards */}
         <div className="hidden md:flex justify-center items-center gap-8 px-4">
           {activeTrialPlans.map((plan, i) => (
-            <div key={`trial-desktop-${i}`} className="w-full max-w-[320px]">
+            <div key={`trial-desktop-${i}`} className="w-full max-w-[340px]">
               {renderCard(plan, i, false, false)}
             </div>
           ))}
         </div>
 
         {/* Mobile Trial Cards (Horizontal Scroll) */}
-        <div className="md:hidden flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 px-[8vw] pb-6 pt-4 perspective-1000">
+        <div className="md:hidden flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 px-[6vw] pb-6 pt-4">
           {activeTrialPlans.map((plan, i) => (
             <div key={`trial-mobile-${i}`} className="min-w-[84vw] snap-center shrink-0 flex justify-center">
               {renderCard(plan, i, true, true)}
@@ -467,15 +483,15 @@ export default function Pricing() {
         </div>
       </div>
 
-      <div className="text-center mb-8 md:mb-12">
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Standard Plans</h2>
+      <div className="text-center mb-10">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white mb-2">Standard Plans</h2>
         <p className="text-zinc-400 text-sm md:text-base">Choose the perfect plan for your needs</p>
       </div>
 
       {/* Desktop Grid for Normal Plans */}
-      <div className="hidden md:flex flex-wrap justify-center gap-6 items-start perspective-1000 mb-16">
+      <div className="hidden md:flex flex-wrap justify-center gap-6 items-stretch mb-16">
         {activePlans.map((plan, i) => (
-          <div key={i} className="h-full w-full max-w-[320px]">
+          <div key={i} className="w-full max-w-[285px] flex">
             {renderCard(plan, i, false, false)}
           </div>
         ))}
@@ -486,7 +502,7 @@ export default function Pricing() {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 px-[8vw] pb-8 pt-4 perspective-1000"
+          className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 px-[6vw] pb-8 pt-4"
         >
           {activePlans.map((plan, i) => (
             <div 
@@ -499,15 +515,15 @@ export default function Pricing() {
         </div>
 
         {/* Carousel Dot Indicators */}
-        <div className="flex gap-2.5 mt-2 justify-center">
+        <div className="flex gap-2 mt-2 justify-center">
           {activePlans.map((_, i) => (
             <button
               key={i}
               onClick={() => handleDotClick(i)}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+              className={`h-2 rounded-full transition-all duration-300 ${
                 i === activeMobileIndex 
-                  ? 'bg-(--color-accent) w-6 shadow-[0_0_8px_rgba(94,106,210,0.5)]' 
-                  : 'bg-white/20'
+                  ? "bg-cyan-400 w-6 shadow-[0_0_8px_rgba(6,182,212,0.6)]" 
+                  : "bg-white/20 w-2"
               }`}
               aria-label={`Go to plan ${i + 1}`}
             />
@@ -518,7 +534,7 @@ export default function Pricing() {
       <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        currentPlan={session?.user?.planType ?? 'FREE'}
+        currentPlan={session?.user?.planType ?? "FREE"}
       />
     </section>
   );
