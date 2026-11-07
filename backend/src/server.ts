@@ -19,6 +19,7 @@ import videoRoutes from "./routes/video.routes";
 import renderRoutes from "./routes/render.routes";
 import paymentRoutes from "./routes/payment.routes";
 import webhookRoutes from "./routes/webhook.routes";
+import mcpRoutes from "./routes/mcp.routes";
 import { AppError } from "./utils/errors";
 import { startPeriodicCleanup } from "./utils/cleanup";
 
@@ -46,6 +47,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Serve static files for video preview
+// Trigger tsx watch restart
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -57,6 +59,7 @@ app.use("/api/video", videoRoutes);
 app.use("/api/render", renderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/webhooks", webhookRoutes);
+app.use("/api/mcp", mcpRoutes);
 
 // Root endpoint to prevent "Cannot GET /"
 app.get("/", (req: Request, res: Response) => {
@@ -80,8 +83,30 @@ app.get("/api/health", (req: Request, res: Response) => {
 });
 
 // Basic error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack || err);
+
+  // Handle Multer upload errors
+  if (err?.name === "MulterError") {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({
+        status: "error",
+        message: "FILE_SIZE_LIMIT_EXCEEDED: Video file exceeds maximum size limit (4 GB). Please upload a smaller or compressed video.",
+      });
+    }
+    return res.status(400).json({
+      status: "error",
+      message: `Upload error: ${err.message}`,
+    });
+  }
+
+  // Handle Image upload violation in video route
+  if (err?.message?.includes("IMAGE_UPLOAD_VIOLATION")) {
+    return res.status(400).json({
+      status: "error",
+      message: "IMAGE_UPLOAD_VIOLATION: Image files are not supported. Please upload an MP4, MOV, or WEBM video file.",
+    });
+  }
 
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({ status: "error", message: err.message });

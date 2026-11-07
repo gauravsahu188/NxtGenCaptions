@@ -4,6 +4,8 @@ import { AppError } from "../utils/errors";
 
 const PLAN_LIMITS: Record<string, number> = {
   FREE: 5 * 1024 * 1024 * 1024,
+  TRIAL_1_INR: 5 * 1024 * 1024 * 1024,
+  TRIAL_9_INR: 5 * 1024 * 1024 * 1024,
   EDITOR: 20 * 1024 * 1024 * 1024,
   CREATOR: 60 * 1024 * 1024 * 1024,
   BUSINESS: 150 * 1024 * 1024 * 1024,
@@ -45,7 +47,7 @@ export const guardrailMiddleware = async (req: Request, res: Response, next: Nex
     const totalProjected = Number(user.storageUsed) + incomingSize;
 
     if (totalProjected > planLimit) {
-      throw new AppError(`Storage limit exceeded. Your ${user.planType} plan allows up to ${formatBytes(planLimit)}.`, 403);
+      throw new AppError(`STORAGE_LIMIT_EXCEEDED: Storage limit reached. Your ${user.planType} plan allows up to ${formatBytes(planLimit)}. Please upgrade or delete old projects.`, 403);
     }
 
     // Attach full user to req for downstream use

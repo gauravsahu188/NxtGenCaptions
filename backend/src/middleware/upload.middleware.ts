@@ -19,9 +19,17 @@ const storage = multer.diskStorage({
 
 export const uploadMiddleware = multer({
   storage,
-  limits: { fileSize: 1000 * 1024 * 1024 }, // 1GB limit
+  limits: { fileSize: 4000 * 1024 * 1024 }, // 4GB limit to support 4K video uploads
   fileFilter: (req, file, cb) => {
-    // Be very permissive during dev to avoid 500 errors on valid videos with weird mimetypes
+    // Reject image files if uploaded instead of video
+    if (file.mimetype && file.mimetype.startsWith("image/")) {
+      return cb(new Error("IMAGE_UPLOAD_VIOLATION: Image files are not supported. Please upload a video file."));
+    }
+    const ext = path.extname(file.originalname || "").toLowerCase();
+    if ([".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".tiff", ".heic"].includes(ext)) {
+      return cb(new Error("IMAGE_UPLOAD_VIOLATION: Image files are not supported. Please upload a video file."));
+    }
+    // Allow video files
     cb(null, true);
   },
 });
