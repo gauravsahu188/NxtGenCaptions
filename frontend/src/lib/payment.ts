@@ -155,16 +155,14 @@ export const PLAN_PRICING_USD: Record<string, PlanFeatures> = {
 
 // ─── Razorpay Instance ────────────────────────────────────────────────────────
 
-let razorpayInstance: Razorpay | null = null;
-
 function getRazorpayInstance(): Razorpay {
-  if (!razorpayInstance) {
-    razorpayInstance = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID || "",
-      key_secret: process.env.RAZORPAY_KEY_SECRET || "",
-    });
-  }
-  return razorpayInstance;
+  const key_id = (process.env.RAZORPAY_KEY_ID || "").trim();
+  const key_secret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
+
+  return new Razorpay({
+    key_id,
+    key_secret,
+  });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -178,11 +176,11 @@ export function generateOrderId(userId: string): string {
 export async function initiatePayment(params: InitiateTransactionParams) {
   const { userId, orderId, amount, planType, email, currency = "INR" } = params;
 
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  const keyId = (process.env.RAZORPAY_KEY_ID || "").trim();
+  const keySecret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
 
   if (!keyId || !keySecret) {
-    return { success: false, orderId, error: "Razorpay credentials not configured" };
+    return { success: false, orderId, error: "Razorpay credentials not configured in environment variables" };
   }
 
   try {
@@ -208,10 +206,15 @@ export async function initiatePayment(params: InitiateTransactionParams) {
     };
   } catch (error: any) {
     console.error("[PaymentService] Error:", error);
+    const description = error.error?.description || error.message || "Failed to create order";
+    const errorMessage = description === "Authentication failed"
+      ? "Razorpay authentication failed: The RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is invalid or expired. Please verify your keys in Razorpay Dashboard."
+      : description;
+
     return {
       success: false,
       orderId,
-      error: error.error?.description || error.message || "Failed to create order",
+      error: errorMessage,
     };
   }
 }
@@ -221,7 +224,7 @@ export async function verifyPaymentSignature(
   razorpayPaymentId: string,
   signature: string
 ): Promise<boolean> {
-  const keySecret = process.env.RAZORPAY_KEY_SECRET || "";
+  const keySecret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
   try {
     const expected = crypto
       .createHmac("sha256", keySecret)
