@@ -94,7 +94,7 @@ if ! command -v pm2 >/dev/null 2>&1; then
 fi
 
 if pm2 describe nxtgen-frontend >/dev/null 2>&1; then
-  pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
+  pm2 restart "$ROOT_DIR/ecosystem.config.js" --update-env
 else
   pm2 start "$ROOT_DIR/ecosystem.config.js"
 fi

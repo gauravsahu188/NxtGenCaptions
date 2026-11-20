@@ -9,14 +9,14 @@ module.exports = {
     {
       name: "nxtgen-frontend",
       cwd: "./frontend",
-      script: "npm",
-      args: "start",
+      script: "node_modules/next/dist/bin/next",
+      args: "start -p 3000",
       env: {
         NODE_ENV: "production",
         PORT: 3000,
       },
-      instances: 1, // Set to 'max' for multi-core cluster mode or 1/2 for t2/t3 EC2 instances
-      exec_mode: "cluster",
+      instances: 1, // 1 instance is ideal for t2/t3 EC2 instances
+      exec_mode: "fork",
       autorestart: true,
       watch: false,
       max_memory_restart: "1G",
