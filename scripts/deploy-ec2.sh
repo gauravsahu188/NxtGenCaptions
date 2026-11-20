@@ -88,6 +88,11 @@ log "Building Frontend Next.js production bundle..."
 
 # 9. Zero-Downtime Reload via PM2
 log "Reloading application services via PM2..."
+if ! command -v pm2 >/dev/null 2>&1; then
+  log_warn "PM2 not found in PATH. Installing PM2 globally..."
+  npm install -g pm2
+fi
+
 if pm2 describe nxtgen-frontend >/dev/null 2>&1; then
   pm2 reload "$ROOT_DIR/ecosystem.config.js" --update-env
 else
@@ -97,24 +102,40 @@ pm2 save
 
 # 10. Post-Deployment Verification & Health Checks
 log "Verifying health checks..."
-sleep 4
 
-# Check backend health endpoint
-BACKEND_HEALTH=$(curl -fsS http://localhost:3001/api/health || echo "FAILED")
-if [ "$BACKEND_HEALTH" = "FAILED" ]; then
+# Check backend health endpoint with retries
+BACKEND_OK=false
+for i in {1..6}; do
+  if curl -fsS http://localhost:3001/api/health >/dev/null 2>&1; then
+    BACKEND_OK=true
+    break
+  fi
+  sleep 2
+done
+
+if [ "$BACKEND_OK" = "false" ]; then
   log_error "Backend health check failed at http://localhost:3001/api/health"
-  pm2 logs nxtgen-backend --lines 20 --nostream
+  pm2 logs nxtgen-backend --lines 25 --nostream 2>/dev/null || true
   exit 1
 fi
 log_success "Backend health check passed!"
 
-# Check frontend port 3000
-FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 || echo "000")
-if [ "$FRONTEND_STATUS" -ge 400 ] || [ "$FRONTEND_STATUS" -eq 000 ]; then
-  log_error "Frontend returned HTTP status $FRONTEND_STATUS at http://localhost:3000"
-  pm2 logs nxtgen-frontend --lines 20 --nostream
+# Check frontend port 3000 with retries
+FRONTEND_OK=false
+for i in {1..6}; do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 || echo "000")
+  if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+    FRONTEND_OK=true
+    break
+  fi
+  sleep 2
+done
+
+if [ "$FRONTEND_OK" = "false" ]; then
+  log_error "Frontend health check failed at http://localhost:3000"
+  pm2 logs nxtgen-frontend --lines 25 --nostream 2>/dev/null || true
   exit 1
 fi
-log_success "Frontend health check passed (HTTP $FRONTEND_STATUS)!"
+log_success "Frontend health check passed!"
 
 log_success "🚀 Deployment to nxtgencaptions.com completed successfully at $(date)!"

@@ -153,87 +153,38 @@ jobs:
           command_timeout: 15m
           envs: SKIP_MIGRATIONS
           script: |
-            set -e
+            bash -l -c '
+              set -e
 
-            # 1. Resolve environment & PATH (NVM / Node / PM2 for non-interactive SSH)
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            export PATH="$PATH:$HOME/.local/bin:/usr/local/bin:/usr/bin"
+              # 1. Auto-discover application directory
+              APP_DIR="${{ secrets.EC2_APP_DIR || '' }}"
+              if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR" ]; then
+                for candidate in "$HOME/NxtGenCaptions" "$HOME/nxtgencaptions" "/var/www/nxtgencaptions" "$HOME/NxtGen-Captions"; do
+                  if [ -d "$candidate" ]; then
+                    APP_DIR="$candidate"
+                    break
+                  fi
+                done
+              fi
 
-            # Determine application directory
-            APP_DIR="${{ secrets.EC2_APP_DIR || '' }}"
-            if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR" ]; then
-              if [ -d "$HOME/NxtGenCaptions" ]; then
-                APP_DIR="$HOME/NxtGenCaptions"
-              elif [ -d "$HOME/nxtgencaptions" ]; then
-                APP_DIR="$HOME/nxtgencaptions"
-              elif [ -d "/var/www/nxtgencaptions" ]; then
-                APP_DIR="/var/www/nxtgencaptions"
-              elif [ -d "$HOME/NxtGen-Captions" ]; then
-                APP_DIR="$HOME/NxtGen-Captions"
-              else
-                echo "❌ Error: Application directory not found at $APP_DIR"
+              if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR" ]; then
+                echo "❌ Error: Could not locate application directory on EC2. Checked: $HOME/NxtGenCaptions, /var/www/nxtgencaptions"
                 exit 1
               fi
-            fi
 
-            echo "📂 Navigating to application directory: $APP_DIR"
-            cd "$APP_DIR"
+              echo "📂 Application directory: $APP_DIR"
+              cd "$APP_DIR"
 
-            # 2. Check if a dedicated deployment script exists, otherwise run inline steps
-            if [ -f "./scripts/deploy-ec2.sh" ]; then
-              echo "⚙️ Executing deployment script ./scripts/deploy-ec2.sh..."
-              chmod +x ./scripts/deploy-ec2.sh
-              ./scripts/deploy-ec2.sh
-            else
+              # 2. Fetch and reset to latest code from main
               echo "🔄 Updating code from origin/main..."
               git fetch origin main
               git reset --hard origin/main
 
-              # Ensure environment files are linked
-              if [ -f ".env.local" ]; then
-                ln -sf ../.env.local frontend/.env.local 2>/dev/null || true
-                ln -sf ../.env.local backend/.env 2>/dev/null || true
-              fi
-
-              # Install dependencies with offline caching
-              echo "📦 Installing dependencies..."
-              (cd backend && (npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip || npm install --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip))
-              (cd frontend && (npm ci --prefer-offline --no-audit || npm install --prefer-offline --no-audit))
-
-              # Prisma Clients
-              echo "💎 Generating Prisma clients..."
-              (cd backend && npx --yes prisma@7 generate)
-              (cd frontend && npx --yes prisma@7 generate)
-
-              # Database Migrations
-              if [ "$SKIP_MIGRATIONS" != "true" ]; then
-                echo "🗄️ Running Prisma migrations..."
-                (cd frontend && npx --yes prisma@7 migrate deploy)
-              fi
-
-              # Build services
-              echo "🔨 Building Backend & Frontend..."
-              (cd backend && npm run build)
-              (cd frontend && npm run build)
-
-              # Reload PM2 zero-downtime
-              echo "🔄 Reloading PM2 processes..."
-              if pm2 describe nxtgen-frontend > /dev/null 2>&1; then
-                pm2 reload ecosystem.config.js --update-env
-              else
-                pm2 start ecosystem.config.js
-              fi
-              pm2 save
-
-              # Health check
-              echo "🩺 Verifying health status..."
-              sleep 3
-              curl -fsS http://localhost:3001/api/health || { echo "Backend health check failed"; exit 1; }
-              curl -fsS http://localhost:3000 > /dev/null || { echo "Frontend health check failed"; exit 1; }
-            fi
-
-            echo "✅ Deployment on nxtgencaptions.com completed successfully!"
+              # 3. Execute zero-downtime deployment script
+              echo "⚙️ Executing deployment script ./scripts/deploy-ec2.sh..."
+              chmod +x ./scripts/deploy-ec2.sh
+              ./scripts/deploy-ec2.sh
+            '
 
       - name: Deployment Success Summary
         if: success()
