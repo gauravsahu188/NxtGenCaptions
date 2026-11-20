@@ -147,10 +147,14 @@ jobs:
             export PATH="$PATH:$HOME/.local/bin:/usr/local/bin:/usr/bin"
 
             # Determine application directory
-            APP_DIR="${{ secrets.EC2_APP_DIR || '/var/www/nxtgencaptions' }}"
-            if [ ! -d "$APP_DIR" ]; then
-              if [ -d "$HOME/nxtgencaptions" ]; then
+            APP_DIR="${{ secrets.EC2_APP_DIR || '' }}"
+            if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR" ]; then
+              if [ -d "$HOME/NxtGenCaptions" ]; then
+                APP_DIR="$HOME/NxtGenCaptions"
+              elif [ -d "$HOME/nxtgencaptions" ]; then
                 APP_DIR="$HOME/nxtgencaptions"
+              elif [ -d "/var/www/nxtgencaptions" ]; then
+                APP_DIR="/var/www/nxtgencaptions"
               elif [ -d "$HOME/NxtGen-Captions" ]; then
                 APP_DIR="$HOME/NxtGen-Captions"
               else
