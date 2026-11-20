@@ -68,13 +68,13 @@ log "Installing frontend dependencies (cached)..."
 
 # 6. Generate Prisma Clients
 log "Generating Prisma clients for Backend and Frontend..."
-(cd "$ROOT_DIR/backend" && npx prisma generate)
-(cd "$ROOT_DIR/frontend" && npx prisma generate)
+(cd "$ROOT_DIR/backend" && npx --yes prisma@7 generate)
+(cd "$ROOT_DIR/frontend" && npx --yes prisma@7 generate)
 
 # 7. Run Database Migrations
 if [ "${SKIP_MIGRATIONS:-false}" != "true" ]; then
   log "Applying Prisma database migrations..."
-  (cd "$ROOT_DIR/frontend" && npx prisma migrate deploy)
+  (cd "$ROOT_DIR/frontend" && npx --yes prisma@7 migrate deploy)
 else
   log_warn "Database migrations skipped (SKIP_MIGRATIONS=true)."
 fi

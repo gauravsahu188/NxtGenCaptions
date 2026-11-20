@@ -65,7 +65,7 @@ jobs:
 
       - name: Generate Frontend Prisma Client
         working-directory: ./frontend
-        run: npx prisma generate
+        run: npx --yes prisma@7 generate
 
       - name: Build Next.js Production Bundle
         working-directory: ./frontend
@@ -100,7 +100,7 @@ jobs:
 
       - name: Generate Backend Prisma Client
         working-directory: ./backend
-        run: npx prisma generate
+        run: npx --yes prisma@7 generate
 
       - name: Compile Backend TypeScript
         working-directory: ./backend
@@ -190,13 +190,13 @@ jobs:
 
               # Prisma Clients
               echo "💎 Generating Prisma clients..."
-              (cd backend && npx prisma generate)
-              (cd frontend && npx prisma generate)
+              (cd backend && npx --yes prisma@7 generate)
+              (cd frontend && npx --yes prisma@7 generate)
 
               # Database Migrations
               if [ "$SKIP_MIGRATIONS" != "true" ]; then
                 echo "🗄️ Running Prisma migrations..."
-                (cd frontend && npx prisma migrate deploy)
+                (cd frontend && npx --yes prisma@7 migrate deploy)
               fi
 
               # Build services
