@@ -127,6 +127,19 @@ jobs:
           echo "🚀 All concurrent builds passed successfully!"
           echo "Connecting to AWS EC2 instance for automatic code update on nxtgencaptions.com..."
 
+      - name: Validate EC2 Secrets
+        run: |
+          MISSING=""
+          [ -z "${{ secrets.EC2_HOST }}" ] && MISSING="$MISSING EC2_HOST"
+          [ -z "${{ secrets.EC2_USER }}" ] && MISSING="$MISSING EC2_USER"
+          [ -z "${{ secrets.EC2_SSH_KEY }}" ] && MISSING="$MISSING EC2_SSH_KEY"
+          if [ -n "$MISSING" ]; then
+            echo "❌ Error: The following required GitHub Secrets are missing or empty:$MISSING"
+            echo "Please configure them under: Repository Settings -> Secrets and variables -> Actions -> Repository secrets"
+            exit 1
+          fi
+          echo "✅ All required EC2 connection secrets are configured."
+
       - name: Deploy via SSH to AWS EC2
         uses: appleboy/ssh-action@v1.2.0
         env:
