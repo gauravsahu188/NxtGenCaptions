@@ -102,11 +102,18 @@ class VideoController {
             const isAdmin = dbUser?.email === "nxtgencaptions@gmail.com";
             // Always get duration (needed for project record & quota checks)
             let durationSeconds = 0;
+            let dimensions = { width: 0, height: 0 };
             try {
                 durationSeconds = await ffmpegService.getVideoDuration(videoPath);
             }
             catch (e) {
                 console.warn("[VideoController] Could not get video duration:", e);
+            }
+            try {
+                dimensions = await ffmpegService.getVideoDimensions(videoPath);
+            }
+            catch (e) {
+                console.warn("[VideoController] Could not get video dimensions:", e);
             }
             // Enforce subscription plan video duration limits
             if (!isAdmin) {
@@ -119,6 +126,9 @@ class VideoController {
                     else {
                         // Fallback hardcoded plan limits if subscription record is missing
                         const limits = {
+                            FREE: 30,
+                            TRIAL_1_INR: 60, // 1 min
+                            TRIAL_9_INR: 540, // 9 mins
                             EDITOR: 300, // 5 mins
                             CREATOR: 600, // 10 mins
                             BUSINESS: 1800, // 30 mins
@@ -127,8 +137,10 @@ class VideoController {
                     }
                 }
                 if (durationSeconds > maxSeconds) {
-                    const limitDesc = maxSeconds < 60 ? `${maxSeconds} seconds` : `${maxSeconds / 60} minutes`;
-                    throw new errors_1.AppError(`DURATION_LIMIT_EXCEEDED: Your ${plan} plan allows maximum ${limitDesc} video. Your video is ${Math.round(durationSeconds)} seconds. Please upgrade to process longer videos.`, 403);
+                    const limitDesc = maxSeconds < 60 ? `${maxSeconds} seconds` : `${Math.round(maxSeconds / 60)} minutes`;
+                    const is4KVideo = dimensions.width >= 3840 || dimensions.height >= 2160 || (dimensions.width >= 2160 && dimensions.height >= 3840);
+                    const fourKNote = is4KVideo ? " (4K resolution is supported, but duration must stay within your plan limit)" : "";
+                    throw new errors_1.AppError(`DURATION_LIMIT_EXCEEDED: Your ${plan} plan allows maximum ${limitDesc} video. Your video is ${Math.round(durationSeconds)} seconds.${fourKNote} Please upgrade or trim your video.`, 403);
                 }
             }
             if (user && !isAdmin) {
@@ -291,7 +303,7 @@ class VideoController {
                     console.warn("[VideoController] S3/project creation failed (non-fatal):", s3Error);
                 }
             }
-            sendEvent("complete", { captions, s3Key: s3SourceKey, projectId });
+            sendEvent("complete", { captions, s3Key: s3SourceKey, projectId, dimensions });
             res.end();
         }
         catch (error) {

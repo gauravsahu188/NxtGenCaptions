@@ -29,16 +29,12 @@ function getPaymentConfig() {
         keySecret: envVars.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET || '',
     };
 }
-let razorpayInstance = null;
 function getRazorpayInstance() {
-    if (!razorpayInstance) {
-        const config = getPaymentConfig();
-        razorpayInstance = new razorpay_1.default({
-            key_id: config.keyId,
-            key_secret: config.keySecret,
-        });
-    }
-    return razorpayInstance;
+    const config = getPaymentConfig();
+    return new razorpay_1.default({
+        key_id: config.keyId.trim(),
+        key_secret: config.keySecret.trim(),
+    });
 }
 async function initiatePayment(params) {
     const config = getPaymentConfig();
@@ -84,10 +80,14 @@ async function initiatePayment(params) {
     }
     catch (error) {
         console.error('[PaymentService] Error:', error);
+        const description = error.error?.description || error.message || 'Failed to create order';
+        const errorMessage = description === 'Authentication failed'
+            ? 'Razorpay authentication failed: The RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is invalid or expired. Please verify your keys in Razorpay Dashboard.'
+            : description;
         return {
             success: false,
             orderId: params.orderId,
-            error: error.error?.description || error.message || 'Failed to create order',
+            error: errorMessage,
         };
     }
 }

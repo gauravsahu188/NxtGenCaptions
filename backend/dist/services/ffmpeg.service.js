@@ -35,6 +35,19 @@ class FFmpegService {
             });
         });
     }
+    async getVideoDimensions(videoPath) {
+        return new Promise((resolve, reject) => {
+            fluent_ffmpeg_1.default.ffprobe(videoPath, (err, metadata) => {
+                if (err)
+                    return reject(err);
+                const stream = metadata.streams.find((s) => s.codec_type === "video");
+                resolve({
+                    width: stream?.width ?? 0,
+                    height: stream?.height ?? 0,
+                });
+            });
+        });
+    }
     async getSpeechBounds(audioPath, duration) {
         if (!duration) {
             duration = await this.getVideoDuration(audioPath);

@@ -5,6 +5,8 @@ const prisma_1 = require("../lib/prisma");
 const errors_1 = require("../utils/errors");
 const PLAN_LIMITS = {
     FREE: 5 * 1024 * 1024 * 1024,
+    TRIAL_1_INR: 5 * 1024 * 1024 * 1024,
+    TRIAL_9_INR: 5 * 1024 * 1024 * 1024,
     EDITOR: 20 * 1024 * 1024 * 1024,
     CREATOR: 60 * 1024 * 1024 * 1024,
     BUSINESS: 150 * 1024 * 1024 * 1024,
@@ -40,7 +42,7 @@ const guardrailMiddleware = async (req, res, next) => {
         const incomingSize = parseInt(req.headers["content-length"] || "0", 10);
         const totalProjected = Number(user.storageUsed) + incomingSize;
         if (totalProjected > planLimit) {
-            throw new errors_1.AppError(`Storage limit exceeded. Your ${user.planType} plan allows up to ${formatBytes(planLimit)}.`, 403);
+            throw new errors_1.AppError(`STORAGE_LIMIT_EXCEEDED: Storage limit reached. Your ${user.planType} plan allows up to ${formatBytes(planLimit)}. Please upgrade or delete old projects.`, 403);
         }
         // Attach full user to req for downstream use
         req.user = user;

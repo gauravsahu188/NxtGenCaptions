@@ -217,7 +217,7 @@ export class RenderController {
 
       const progress = await getRenderProgress({
         region: REMOTION_REGION,
-        functionName: REMOTION_FUNCTION_NAME,
+        functionName: REMOTION_FUNCTION_NAME as any,
         bucketName: EXPORTS_BUCKET,
         renderId: renderId as string,
       });

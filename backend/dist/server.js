@@ -22,6 +22,7 @@ const video_routes_1 = __importDefault(require("./routes/video.routes"));
 const render_routes_1 = __importDefault(require("./routes/render.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const webhook_routes_1 = __importDefault(require("./routes/webhook.routes"));
+const mcp_routes_1 = __importDefault(require("./routes/mcp.routes"));
 const errors_1 = require("./utils/errors");
 const cleanup_1 = require("./utils/cleanup");
 const app = (0, express_1.default)();
@@ -42,6 +43,7 @@ app.use((req, res, next) => {
     next();
 });
 // Serve static files for video preview
+// Trigger tsx watch restart
 const uploadDir = path_1.default.join(process.cwd(), "uploads");
 if (!fs_1.default.existsSync(uploadDir)) {
     fs_1.default.mkdirSync(uploadDir, { recursive: true });
@@ -52,6 +54,7 @@ app.use("/api/video", video_routes_1.default);
 app.use("/api/render", render_routes_1.default);
 app.use("/api/payment", payment_routes_1.default);
 app.use("/api/webhooks", webhook_routes_1.default);
+app.use("/api/mcp", mcp_routes_1.default);
 // Root endpoint to prevent "Cannot GET /"
 app.get("/", (req, res) => {
     res.json({
@@ -73,7 +76,27 @@ app.get("/api/health", (req, res) => {
 });
 // Basic error handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error(err.stack || err);
+    // Handle Multer upload errors
+    if (err?.name === "MulterError") {
+        if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(413).json({
+                status: "error",
+                message: "FILE_SIZE_LIMIT_EXCEEDED: Video file exceeds maximum size limit (4 GB). Please upload a smaller or compressed video.",
+            });
+        }
+        return res.status(400).json({
+            status: "error",
+            message: `Upload error: ${err.message}`,
+        });
+    }
+    // Handle Image upload violation in video route
+    if (err?.message?.includes("IMAGE_UPLOAD_VIOLATION")) {
+        return res.status(400).json({
+            status: "error",
+            message: "IMAGE_UPLOAD_VIOLATION: Image files are not supported. Please upload an MP4, MOV, or WEBM video file.",
+        });
+    }
     if (err instanceof errors_1.AppError) {
         return res.status(err.statusCode).json({ status: "error", message: err.message });
     }

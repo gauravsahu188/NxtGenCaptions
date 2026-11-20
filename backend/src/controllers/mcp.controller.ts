@@ -85,9 +85,10 @@ export class McpController {
       }
 
       const { id } = req.params;
+      const keyId = Array.isArray(id) ? id[0] : id;
 
       const apiKey = await prisma.apiKey.findUnique({
-        where: { id },
+        where: { id: keyId },
       });
 
       if (!apiKey || apiKey.userId !== userId) {
@@ -95,7 +96,7 @@ export class McpController {
       }
 
       await prisma.apiKey.update({
-        where: { id },
+        where: { id: keyId },
         data: { status: "revoked" },
       });
 
@@ -180,9 +181,10 @@ export class McpController {
       }
 
       const { id } = req.params;
+      const projectId = Array.isArray(id) ? id[0] : id;
 
       const project = await prisma.project.findUnique({
-        where: { id },
+        where: { id: projectId },
       });
 
       if (!project || project.userId !== userId) {
