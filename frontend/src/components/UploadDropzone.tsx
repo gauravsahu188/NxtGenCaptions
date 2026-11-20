@@ -239,10 +239,8 @@ export default function UploadDropzone({
     if (duration > maxDuration) {
       const limitLabel = formatDurationLimit(maxDuration);
       const durLabel = formatTimeSeconds(duration);
-      const title = is4K ? "4K Video Duration Limit Exceeded" : "Video Duration Limit Exceeded";
-      const message = is4K
-        ? `4K Ultra HD video is fully supported on NxtGen! However, your ${planType.toLowerCase()} plan allows a maximum duration of ${limitLabel}. Your 4K video is ${durLabel} (${Math.round(duration)}s). Please trim your video to ${limitLabel} or upgrade your plan to unlock longer 4K videos.`
-        : `Your ${planType.toLowerCase()} plan allows videos up to ${limitLabel}. The uploaded video is ${durLabel} (${Math.round(duration)}s). Please trim your video to ${limitLabel} or upgrade your plan to process longer videos.`;
+      const title = is4K ? "4K Video Duration Limit" : "Plan Duration Limit";
+      const message = `Uploaded video is ${durLabel} (your ${planType.toLowerCase()} plan limit is ${limitLabel}).${is4K ? " 4K videos are supported; upgrade to process longer videos." : " Upgrade your plan to process longer videos."}`;
 
       setUiError({
         type: "duration",
@@ -262,9 +260,9 @@ export default function UploadDropzone({
       });
 
       showError(
-        `Video duration exceeds limits. Your ${planType.toLowerCase()} plan allows maximum ${limitLabel}. Your video is ${durLabel}.`,
+        `Video duration exceeds limits. Your ${planType.toLowerCase()} plan allows max ${limitLabel} (uploaded: ${durLabel}).`,
         {
-          duration: 8000,
+          duration: 6000,
           action: {
             label: "Upgrade Plan",
             onClick: () => setIsPaymentModalOpen(true),
@@ -460,11 +458,11 @@ export default function UploadDropzone({
 
           if (rawMsg.includes("DURATION_LIMIT_EXCEEDED") || rawMsg.includes("FREE_LIMIT_EXCEEDED")) {
             errType = "duration";
-            errTitle = "Video Duration Limit Exceeded";
+            errTitle = "Plan Duration Limit";
             isUpgrade = true;
           } else if (rawMsg.includes("NO_CREDITS") || rawMsg.includes("CREDIT_LIMIT_EXCEEDED")) {
             errType = "quota";
-            errTitle = "Insufficient Transcription Credits";
+            errTitle = "Credit Limit Reached";
             isUpgrade = true;
           } else if (rawMsg.includes("STORAGE_LIMIT_EXCEEDED") || rawMsg.includes("Storage limit")) {
             errType = "storage";
@@ -472,7 +470,7 @@ export default function UploadDropzone({
             isUpgrade = true;
           } else if (rawMsg.includes("IMAGE_UPLOAD_VIOLATION")) {
             errType = "image";
-            errTitle = "Image Upload Violation";
+            errTitle = "Invalid Media Format";
           } else if (rawMsg.includes("FILE_SIZE_LIMIT_EXCEEDED")) {
             errType = "file-size";
             errTitle = "File Size Limit Exceeded";
@@ -607,6 +605,10 @@ export default function UploadDropzone({
     xhr.send(formData);
   };
 
+  const isPlanViolation = Boolean(
+    uiError && (uiError.type === "duration" || uiError.type === "quota" || uiError.type === "storage")
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -676,147 +678,96 @@ export default function UploadDropzone({
         </div>
       </div>
 
-      {/* Upload Violation Error Banner in UI */}
+      {/* Minimal Plan & Upload Restriction Error Alert */}
       <AnimatePresence>
         {uiError && (
           <motion.div
-            initial={{ opacity: 0, y: -12, scale: 0.98 }}
+            initial={{ opacity: 0, y: -8, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -12, scale: 0.98 }}
-            transition={{ duration: 0.3 }}
-            className="mb-6 p-5 rounded-2xl border border-red-500/30 bg-red-950/20 backdrop-blur-xl shadow-2xl shadow-red-950/40 text-left relative overflow-hidden"
+            exit={{ opacity: 0, y: -8, scale: 0.99 }}
+            transition={{ duration: 0.2 }}
+            className={`mb-4 px-4 py-3 rounded-2xl border backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg ${
+              isPlanViolation
+                ? "bg-amber-500/[0.08] border-amber-500/30 text-amber-200 shadow-amber-950/20"
+                : "bg-red-500/[0.08] border-red-500/30 text-red-200 shadow-red-950/20"
+            }`}
           >
-            {/* Background subtle radial glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                  isPlanViolation
+                    ? "bg-amber-500/20 text-amber-400"
+                    : "bg-red-500/20 text-red-400"
+                }`}
+              >
+                {uiError.type === "duration" && <Clock className="w-4 h-4" />}
+                {uiError.type === "quota" && <Zap className="w-4 h-4" />}
+                {(uiError.type === "storage" || uiError.type === "file-size") && <HardDrive className="w-4 h-4" />}
+                {uiError.type === "image" && <ImageOff className="w-4 h-4" />}
+                {uiError.type === "file-type" && <AlertTriangle className="w-4 h-4" />}
+                {(uiError.type === "server" || uiError.type === "network") && <AlertCircle className="w-4 h-4" />}
+              </div>
 
-            <div className="relative z-10 flex flex-col gap-3.5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${uiError.type === "duration" || uiError.type === "quota"
-                        ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                        : "bg-red-500/20 text-red-400 border border-red-500/30"
-                      }`}
-                  >
-                    {uiError.type === "image" && <ImageOff className="w-5 h-5" />}
-                    {uiError.type === "duration" && <Clock className="w-5 h-5" />}
-                    {uiError.type === "file-size" && <HardDrive className="w-5 h-5" />}
-                    {uiError.type === "storage" && <HardDrive className="w-5 h-5" />}
-                    {uiError.type === "quota" && <Zap className="w-5 h-5" />}
-                    {uiError.type === "file-type" && <AlertTriangle className="w-5 h-5" />}
-                    {(uiError.type === "server" || uiError.type === "network") && (
-                      <AlertCircle className="w-5 h-5" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-base font-semibold text-white tracking-tight">
-                        {uiError.title}
-                      </h4>
-                      {uiError.is4K && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/40">
-                          4K UHD
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-zinc-400 mt-0.5">Upload Violation Detected</p>
-                  </div>
+              <div className="min-w-0 text-xs sm:text-sm">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-semibold text-white tracking-tight">{uiError.title}:</span>
+                  <span className="text-zinc-300 font-normal">{uiError.message}</span>
+                  {uiError.is4K && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                      4K UHD
+                    </span>
+                  )}
                 </div>
-
-                <button
-                  onClick={() => setUiError(null)}
-                  className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
-                  title="Dismiss error"
-                >
-                  <X className="w-4 h-4" />
-                </button>
               </div>
+            </div>
 
-              {/* Message body */}
-              <p className="text-sm text-zinc-300 leading-relaxed">{uiError.message}</p>
-
-              {/* Violation Details Chips */}
-              {(uiError.fileName ||
-                uiError.allowedLimit ||
-                uiError.durationFormatted ||
-                uiError.fileSizeFormatted ||
-                uiError.is4K) && (
-                  <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                    {uiError.fileName && (
-                      <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-zinc-300 truncate max-w-xs">
-                        File: {uiError.fileName}
-                      </span>
-                    )}
-                    {uiError.durationFormatted && (
-                      <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-amber-400 font-medium">
-                        Duration: {uiError.durationFormatted}
-                      </span>
-                    )}
-                    {uiError.allowedLimit && (
-                      <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-green-400 font-medium">
-                        Plan Limit: {uiError.allowedLimit}
-                      </span>
-                    )}
-                    {uiError.fileSizeFormatted && (
-                      <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-zinc-400">
-                        Size: {uiError.fileSizeFormatted}
-                      </span>
-                    )}
-                    {uiError.is4K && (
-                      <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-300 font-medium">
-                        4K Videos Allowed (Plan duration limit applies)
-                      </span>
-                    )}
-                  </div>
-                )}
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3 pt-2">
-                {uiError.action && (
-                  <button
-                    onClick={uiError.action.onClick}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg ${uiError.action.variant === "upgrade"
-                        ? "bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-amber-500/20"
-                        : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
-                      }`}
-                  >
-                    {uiError.action.variant === "upgrade" ? (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        {uiError.action.label}
-                        <ArrowRight className="w-4 h-4 ml-0.5" />
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="w-4 h-4" />
-                        {uiError.action.label}
-                      </>
-                    )}
-                  </button>
-                )}
-
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              {uiError.action && (
                 <button
-                  onClick={() => {
-                    setUiError(null);
-                    fileInputRef.current?.click();
-                  }}
-                  className="px-3.5 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                  onClick={uiError.action.onClick}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm ${
+                    uiError.action.variant === "upgrade"
+                      ? "bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-amber-500/20"
+                      : "bg-white/10 hover:bg-white/15 text-white border border-white/10"
+                  }`}
                 >
-                  Select Another Video
+                  {uiError.action.variant === "upgrade" ? (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{uiError.action.label}</span>
+                      <ArrowRight className="w-3 h-3 ml-0.5" />
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>{uiError.action.label}</span>
+                    </>
+                  )}
                 </button>
-              </div>
+              )}
+
+              <button
+                onClick={() => setUiError(null)}
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <div
-        className={`glass-panel relative flex flex-col items-center justify-center w-full h-80 rounded-3xl border-2 border-dashed transition-all duration-300 overflow-hidden cursor-pointer ${uiError
-            ? "border-red-500/40 bg-red-500/5 hover:border-red-500/60"
+        className={`glass-panel relative flex flex-col items-center justify-center w-full h-80 rounded-3xl border-2 border-dashed transition-all duration-300 overflow-hidden cursor-pointer ${
+          uiError
+            ? isPlanViolation
+              ? "border-amber-500/40 bg-amber-500/[0.02] hover:border-amber-500/60"
+              : "border-red-500/40 bg-red-500/[0.02] hover:border-red-500/60"
             : isDragging
               ? "border-accent bg-accent/10"
               : "border-zinc-800 hover:border-zinc-700"
-          }`}
+        }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -833,15 +784,22 @@ export default function UploadDropzone({
         {/* Dropzone UI */}
         <div className="flex flex-col items-center space-y-6">
           <div
-            className={`p-4 rounded-full shadow-inner border transition-all ${uiError
-                ? "bg-red-500/10 border-red-500/30"
+            className={`p-4 rounded-full shadow-inner border transition-all ${
+              uiError
+                ? isPlanViolation
+                  ? "bg-amber-500/10 border-amber-500/30"
+                  : "bg-red-500/10 border-red-500/30"
                 : isDragging
                   ? "bg-accent/20 border-accent/40"
                   : "bg-zinc-900/50 border-zinc-800"
-              }`}
+            }`}
           >
             {uiError ? (
-              <AlertTriangle className="w-10 h-10 text-red-400" />
+              isPlanViolation ? (
+                <Clock className="w-10 h-10 text-amber-400" />
+              ) : (
+                <AlertTriangle className="w-10 h-10 text-red-400" />
+              )
             ) : isDragging ? (
               <FileVideo className="w-10 h-10 text-accent" />
             ) : (
@@ -850,7 +808,7 @@ export default function UploadDropzone({
           </div>
           <div className="text-center space-y-2">
             <h3 className="text-2xl font-semibold text-gradient tracking-tight">
-              {uiError ? "Choose another video file" : "Upload your video"}
+              {uiError ? "Select another video file" : "Upload your video"}
             </h3>
             <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">
               Drag and drop your MP4, MOV, or WEBM file here, or click to browse. We&apos;ll
