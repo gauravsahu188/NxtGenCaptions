@@ -11,6 +11,7 @@ module.exports = {
       cwd: "./frontend",
       script: "node_modules/next/dist/bin/next",
       args: "start -p 3000",
+      interpreter: "node",
       env: {
         NODE_ENV: "production",
         PORT: 3000,
@@ -30,8 +31,9 @@ module.exports = {
     {
       name: "nxtgen-backend",
       cwd: "./backend",
-      script: hasBackendDist ? "node" : "npx",
-      args: hasBackendDist ? "dist/server.js" : "tsx src/server.ts",
+      script: hasBackendDist ? "dist/server.js" : "src/server.ts",
+      interpreter: hasBackendDist ? "node" : "npx",
+      args: hasBackendDist ? "" : "tsx",
       env: {
         NODE_ENV: "production",
         PORT: 3001,

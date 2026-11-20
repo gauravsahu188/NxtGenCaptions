@@ -86,18 +86,20 @@ log "Building Backend TypeScript..."
 log "Building Frontend Next.js production bundle..."
 (cd "$ROOT_DIR/frontend" && npm run build)
 
-# 9. Zero-Downtime Reload via PM2
+# 9. Reload application services via PM2
 log "Reloading application services via PM2..."
 if ! command -v pm2 >/dev/null 2>&1; then
   log_warn "PM2 not found in PATH. Installing PM2 globally..."
   npm install -g pm2
 fi
 
-if pm2 describe nxtgen-frontend >/dev/null 2>&1; then
-  pm2 restart "$ROOT_DIR/ecosystem.config.js" --update-env
-else
-  pm2 start "$ROOT_DIR/ecosystem.config.js"
-fi
+# Clean up any stale or corrupted process entries so new configuration takes effect
+pm2 delete nxtgen-frontend 2>/dev/null || true
+pm2 delete nxtgen-backend 2>/dev/null || true
+pm2 delete nxtgen-api 2>/dev/null || true
+
+# Start applications fresh with updated ecosystem config
+pm2 start "$ROOT_DIR/ecosystem.config.js"
 pm2 save
 
 # 10. Post-Deployment Verification & Health Checks
