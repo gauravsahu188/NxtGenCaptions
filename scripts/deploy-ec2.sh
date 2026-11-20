@@ -59,12 +59,12 @@ else
   ln -sf "$ROOT_DIR/.env.local" "$ROOT_DIR/backend/.env" 2>/dev/null || true
 fi
 
-# 5. Fast Dependency Installation (Using Cache)
+# 5. Fast Dependency Installation (Using Cache with Fallback)
 log "Installing backend dependencies (cached)..."
-(cd "$ROOT_DIR/backend" && npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip)
+(cd "$ROOT_DIR/backend" && (npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip || npm install --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip))
 
 log "Installing frontend dependencies (cached)..."
-(cd "$ROOT_DIR/frontend" && npm ci --prefer-offline --no-audit)
+(cd "$ROOT_DIR/frontend" && (npm ci --prefer-offline --no-audit || npm install --prefer-offline --no-audit))
 
 # 6. Generate Prisma Clients
 log "Generating Prisma clients for Backend and Frontend..."

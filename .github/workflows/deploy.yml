@@ -61,7 +61,7 @@ jobs:
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit || npm install --prefer-offline --no-audit
 
       - name: Generate Frontend Prisma Client
         working-directory: ./frontend
@@ -96,7 +96,7 @@ jobs:
 
       - name: Install Backend Dependencies
         working-directory: ./backend
-        run: npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip
+        run: npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip || npm install --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip
 
       - name: Generate Backend Prisma Client
         working-directory: ./backend
@@ -185,8 +185,8 @@ jobs:
 
               # Install dependencies with offline caching
               echo "📦 Installing dependencies..."
-              (cd backend && npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip)
-              (cd frontend && npm ci --prefer-offline --no-audit)
+              (cd backend && (npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip || npm install --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip))
+              (cd frontend && (npm ci --prefer-offline --no-audit || npm install --prefer-offline --no-audit))
 
               # Prisma Clients
               echo "💎 Generating Prisma clients..."
