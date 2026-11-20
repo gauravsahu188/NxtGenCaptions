@@ -102,6 +102,11 @@ export default function UploadDropzone({
     setOriginalVideoWidth,
     setOriginalVideoHeight,
     setAspectRatio,
+    originalVideoWidth,
+    originalVideoHeight,
+    setUploadProgress,
+    setUploadStage,
+    setAbortUpload,
   } = useCaptionContext();
   const { error: showError } = useToast();
 
@@ -298,10 +303,21 @@ export default function UploadDropzone({
       return;
     }
 
+    const is4K = originalVideoWidth >= 3840 || originalVideoHeight >= 2160;
+
     setUiError(null);
     setVideoUrl(URL.createObjectURL(file));
     setCaptions([]);
     setIsProcessing(true);
+    setUploadStage("uploading");
+    setUploadProgress({
+      percentage: 0,
+      loaded: 0,
+      total: file.size,
+      fileName: file.name,
+      is4K,
+    });
+    setProcessingMessage(`Uploading video (${formatFileSize(file.size)})...`);
 
     const formData = new FormData();
     if (userId) formData.append("userId", userId);
@@ -310,45 +326,228 @@ export default function UploadDropzone({
     formData.append("audioEnhance", audioEnhance.toString());
     formData.append("video", file);
 
-    try {
-      const headers: Record<string, string> = {};
-      if (userId) headers["x-user-id"] = userId;
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+    const xhr = new XMLHttpRequest();
+    const startTime = Date.now();
 
-      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
-      const res = await fetch(`${BACKEND_URL}/api/video/upload`, {
-        method: "POST",
-        headers,
-        body: formData,
+    // Register abort function for user cancellation
+    setAbortUpload(() => () => {
+      xhr.abort();
+      setUploadStage("idle");
+      setIsProcessing(false);
+      setUploadProgress(null);
+      setVideoUrl(null);
+      setAbortUpload(null);
+    });
+
+    // 1. Upload progress tracking (browser -> server)
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) {
+        const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
+        const elapsedSeconds = Math.max(0.1, (Date.now() - startTime) / 1000);
+        const speed = event.loaded / elapsedSeconds;
+        const remainingBytes = Math.max(0, event.total - event.loaded);
+        const remainingSeconds = speed > 0 ? Math.ceil(remainingBytes / speed) : 0;
+
+        setUploadProgress({
+          percentage: percent,
+          loaded: event.loaded,
+          total: event.total,
+          speed,
+          remainingSeconds,
+          fileName: file.name,
+          is4K,
+        });
+
+        if (percent < 100) {
+          setProcessingMessage(`Uploading ${file.name} (${percent}%)...`);
+        } else {
+          setProcessingMessage("Upload complete. Waiting for processing server...");
+        }
+      }
+    };
+
+    xhr.upload.onload = () => {
+      setUploadProgress({
+        percentage: 100,
+        loaded: file.size,
+        total: file.size,
+        fileName: file.name,
+        is4K,
       });
+      setUploadStage("transcribing");
+      setProcessingMessage("Upload complete. Initializing AI transcription...");
+    };
 
-      if (!res.ok) {
-        let errorMsg = `Server error (${res.status})`;
+    // 2. Incremental SSE response parsing from backend stream
+    let processedIndex = 0;
+    const parseSSEChunk = () => {
+      const text = xhr.responseText;
+      if (!text || text.length <= processedIndex) return;
+
+      const unparsed = text.slice(processedIndex);
+      const lastDoubleNewline = unparsed.lastIndexOf("\n\n");
+      if (lastDoubleNewline === -1) return;
+
+      const chunkToProcess = unparsed.slice(0, lastDoubleNewline);
+      processedIndex += lastDoubleNewline + 2;
+
+      const lines = chunkToProcess.split("\n\n");
+      for (const line of lines) {
+        if (!line.trim() || !line.startsWith("data: ")) continue;
+        try {
+          const data = JSON.parse(line.replace("data: ", ""));
+          handleSseEvent(data);
+        } catch (e) {
+          console.error("Error parsing SSE line:", line, e);
+        }
+      }
+    };
+
+    const handleSseEvent = (data: any) => {
+      switch (data.type) {
+        case "init":
+          if (data.videoId) setS3Key(data.videoId);
+          break;
+        case "status":
+          setUploadStage("transcribing");
+          setProcessingMessage(data.message);
+          break;
+        case "segment":
+          setUploadStage("transcribing");
+          setCaptions((prev) => {
+            if (prev.some((s) => s.id === data.segment.id)) return prev;
+            return [...prev, data.segment];
+          });
+          break;
+        case "complete":
+          setUploadStage("complete");
+          setCaptions(data.captions);
+          if (data.s3Key) setS3Key(data.s3Key);
+          if (data.dimensions) {
+            if (data.dimensions.width) setOriginalVideoWidth(data.dimensions.width);
+            if (data.dimensions.height) setOriginalVideoHeight(data.dimensions.height);
+            const aspect = data.dimensions.width / (data.dimensions.height || 1);
+            if (aspect < 0.7) setAspectRatio("9:16");
+            else setAspectRatio("16:9");
+          }
+          setOriginalWords(
+            (data.captions as any[]).flatMap((seg: any) =>
+              seg.words && seg.words.length > 0
+                ? seg.words
+                : (() => {
+                    const wordsList = seg.text.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
+                    const total = wordsList.length || 1;
+                    return wordsList.map((w: string, wi: number) => ({
+                      word: w,
+                      start: seg.start + wi * ((seg.end - seg.start) / total),
+                      end: seg.start + (wi + 1) * ((seg.end - seg.start) / total),
+                    }));
+                  })()
+            )
+          );
+          setIsProcessing(false);
+          setUploadProgress(null);
+          setAbortUpload(null);
+          break;
+        case "error": {
+          setUploadStage("error");
+          setAbortUpload(null);
+          const rawMsg = data.message || "An error occurred during processing.";
+          let errType: UploadViolationError["type"] = "server";
+          let errTitle = "Processing Error";
+          let isUpgrade = false;
+
+          if (rawMsg.includes("DURATION_LIMIT_EXCEEDED") || rawMsg.includes("FREE_LIMIT_EXCEEDED")) {
+            errType = "duration";
+            errTitle = "Video Duration Limit Exceeded";
+            isUpgrade = true;
+          } else if (rawMsg.includes("NO_CREDITS") || rawMsg.includes("CREDIT_LIMIT_EXCEEDED")) {
+            errType = "quota";
+            errTitle = "Insufficient Transcription Credits";
+            isUpgrade = true;
+          } else if (rawMsg.includes("STORAGE_LIMIT_EXCEEDED") || rawMsg.includes("Storage limit")) {
+            errType = "storage";
+            errTitle = "Storage Limit Reached";
+            isUpgrade = true;
+          } else if (rawMsg.includes("IMAGE_UPLOAD_VIOLATION")) {
+            errType = "image";
+            errTitle = "Image Upload Violation";
+          } else if (rawMsg.includes("FILE_SIZE_LIMIT_EXCEEDED")) {
+            errType = "file-size";
+            errTitle = "File Size Limit Exceeded";
+          }
+
+          const cleanMsg = rawMsg.replace(/^[A-Z_]+:\s*/, "");
+
+          setUiError({
+            type: errType,
+            title: errTitle,
+            message: cleanMsg,
+            fileName: file.name,
+            fileSizeFormatted: formatFileSize(file.size),
+            action: isUpgrade
+              ? {
+                  label: "Upgrade Plan",
+                  variant: "upgrade",
+                  onClick: () => setIsPaymentModalOpen(true),
+                }
+              : {
+                  label: "Choose Another Video",
+                  variant: "reselect",
+                  onClick: () => fileInputRef.current?.click(),
+                },
+          });
+
+          if (isUpgrade) {
+            showError(cleanMsg, {
+              duration: 8000,
+              action: {
+                label: "Upgrade Plan",
+                onClick: () => setIsPaymentModalOpen(true),
+              },
+            });
+          } else {
+            showError(cleanMsg);
+          }
+          setVideoUrl(null);
+          setIsProcessing(false);
+          setUploadProgress(null);
+          break;
+        }
+      }
+    };
+
+    xhr.onprogress = parseSSEChunk;
+
+    xhr.onload = () => {
+      parseSSEChunk();
+      setAbortUpload(null);
+
+      if (xhr.status < 200 || xhr.status >= 300) {
+        setUploadStage("error");
+        let errorMsg = `Server error (${xhr.status})`;
         let errType: UploadViolationError["type"] = "server";
         let errTitle = "Upload Failed";
 
         try {
-          const errText = await res.text();
-          try {
-            const parsed = JSON.parse(errText);
-            errorMsg = parsed.message || parsed.error || errorMsg;
-          } catch {
-            if (res.status === 413) {
-              errorMsg = "Video file is too large for the server (maximum 4 GB allowed). Please compress or trim your video.";
-              errType = "file-size";
-              errTitle = "File Size Limit Exceeded";
-            } else if (res.status === 403) {
-              errType = "storage";
-              errTitle = "Upload Restricted";
-            } else if (res.status === 504) {
-              errorMsg = "Server timed out processing the video (504 Gateway Timeout).";
-              errType = "network";
-            } else if (res.status === 502) {
-              errorMsg = "Backend server is currently restarting or unreachable (502 Bad Gateway).";
-              errType = "network";
-            }
-          }
+          const parsed = JSON.parse(xhr.responseText);
+          errorMsg = parsed.message || parsed.error || errorMsg;
         } catch {
-          // ignore
+          if (xhr.status === 413) {
+            errorMsg = "Video file is too large for the server (maximum 4 GB allowed). Please compress or trim your video.";
+            errType = "file-size";
+            errTitle = "File Size Limit Exceeded";
+          } else if (xhr.status === 403) {
+            errType = "storage";
+            errTitle = "Upload Restricted";
+          } else if (xhr.status === 504) {
+            errorMsg = "Server timed out processing the video (504 Gateway Timeout).";
+            errType = "network";
+          } else if (xhr.status === 502) {
+            errorMsg = "Backend server is currently restarting or unreachable (502 Bad Gateway).";
+            errType = "network";
+          }
         }
 
         setUiError({
@@ -374,165 +573,14 @@ export default function UploadDropzone({
         showError(errorMsg);
         setVideoUrl(null);
         setIsProcessing(false);
-        return;
+        setUploadProgress(null);
       }
+    };
 
-      const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      if (!reader) {
-        setUiError({
-          type: "network",
-          title: "Stream Error",
-          message: "Failed to read server response stream.",
-          action: {
-            label: "Try Again",
-            variant: "reselect",
-            onClick: () => fileInputRef.current?.click(),
-          },
-        });
-        showError("Failed to read server response stream.");
-        setVideoUrl(null);
-        setIsProcessing(false);
-        return;
-      }
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (value) {
-          buffer += decoder.decode(value, { stream: !done });
-        }
-
-        const lines = buffer.split("\n\n");
-
-        if (!done) {
-          buffer = lines.pop() || "";
-        } else {
-          buffer = "";
-        }
-
-        for (const line of lines) {
-          if (!line.trim() || !line.startsWith("data: ")) continue;
-
-          try {
-            const data = JSON.parse(line.replace("data: ", ""));
-
-            switch (data.type) {
-              case "init":
-                if (data.videoId) setS3Key(data.videoId);
-                break;
-              case "status":
-                setProcessingMessage(data.message);
-                break;
-              case "segment":
-                setCaptions((prev) => {
-                  if (prev.some((s) => s.id === data.segment.id)) return prev;
-                  return [...prev, data.segment];
-                });
-                break;
-              case "complete":
-                setCaptions(data.captions);
-                if (data.s3Key) setS3Key(data.s3Key);
-                if (data.dimensions) {
-                  if (data.dimensions.width) setOriginalVideoWidth(data.dimensions.width);
-                  if (data.dimensions.height) setOriginalVideoHeight(data.dimensions.height);
-                  const aspect = data.dimensions.width / (data.dimensions.height || 1);
-                  if (aspect < 0.7) setAspectRatio("9:16");
-                  else setAspectRatio("16:9");
-                }
-                setOriginalWords(
-                  (data.captions as any[]).flatMap((seg: any) =>
-                    seg.words && seg.words.length > 0
-                      ? seg.words
-                      : (() => {
-                          const wordsList = seg.text.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
-                          const total = wordsList.length || 1;
-                          return wordsList.map((w: string, wi: number) => ({
-                            word: w,
-                            start: seg.start + wi * ((seg.end - seg.start) / total),
-                            end: seg.start + (wi + 1) * ((seg.end - seg.start) / total),
-                          }));
-                        })()
-                  )
-                );
-                setIsProcessing(false);
-                break;
-              case "error": {
-                const rawMsg = data.message || "An error occurred during processing.";
-                let errType: UploadViolationError["type"] = "server";
-                let errTitle = "Processing Error";
-                let isUpgrade = false;
-
-                if (rawMsg.includes("DURATION_LIMIT_EXCEEDED") || rawMsg.includes("FREE_LIMIT_EXCEEDED")) {
-                  errType = "duration";
-                  errTitle = "Video Duration Limit Exceeded";
-                  isUpgrade = true;
-                } else if (rawMsg.includes("NO_CREDITS") || rawMsg.includes("CREDIT_LIMIT_EXCEEDED")) {
-                  errType = "quota";
-                  errTitle = "Insufficient Transcription Credits";
-                  isUpgrade = true;
-                } else if (rawMsg.includes("STORAGE_LIMIT_EXCEEDED") || rawMsg.includes("Storage limit")) {
-                  errType = "storage";
-                  errTitle = "Storage Limit Reached";
-                  isUpgrade = true;
-                } else if (rawMsg.includes("IMAGE_UPLOAD_VIOLATION")) {
-                  errType = "image";
-                  errTitle = "Image Upload Violation";
-                } else if (rawMsg.includes("FILE_SIZE_LIMIT_EXCEEDED")) {
-                  errType = "file-size";
-                  errTitle = "File Size Limit Exceeded";
-                }
-
-                // Clean prefix like "DURATION_LIMIT_EXCEEDED: "
-                const cleanMsg = rawMsg.replace(/^[A-Z_]+:\s*/, "");
-
-                setUiError({
-                  type: errType,
-                  title: errTitle,
-                  message: cleanMsg,
-                  fileName: file.name,
-                  fileSizeFormatted: formatFileSize(file.size),
-                  action: isUpgrade
-                    ? {
-                        label: "Upgrade Plan",
-                        variant: "upgrade",
-                        onClick: () => setIsPaymentModalOpen(true),
-                      }
-                    : {
-                        label: "Choose Another Video",
-                        variant: "reselect",
-                        onClick: () => fileInputRef.current?.click(),
-                      },
-                });
-
-                if (isUpgrade) {
-                  showError(cleanMsg, {
-                    duration: 8000,
-                    action: {
-                      label: "Upgrade Plan",
-                      onClick: () => setIsPaymentModalOpen(true),
-                    },
-                  });
-                } else {
-                  showError(cleanMsg);
-                }
-                setVideoUrl(null);
-                setIsProcessing(false);
-                break;
-              }
-            }
-          } catch (e) {
-            console.error("Error parsing SSE line:", line, e);
-          }
-        }
-
-        if (done) break;
-      }
-    } catch (error: any) {
-      console.error("[Upload error]", error);
-      const msg = error?.message ? `Connection failed: ${error.message}` : "Failed to connect to the server.";
+    xhr.onerror = () => {
+      setAbortUpload(null);
+      setUploadStage("error");
+      const msg = "Connection lost while uploading the video. Please check your internet connection and try again.";
       setUiError({
         type: "network",
         title: "Connection Failed",
@@ -546,9 +594,13 @@ export default function UploadDropzone({
       });
       showError(msg);
       setVideoUrl(null);
-    } finally {
       setIsProcessing(false);
-    }
+      setUploadProgress(null);
+    };
+
+    xhr.open("POST", `${BACKEND_URL}/api/video/upload`, true);
+    if (userId) xhr.setRequestHeader("x-user-id", userId);
+    xhr.send(formData);
   };
 
   return (
