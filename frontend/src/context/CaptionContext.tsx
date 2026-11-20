@@ -76,6 +76,18 @@ export interface CaptionStyle {
   previewWidth?: number;
 }
 
+export interface UploadProgressData {
+  percentage: number;
+  loaded: number;
+  total: number;
+  speed?: number; // bytes per second
+  remainingSeconds?: number;
+  fileName?: string;
+  is4K?: boolean;
+}
+
+export type UploadStage = "idle" | "uploading" | "transcribing" | "complete" | "error";
+
 interface CaptionContextProps {
   videoUrl: string | null;
   setVideoUrl: (url: string | null) => void;
@@ -96,6 +108,12 @@ interface CaptionContextProps {
   setIsProcessing: (val: boolean) => void;
   processingMessage: string;
   setProcessingMessage: (msg: string) => void;
+  uploadProgress: UploadProgressData | null;
+  setUploadProgress: React.Dispatch<React.SetStateAction<UploadProgressData | null>>;
+  uploadStage: UploadStage;
+  setUploadStage: React.Dispatch<React.SetStateAction<UploadStage>>;
+  abortUpload: (() => void) | null;
+  setAbortUpload: React.Dispatch<React.SetStateAction<(() => void) | null>>;
   s3Key: string | null;
   setS3Key: (key: string | null) => void;
   aspectRatio: string;
@@ -145,6 +163,9 @@ export const CaptionProvider = ({ children }: { children: ReactNode }) => {
   const [duration, setDuration] = useState<number>(10);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingMessage, setProcessingMessage] = useState<string>("Initializing...");
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressData | null>(null);
+  const [uploadStage, setUploadStage] = useState<UploadStage>("idle");
+  const [abortUpload, setAbortUpload] = useState<(() => void) | null>(null);
   const [originalWords, setOriginalWords] = useState<WordTiming[]>([]);
   const [s3Key, setS3Key] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState<string>("16:9");
@@ -315,6 +336,9 @@ export const CaptionProvider = ({ children }: { children: ReactNode }) => {
       duration, setDuration,
       isProcessing, setIsProcessing,
       processingMessage, setProcessingMessage,
+      uploadProgress, setUploadProgress,
+      uploadStage, setUploadStage,
+      abortUpload, setAbortUpload,
       captionStyle, setCaptionStyle,
       s3Key, setS3Key,
       aspectRatio, setAspectRatio,

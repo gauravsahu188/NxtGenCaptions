@@ -1,0 +1,226 @@
+name: CI/CD Pipeline - EC2 Deployment
+
+# Trigger deployment on push to main, pull requests (CI check only), or manual trigger
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      skip_migrations:
+        description: 'Skip Prisma DB Migrations'
+        required: false
+        default: false
+        type: boolean
+      force_deploy:
+        description: 'Force EC2 Deployment'
+        required: false
+        default: false
+        type: boolean
+
+# Cancel obsolete running jobs if newer commits are pushed in the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # =========================================================================
+  # JOB 1: CONCURRENT BUILD & TEST - FRONTEND (Next.js 15 + Prisma)
+  # Runs concurrently with backend build to minimize total CI/CD pipeline time
+  # =========================================================================
+  build-frontend:
+    name: Build Frontend (Next.js)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      # Caching Next.js build output (.next/cache) dramatically speeds up repeated builds
+      - name: Cache Next.js Build
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('frontend/package-lock.json') }}-${{ hashFiles('frontend/src/**', 'frontend/public/**') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('frontend/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Generate Frontend Prisma Client
+        working-directory: ./frontend
+        run: npx prisma generate
+
+      - name: Build Next.js Production Bundle
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_BACKEND_URL: https://nxtgencaptions.com
+          NODE_ENV: production
+        run: npm run build
+
+  # =========================================================================
+  # JOB 2: CONCURRENT BUILD & TEST - BACKEND (Express + TypeScript + Prisma)
+  # Runs concurrently in parallel with frontend build
+  # =========================================================================
+  build-backend:
+    name: Build Backend (Express API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Generate Backend Prisma Client
+        working-directory: ./backend
+        run: npx prisma generate
+
+      - name: Compile Backend TypeScript
+        working-directory: ./backend
+        run: npm run build
+
+  # =========================================================================
+  # JOB 3: AUTOMATIC EC2 DEPLOYMENT
+  # Executes only after BOTH concurrent builds succeed on the 'main' branch
+  # =========================================================================
+  deploy-ec2:
+    name: Deploy to EC2 (nxtgencaptions.com)
+    needs: [build-frontend, build-backend]
+    if: |
+      always() &&
+      needs.build-frontend.result == 'success' &&
+      needs.build-backend.result == 'success' &&
+      (github.ref == 'refs/heads/main' && github.event_name != 'pull_request' || inputs.force_deploy == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Announce Deployment Start
+        run: |
+          echo "🚀 All concurrent builds passed successfully!"
+          echo "Connecting to AWS EC2 instance for automatic code update on nxtgencaptions.com..."
+
+      - name: Deploy via SSH to AWS EC2
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          SKIP_MIGRATIONS: ${{ inputs.skip_migrations || false }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          script_stop: true
+          command_timeout: 15m
+          envs: SKIP_MIGRATIONS
+          script: |
+            set -e
+
+            # 1. Resolve environment & PATH (NVM / Node / PM2 for non-interactive SSH)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export PATH="$PATH:$HOME/.local/bin:/usr/local/bin:/usr/bin"
+
+            # Determine application directory
+            APP_DIR="${{ secrets.EC2_APP_DIR || '/var/www/nxtgencaptions' }}"
+            if [ ! -d "$APP_DIR" ]; then
+              if [ -d "$HOME/nxtgencaptions" ]; then
+                APP_DIR="$HOME/nxtgencaptions"
+              elif [ -d "$HOME/NxtGen-Captions" ]; then
+                APP_DIR="$HOME/NxtGen-Captions"
+              else
+                echo "❌ Error: Application directory not found at $APP_DIR"
+                exit 1
+              fi
+            fi
+
+            echo "📂 Navigating to application directory: $APP_DIR"
+            cd "$APP_DIR"
+
+            # 2. Check if a dedicated deployment script exists, otherwise run inline steps
+            if [ -f "./scripts/deploy-ec2.sh" ]; then
+              echo "⚙️ Executing deployment script ./scripts/deploy-ec2.sh..."
+              chmod +x ./scripts/deploy-ec2.sh
+              ./scripts/deploy-ec2.sh
+            else
+              echo "🔄 Updating code from origin/main..."
+              git fetch origin main
+              git reset --hard origin/main
+
+              # Ensure environment files are linked
+              if [ -f ".env.local" ]; then
+                ln -sf ../.env.local frontend/.env.local 2>/dev/null || true
+                ln -sf ../.env.local backend/.env 2>/dev/null || true
+              fi
+
+              # Install dependencies with offline caching
+              echo "📦 Installing dependencies..."
+              (cd backend && npm ci --prefer-offline --no-audit)
+              (cd frontend && npm ci --prefer-offline --no-audit)
+
+              # Prisma Clients
+              echo "💎 Generating Prisma clients..."
+              (cd backend && npx prisma generate)
+              (cd frontend && npx prisma generate)
+
+              # Database Migrations
+              if [ "$SKIP_MIGRATIONS" != "true" ]; then
+                echo "🗄️ Running Prisma migrations..."
+                (cd frontend && npx prisma migrate deploy)
+              fi
+
+              # Build services
+              echo "🔨 Building Backend & Frontend..."
+              (cd backend && npm run build)
+              (cd frontend && npm run build)
+
+              # Reload PM2 zero-downtime
+              echo "🔄 Reloading PM2 processes..."
+              if pm2 describe nxtgen-frontend > /dev/null 2>&1; then
+                pm2 reload ecosystem.config.js --update-env
+              else
+                pm2 start ecosystem.config.js
+              fi
+              pm2 save
+
+              # Health check
+              echo "🩺 Verifying health status..."
+              sleep 3
+              curl -fsS http://localhost:3001/api/health || { echo "Backend health check failed"; exit 1; }
+              curl -fsS http://localhost:3000 > /dev/null || { echo "Frontend health check failed"; exit 1; }
+            fi
+
+            echo "✅ Deployment on nxtgencaptions.com completed successfully!"
+
+      - name: Deployment Success Summary
+        if: success()
+        run: |
+          echo "=================================================="
+          echo "🎉 CI/CD Pipeline Completed Successfully!"
+          echo "🌐 Live URL: https://nxtgencaptions.com"
+          echo "=================================================="
