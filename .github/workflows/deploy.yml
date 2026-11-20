@@ -26,6 +26,7 @@ concurrency:
 
 env:
   NODE_VERSION: '20'
+  npm_config_onnxruntime_node_install_cuda: skip
 
 jobs:
   # =========================================================================
@@ -95,7 +96,7 @@ jobs:
 
       - name: Install Backend Dependencies
         working-directory: ./backend
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip
 
       - name: Generate Backend Prisma Client
         working-directory: ./backend
@@ -184,7 +185,7 @@ jobs:
 
               # Install dependencies with offline caching
               echo "📦 Installing dependencies..."
-              (cd backend && npm ci --prefer-offline --no-audit)
+              (cd backend && npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip)
               (cd frontend && npm ci --prefer-offline --no-audit)
 
               # Prisma Clients

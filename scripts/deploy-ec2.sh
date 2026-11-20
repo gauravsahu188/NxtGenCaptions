@@ -29,6 +29,9 @@ export PATH="$PATH:$HOME/.local/bin:/usr/local/bin:/usr/bin"
 # Allocate 2GB max memory for Node.js builds to prevent OOM on smaller EC2 instances
 export NODE_OPTIONS="--max-old-space-size=2048"
 
+# Skip ONNX Runtime CUDA download (CPU mode used on EC2)
+export npm_config_onnxruntime_node_install_cuda=skip
+
 # 2. Identify Root Directory
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -58,7 +61,7 @@ fi
 
 # 5. Fast Dependency Installation (Using Cache)
 log "Installing backend dependencies (cached)..."
-(cd "$ROOT_DIR/backend" && npm ci --prefer-offline --no-audit)
+(cd "$ROOT_DIR/backend" && npm ci --prefer-offline --no-audit --onnxruntime-node-install-cuda=skip)
 
 log "Installing frontend dependencies (cached)..."
 (cd "$ROOT_DIR/frontend" && npm ci --prefer-offline --no-audit)
