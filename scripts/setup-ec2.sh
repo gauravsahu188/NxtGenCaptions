@@ -28,16 +28,16 @@ else
   echo "Swapfile already exists."
 fi
 
-# 3. Install Node.js 20 LTS via NVM
+# 3. Install Node.js 22 LTS via NVM
 if [ ! -d "$HOME/.nvm" ]; then
-  echo "Installing NVM and Node.js 20..."
+  echo "Installing NVM and Node.js 22..."
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
   export NVM_DIR="$HOME/.nvm"
   # shellcheck source=/dev/null
   \. "$NVM_DIR/nvm.sh"
-  nvm install 20
-  nvm use 20
-  nvm alias default 20
+  nvm install 22
+  nvm use 22
+  nvm alias default 22
 else
   echo "NVM already installed."
 fi
