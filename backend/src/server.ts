@@ -117,8 +117,13 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  // Start background task to clean up old files in uploads/ and temp/ every 15 minutes
-  startPeriodicCleanup();
-});
+  const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    // Start background task to clean up old files in uploads/ and temp/ every 15 minutes
+    startPeriodicCleanup();
+  });
+
+  // Configure server timeouts for large 4K video uploads (up to 4 GB)
+  server.timeout = 15 * 60 * 1000; // 15 minutes
+  server.keepAliveTimeout = 120 * 1000;
+  server.headersTimeout = 125 * 1000;

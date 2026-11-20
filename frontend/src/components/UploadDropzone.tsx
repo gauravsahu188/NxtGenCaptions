@@ -436,14 +436,14 @@ export default function UploadDropzone({
               seg.words && seg.words.length > 0
                 ? seg.words
                 : (() => {
-                    const wordsList = seg.text.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
-                    const total = wordsList.length || 1;
-                    return wordsList.map((w: string, wi: number) => ({
-                      word: w,
-                      start: seg.start + wi * ((seg.end - seg.start) / total),
-                      end: seg.start + (wi + 1) * ((seg.end - seg.start) / total),
-                    }));
-                  })()
+                  const wordsList = seg.text.split(/[\s\u200B-\u200D\uFEFF]+/u).filter(Boolean);
+                  const total = wordsList.length || 1;
+                  return wordsList.map((w: string, wi: number) => ({
+                    word: w,
+                    start: seg.start + wi * ((seg.end - seg.start) / total),
+                    end: seg.start + (wi + 1) * ((seg.end - seg.start) / total),
+                  }));
+                })()
             )
           );
           setIsProcessing(false);
@@ -488,15 +488,15 @@ export default function UploadDropzone({
             fileSizeFormatted: formatFileSize(file.size),
             action: isUpgrade
               ? {
-                  label: "Upgrade Plan",
-                  variant: "upgrade",
-                  onClick: () => setIsPaymentModalOpen(true),
-                }
+                label: "Upgrade Plan",
+                variant: "upgrade",
+                onClick: () => setIsPaymentModalOpen(true),
+              }
               : {
-                  label: "Choose Another Video",
-                  variant: "reselect",
-                  onClick: () => fileInputRef.current?.click(),
-                },
+                label: "Choose Another Video",
+                variant: "reselect",
+                onClick: () => fileInputRef.current?.click(),
+              },
           });
 
           if (isUpgrade) {
@@ -559,15 +559,15 @@ export default function UploadDropzone({
           action:
             errType === "storage"
               ? {
-                  label: "Upgrade Plan",
-                  variant: "upgrade",
-                  onClick: () => setIsPaymentModalOpen(true),
-                }
+                label: "Upgrade Plan",
+                variant: "upgrade",
+                onClick: () => setIsPaymentModalOpen(true),
+              }
               : {
-                  label: "Choose Another Video",
-                  variant: "reselect",
-                  onClick: () => fileInputRef.current?.click(),
-                },
+                label: "Choose Another Video",
+                variant: "reselect",
+                onClick: () => fileInputRef.current?.click(),
+              },
         });
 
         showError(errorMsg);
@@ -580,12 +580,16 @@ export default function UploadDropzone({
     xhr.onerror = () => {
       setAbortUpload(null);
       setUploadStage("error");
-      const msg = "Connection lost while uploading the video. Please check your internet connection and try again.";
+      const isLargeFile = file.size > 95 * 1024 * 1024; // > 95MB
+      const msg = isLargeFile
+        ? "Upload connection was closed by the server. If your video is larger than 100MB, Cloudflare or proxy limits may be dropping the connection."
+        : "Connection lost while uploading the video. Please check your internet connection and try again.";
       setUiError({
         type: "network",
-        title: "Connection Failed",
+        title: isLargeFile ? "Upload Interrupted (Large File)" : "Connection Failed",
         message: msg,
         fileName: file.name,
+        fileSizeFormatted: formatFileSize(file.size),
         action: {
           label: "Try Again",
           variant: "reselect",
@@ -635,23 +639,20 @@ export default function UploadDropzone({
       <div className="mb-4 flex items-center justify-center">
         <button
           onClick={() => setAudioEnhance(!audioEnhance)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${
-            audioEnhance
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${audioEnhance
               ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
               : "bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700"
-          }`}
+            }`}
         >
           <Sparkles className={`w-4 h-4 ${audioEnhance ? "text-amber-400" : "text-zinc-500"}`} />
           <span className="text-sm font-medium">Audio Enhance</span>
           <div
-            className={`relative w-8 h-5 rounded-full transition-all ${
-              audioEnhance ? "bg-amber-500" : "bg-zinc-700"
-            }`}
+            className={`relative w-8 h-5 rounded-full transition-all ${audioEnhance ? "bg-amber-500" : "bg-zinc-700"
+              }`}
           >
             <div
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
-                audioEnhance ? "left-3.5" : "left-0.5"
-              }`}
+              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${audioEnhance ? "left-3.5" : "left-0.5"
+                }`}
             />
           </div>
           <Zap className={`w-3 h-3 ${audioEnhance ? "text-amber-300" : "text-zinc-600"}`} />
@@ -692,11 +693,10 @@ export default function UploadDropzone({
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                      uiError.type === "duration" || uiError.type === "quota"
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${uiError.type === "duration" || uiError.type === "quota"
                         ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                         : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
+                      }`}
                   >
                     {uiError.type === "image" && <ImageOff className="w-5 h-5" />}
                     {uiError.type === "duration" && <Clock className="w-5 h-5" />}
@@ -741,45 +741,44 @@ export default function UploadDropzone({
                 uiError.durationFormatted ||
                 uiError.fileSizeFormatted ||
                 uiError.is4K) && (
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                  {uiError.fileName && (
-                    <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-zinc-300 truncate max-w-xs">
-                      File: {uiError.fileName}
-                    </span>
-                  )}
-                  {uiError.durationFormatted && (
-                    <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-amber-400 font-medium">
-                      Duration: {uiError.durationFormatted}
-                    </span>
-                  )}
-                  {uiError.allowedLimit && (
-                    <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-green-400 font-medium">
-                      Plan Limit: {uiError.allowedLimit}
-                    </span>
-                  )}
-                  {uiError.fileSizeFormatted && (
-                    <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-zinc-400">
-                      Size: {uiError.fileSizeFormatted}
-                    </span>
-                  )}
-                  {uiError.is4K && (
-                    <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-300 font-medium">
-                      4K Videos Allowed (Plan duration limit applies)
-                    </span>
-                  )}
-                </div>
-              )}
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                    {uiError.fileName && (
+                      <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-zinc-300 truncate max-w-xs">
+                        File: {uiError.fileName}
+                      </span>
+                    )}
+                    {uiError.durationFormatted && (
+                      <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-amber-400 font-medium">
+                        Duration: {uiError.durationFormatted}
+                      </span>
+                    )}
+                    {uiError.allowedLimit && (
+                      <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-green-400 font-medium">
+                        Plan Limit: {uiError.allowedLimit}
+                      </span>
+                    )}
+                    {uiError.fileSizeFormatted && (
+                      <span className="px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-zinc-400">
+                        Size: {uiError.fileSizeFormatted}
+                      </span>
+                    )}
+                    {uiError.is4K && (
+                      <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-300 font-medium">
+                        4K Videos Allowed (Plan duration limit applies)
+                      </span>
+                    )}
+                  </div>
+                )}
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3 pt-2">
                 {uiError.action && (
                   <button
                     onClick={uiError.action.onClick}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg ${
-                      uiError.action.variant === "upgrade"
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg ${uiError.action.variant === "upgrade"
                         ? "bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black shadow-amber-500/20"
                         : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
-                    }`}
+                      }`}
                   >
                     {uiError.action.variant === "upgrade" ? (
                       <>
@@ -812,13 +811,12 @@ export default function UploadDropzone({
       </AnimatePresence>
 
       <div
-        className={`glass-panel relative flex flex-col items-center justify-center w-full h-80 rounded-3xl border-2 border-dashed transition-all duration-300 overflow-hidden cursor-pointer ${
-          uiError
+        className={`glass-panel relative flex flex-col items-center justify-center w-full h-80 rounded-3xl border-2 border-dashed transition-all duration-300 overflow-hidden cursor-pointer ${uiError
             ? "border-red-500/40 bg-red-500/5 hover:border-red-500/60"
             : isDragging
-            ? "border-accent bg-accent/10"
-            : "border-zinc-800 hover:border-zinc-700"
-        }`}
+              ? "border-accent bg-accent/10"
+              : "border-zinc-800 hover:border-zinc-700"
+          }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -835,13 +833,12 @@ export default function UploadDropzone({
         {/* Dropzone UI */}
         <div className="flex flex-col items-center space-y-6">
           <div
-            className={`p-4 rounded-full shadow-inner border transition-all ${
-              uiError
+            className={`p-4 rounded-full shadow-inner border transition-all ${uiError
                 ? "bg-red-500/10 border-red-500/30"
                 : isDragging
-                ? "bg-accent/20 border-accent/40"
-                : "bg-zinc-900/50 border-zinc-800"
-            }`}
+                  ? "bg-accent/20 border-accent/40"
+                  : "bg-zinc-900/50 border-zinc-800"
+              }`}
           >
             {uiError ? (
               <AlertTriangle className="w-10 h-10 text-red-400" />
